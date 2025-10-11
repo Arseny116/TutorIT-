@@ -5,15 +5,15 @@ namespace Application.Domain.Models.RootCodeProblem
     //Попробывать когда нить через агрегат сделать
     public class CodeProblem
     {
-        public int Id { get; }
+        public Guid Id { get; }
         public string Title { get; }
         public string Description { get; }
         public string Difficulty { get; }
 
 
-        private readonly List<TestCase> _testCases = new();
+        public List<TestCase> _testCases = new();
 
-        private readonly List<CodeTemplate> _templates = new();
+        public List<CodeTemplate> _templates = new();
 
         private CodeProblem(Guid id, string title, string description, string difficulty)
         {

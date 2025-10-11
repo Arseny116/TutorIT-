@@ -1,3 +1,5 @@
+using Application.API.AutoMapper;
+
 namespace Application.API
 {
     public class Program
@@ -8,9 +10,9 @@ namespace Application.API
 
 
             builder.Services.AddControllers();
- 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(typeof(ProblemProfile));
 
             var app = builder.Build();
 

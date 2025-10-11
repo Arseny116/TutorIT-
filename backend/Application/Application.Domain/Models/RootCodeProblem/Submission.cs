@@ -5,19 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Domain.Models
+namespace Application.Domain.Models.RootCodeProblem
 {
     public class CodeSubmission
     {
-        public int ProblemId { get; }
+        public Guid ProblemId { get; }
 
         public string Language { get; } = string.Empty;
 
-       
+
         public string SourceCode { get; } = string.Empty;
 
-        
         public DateTime SubmittedAt { get; }
 
+        private CodeSubmission() { }
     }
 }

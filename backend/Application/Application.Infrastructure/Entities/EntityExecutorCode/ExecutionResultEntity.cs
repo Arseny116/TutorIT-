@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Domain.Models
+namespace Application.Infrastructure.Entities.EntityExecutorCode
 {
-    public class ExecutionResult
+    public class ExecutionResultEntity
     {
+        public Guid ID { get; set; }
         public bool Success { get; set; }
-        public string Output { get; set; } = string.Empty;
-        public string Error { get; set; } = string.Empty;
+        public string Output { get; set; }
+        public string Error { get; set; }
         public long ExecutionTime { get; set; }
         public bool Passed { get; set; }
     }
