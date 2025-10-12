@@ -1,10 +1,11 @@
-﻿using Application.Domain.Models;
+﻿using Application.Domain.Interface;
+using Application.Domain.Models;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Infrastructure.Repositories
 {
-    public class CoursesRepository
+    public class CoursesRepository : ICoursesRepository
     {
         private CourseDbContext _context;
 
