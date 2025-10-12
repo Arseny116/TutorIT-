@@ -3,7 +3,7 @@ using Application.Domain.Models;
 
 namespace Application.App.Services
 {
-    public class CoursesService
+    public class CoursesService : ICoursesService
     {
         private readonly ICoursesRepository _coursesRepository;
 
