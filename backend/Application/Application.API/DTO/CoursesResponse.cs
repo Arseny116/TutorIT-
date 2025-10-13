@@ -2,11 +2,11 @@
 {
     public record class CoursesResponse(
         Guid Id,
-        string Title,
-        string Description,
+        string? Title,
+        string? Description,
         int Tasks,
-        double Evaluation,
-        string Reviews,
+        double? Evaluation,
+        string? Reviews,
         int Subscribe
         );
 }
