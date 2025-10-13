@@ -18,6 +18,11 @@
         public string? Description { get; set; }
 
         /// <summary>
+        /// Кол-во заданий на курсе
+        /// </summary>
+        public int Tasks { get; set; }
+
+        /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
         /// </summary>
         public double? Evaluation { get; set; }
@@ -31,10 +36,5 @@
         /// Кол-во людей записанных на курс
         /// </summary>
         public int Subscribe { get; set; } = 0;
-
-        /// <summary>
-        /// Кол-во заданий на курсе
-        /// </summary>
-        public int Tasks { get; set; }
     }
 }

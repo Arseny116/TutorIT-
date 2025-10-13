@@ -20,6 +20,11 @@ namespace Application.Domain.Models
         public string? Description { get; }
 
         /// <summary>
+        /// Кол-во заданий на курсе
+        /// </summary>
+        public int Tasks { get; }
+
+        /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
         /// </summary>
         public double? Evaluation { get; }
@@ -34,10 +39,6 @@ namespace Application.Domain.Models
         /// </summary>
         public int Subscribe { get; private set; } = 0;
 
-        /// <summary>
-        /// Кол-во заданий на курсе
-        /// </summary>
-        public int Tasks { get; }
 
         private Course(Guid id, string? title, string? description, int tasks)
         {
