@@ -9,7 +9,6 @@
         public string Description { get; set; } = string.Empty;
         public string Difficulty { get; set; } = string.Empty;
 
-
         public List<TestCasesEntity> TestCases = new List<TestCasesEntity>();
 
         public List<CodeTemplateEntity>  Templates = new List<CodeTemplateEntity>();

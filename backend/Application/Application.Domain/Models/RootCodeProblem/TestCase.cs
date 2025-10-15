@@ -4,7 +4,9 @@ namespace Application.Domain.Models.RootCodeProblem
 {
     public class TestCase
     {
-        public Guid Id { get; }
+        public Guid CodeProblemId { get; }
+
+        public CodeProblem CodeProblem { get; }
         public string Input { get; } //ввод
         public string ExpectedOutput { get; } //ожидаемый вывод
         public bool IsHidden { get; } //есть ли мэтч ввода с выводом

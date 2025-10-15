@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Domain.Models.RootCodeProblem;
+using Application.Infrastructure.Entities.EntityExecutorCode;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Application.Infrastructure.Repositories
 {
-    public class CodeProblemRep
+    public class CodeProblemRep : ICodeProblemRep
     {
         private readonly TutorITDbContext _context;
         private readonly IMapper _mapper;
@@ -30,10 +31,13 @@ namespace Application.Infrastructure.Repositories
             return _mapper.Map<CodeProblem>(CodeProblementity);
         }
 
-        public async Task<CodeProblem> Create(string Title,string Description, string Difficulty)
+        public async Task Create(string title, string description, string difficulty)
         {
-            
+            _context.CodeProblemEntity.Add(new CodeProblemEntity { Id = Guid.NewGuid(), Title = title, Description = description, Difficulty = difficulty });
+            await _context.SaveChangesAsync();
         }
+
+
 
     }
 }

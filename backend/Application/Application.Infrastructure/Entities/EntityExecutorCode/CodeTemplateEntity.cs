@@ -1,4 +1,4 @@
-﻿namespace Application.Infrastructure.Entities.EntityExecutorCode
+﻿    namespace Application.Infrastructure.Entities.EntityExecutorCode
 {
     public class CodeTemplateEntity
     {

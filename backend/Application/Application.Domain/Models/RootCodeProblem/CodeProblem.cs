@@ -11,9 +11,9 @@ namespace Application.Domain.Models.RootCodeProblem
         public string Difficulty { get; }
 
 
-        public List<TestCase> _testCases = new();
+        public List<TestCase> _testCases = new List<TestCase>();
 
-        public List<CodeTemplate> _templates = new();
+        public List<CodeTemplate> _templates = new List<CodeTemplate>();
 
         private CodeProblem(Guid id, string title, string description, string difficulty)
         {
