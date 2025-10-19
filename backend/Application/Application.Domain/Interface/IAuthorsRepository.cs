@@ -2,11 +2,11 @@
 
 namespace Application.Domain.Interface
 {
-    public interface IAutorsRepository
+    public interface IAuthorsRepository
     {
-        Task<List<Autor>> Get();
+        Task<List<Author>> Get();
 
-        Task<Guid> Create(Autor autor);
+        Task<Guid> Create(Author autor);
 
         Task<Guid> Update(Guid id, string name, string description);
 

@@ -1,4 +1,4 @@
-﻿namespace Application.API.DTO
+﻿namespace Application.API.DTO.Courses
 {
     public record class CoursesResponse(
         Guid Id,
@@ -6,7 +6,7 @@
         string? Description,
         int Tasks,
         double? Evaluation,
-        string? Reviews,
+        List<string> Reviews,
         int Subscribe
         );
 }

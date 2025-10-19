@@ -1,6 +1,6 @@
-﻿namespace Application.API.DTO
+﻿namespace Application.API.DTO.Autors
 {
-    public record class AutorsResponse(
+    public record class AuthorsResponse(
         Guid Id,
         string? Name,
         string? Description,

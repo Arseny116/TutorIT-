@@ -1,4 +1,4 @@
-﻿namespace Application.API.DTO
+﻿namespace Application.API.DTO.Courses
 {
     public record class CoursesRequest(
         string Title,

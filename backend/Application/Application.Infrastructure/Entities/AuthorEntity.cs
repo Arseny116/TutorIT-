@@ -1,6 +1,6 @@
 ﻿namespace Application.Infrastructure.Entities
 {
-    public class AutorEntity
+    public class AuthorEntity
     {
         /// <summary>
         /// Id автора
@@ -10,12 +10,12 @@
         /// <summary>
         /// Имя автора
         /// </summary>
-        public string? Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Информация об авторе
         /// </summary>
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         /// <summary>
         /// Кол-во курсов, созданных автором

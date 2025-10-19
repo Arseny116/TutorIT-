@@ -6,23 +6,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Infrastructure.Repositories
 {
-    public class AutorsRepository : IAutorsRepository
+    public class AuthorsRepository : IAuthorsRepository
     {
         private readonly AutorDbContext _context;
 
-        public AutorsRepository(AutorDbContext context)
+        public AuthorsRepository(AutorDbContext context)
         {
             _context = context;
         }
 
-        public async Task<List<Autor>> Get()
+        public async Task<List<Author>> Get()
         {
             var autorEntity = await _context.Autors.AsNoTracking().ToListAsync();
 
-            var autors = new List<Autor>();
+            var autors = new List<Author>();
             foreach (var entity in autorEntity)
             {
-                var result = Autor.Crreate(entity.Id, entity.Name, entity.Description);
+                var result = Author.Create(entity.Id, entity.Name, entity.Description);
 
                 if (result.IsSuccess)
                 {
@@ -33,9 +33,9 @@ namespace Application.Infrastructure.Repositories
             return autors;
         }
 
-        public async Task<Guid> Create(Autor autor)
+        public async Task<Guid> Create(Author autor)
         {
-            var autorsEntity = new AutorEntity
+            var autorsEntity = new AuthorEntity
             {
                 Id = autor.Id,
                 Name = autor.Name,

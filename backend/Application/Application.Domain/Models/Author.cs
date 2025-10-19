@@ -2,7 +2,7 @@
 
 namespace Application.Domain.Models
 {
-    public class Autor
+    public class Author
     {
         /// <summary>
         /// Id автора
@@ -12,38 +12,38 @@ namespace Application.Domain.Models
         /// <summary>
         /// Имя автора
         /// </summary>
-        public string? Name { get; }
+        public string Name { get; } = string.Empty;
 
         /// <summary>
         /// Информация об авторе
         /// </summary>
-        public string? Description { get; }
+        public string Description { get; } = string.Empty;
 
         /// <summary>
         /// Кол-во курсов, созданных автором
         /// </summary>
-        public int CountCourses { get; } = 0;
+        public int CountCourses { get; private set; } = 0;
 
-        public Autor(Guid id, string? name, string? description)
+        public Author(Guid id, string name, string description)
         {
             Id = id;
             Name = name;
             Description = description;
         }
 
-        public static Result<Autor> Create(Guid id, string? name, string? description)
+        public static Result<Author> Create(Guid id, string name, string description)
         {
             if (string.IsNullOrEmpty(name))
             {
-                return Result.Failure<Autor>("Имя автора не может быть пустым");
+                return Result.Failure<Author>("Имя автора не может быть пустым");
             }
 
             if (string.IsNullOrEmpty(description))
             {
-                return Result.Failure<Autor>("Информация об авторе не может быть пустым");
+                return Result.Failure<Author>("Информация об авторе не может быть пустым");
             }
 
-            Autor autor = new Autor(id, name, description);
+            Author autor = new Author(id, name, description);
 
             return Result.Success(autor);
         }

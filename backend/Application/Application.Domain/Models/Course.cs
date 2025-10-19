@@ -12,12 +12,12 @@ namespace Application.Domain.Models
         /// <summary>
         /// Заголовок курса
         /// </summary>
-        public string? Title { get; }
+        public string Title { get; } = string.Empty;
 
         /// <summary>
         /// Описание курса
         /// </summary>
-        public string? Description { get; }
+        public string Description { get; } = string.Empty;
 
         /// <summary>
         /// Кол-во заданий на курсе
@@ -27,12 +27,12 @@ namespace Application.Domain.Models
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
         /// </summary>
-        public double? Evaluation { get; }
+        public double Evaluation { get; } = 0.0;
 
         /// <summary>
         /// Отзывы о курсе
         /// </summary>
-        public string? Reviews { get; }
+        public List<string> Reviews { get; } = [];
 
         /// <summary>
         /// Кол-во людей записанных на курс
@@ -40,7 +40,7 @@ namespace Application.Domain.Models
         public int Subscribe { get; private set; } = 0;
 
 
-        private Course(Guid id, string? title, string? description, int tasks)
+        private Course(Guid id, string title, string description, int tasks)
         {
             Id = id;
             Title = title;
@@ -48,7 +48,7 @@ namespace Application.Domain.Models
             Tasks = tasks;
         }
 
-        public static Result<Course> Create(Guid id, string? title, string? description, int tasks)
+        public static Result<Course> Create(Guid id, string title, string description, int tasks)
         {
             if (string.IsNullOrEmpty(title))
             {

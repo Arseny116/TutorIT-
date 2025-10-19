@@ -1,4 +1,4 @@
-﻿using Application.API.DTO;
+﻿using Application.API.DTO.Autors;
 using Application.Domain.Interface;
 using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -7,21 +7,21 @@ namespace Application.API.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class AutorsController : ControllerBase
+    public class AuthorsController : ControllerBase
     {
-        public readonly IAutorsService _autorsService;
+        public readonly IAuthorsService _autorsService;
 
-        public AutorsController(IAutorsService autorsService)
+        public AuthorsController(IAuthorsService autorsService)
         {
             _autorsService = autorsService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AutorsResponse>>> GetAutors()
+        public async Task<ActionResult<List<AuthorsResponse>>> GetAutors()
         {
             var autors = await _autorsService.CetAutors();
 
-            var response = autors.Select(a => new AutorsResponse(
+            var response = autors.Select(a => new AuthorsResponse(
                 a.Id,
                 a.Name,
                 a.Description,
@@ -31,9 +31,9 @@ namespace Application.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateAutors([FromBody] AutorsRequest request)
+        public async Task<ActionResult<Guid>> CreateAutors([FromBody] AuthorsRequest request)
         {
-            var autor = Autor.Create(
+            var autor = Author.Create(
                 Guid.NewGuid(),
                 request.Name,
                 request.Description);
@@ -49,7 +49,7 @@ namespace Application.API.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Guid>> UpdateAutor(Guid id, [FromBody] AutorsRequest request)
+        public async Task<ActionResult<Guid>> UpdateAutor(Guid id, [FromBody] AuthorsRequest request)
         {
             var autorId = await _autorsService.UpdateAutor(id, request.Name, request.Description);
 
