@@ -1,7 +1,7 @@
 ﻿using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Infrastructure
+namespace Application.Infrastructure.DataBase
 {
     public class CourseDbContext : DbContext
     {
