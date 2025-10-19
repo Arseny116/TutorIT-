@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Application.Infrastructure.Configuration
 {
-    public class AutorConfiguration : IEntityTypeConfiguration<AutorEntity>
+    public class AutorConfiguration : IEntityTypeConfiguration<AuthorEntity>
     {
-        public void Configure(EntityTypeBuilder<AutorEntity> builder)
+        public void Configure(EntityTypeBuilder<AuthorEntity> builder)
         {
             builder.HasKey(x => x.Id);
 

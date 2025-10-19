@@ -1,6 +1,6 @@
 ﻿namespace Application.Infrastructure.Entities
 {
-    public class AutorEntity
+    public class AuthorEntity
     {
         /// <summary>
         /// Id автора

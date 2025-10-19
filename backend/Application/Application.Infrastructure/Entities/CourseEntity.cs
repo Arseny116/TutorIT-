@@ -39,6 +39,6 @@
 
         public Guid AutorId { get; set; }
 
-        public AutorEntity? Autor { get; set; }
+        public AuthorEntity? Autor { get; set; }
     }
 }
