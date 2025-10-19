@@ -36,5 +36,9 @@
         /// Кол-во людей записанных на курс
         /// </summary>
         public int Subscribe { get; set; } = 0;
+
+        public Guid AutorId { get; set; }
+
+        public AutorEntity? Autor { get; set; }
     }
 }
