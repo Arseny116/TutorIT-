@@ -8,9 +8,9 @@ namespace Application.Infrastructure.Repositories
 {
     public class AuthorsRepository : IAuthorsRepository
     {
-        private readonly AutorDbContext _context;
+        private readonly AuthorDbContext _context;
 
-        public AuthorsRepository(AutorDbContext context)
+        public AuthorsRepository(AuthorDbContext context)
         {
             _context = context;
         }
