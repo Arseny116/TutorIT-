@@ -1,17 +1,14 @@
 ﻿using Application.Infrastructure.Entities.EntityExecutorCode;
-using AutoMapper;
 
 namespace Application.Infrastructure.RepositoriesExecutorCode
 {
     public class ExecutionResultRep
     {
         private readonly TutorITDbContext _context;
-        private readonly IMapper _mapper;
 
-        public ExecutionResultRep(TutorITDbContext context, IMapper mapper)
+        public ExecutionResultRep(TutorITDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
 

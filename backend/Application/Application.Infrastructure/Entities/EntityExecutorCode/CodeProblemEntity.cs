@@ -1,7 +1,6 @@
-﻿namespace Application.Infrastructure.Entities.EntityExecutorCode
+﻿
+namespace Application.Infrastructure.Entities.EntityExecutorCode
 {
-
-    //Done
     public class CodeProblemEntity
     {
         public Guid Id { get; set; }
@@ -11,6 +10,6 @@
 
         public List<TestCasesEntity> TestCases = new List<TestCasesEntity>();
 
-        public List<CodeTemplateEntity>  Templates = new List<CodeTemplateEntity>();
+        public List<CodeTemplateEntity> Templates = new List<CodeTemplateEntity>();
     }
 }

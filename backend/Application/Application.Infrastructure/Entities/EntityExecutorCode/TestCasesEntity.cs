@@ -8,8 +8,6 @@ namespace Application.Infrastructure.Entities.EntityExecutorCode
 {
     public class TestCasesEntity
     {
-        public Guid ID_Problem { get; set; }
-        public CodeProblemEntity CodeProblemEntity { get; set; }
         public string Input { get; set; }
         public string ExpectedOutput { get; set; }
         public bool IsHidden { get; set; }

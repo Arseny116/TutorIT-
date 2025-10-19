@@ -4,7 +4,10 @@ namespace Application.Infrastructure.Repositories
 {
     public interface ICodeProblemRep
     {
-        Task Create(string title, string description, string difficulty);
         Task<CodeProblem> GetById(Guid Id);
+
+        Task<Guid> Create(string title, string description, string difficulty);
+
+        Task<List<CodeProblem>> GetAll();
     }
 }

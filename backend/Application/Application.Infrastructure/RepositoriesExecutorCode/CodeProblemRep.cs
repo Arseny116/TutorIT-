@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Domain.Models.RootCodeProblem;
+﻿using Application.Domain.Models.RootCodeProblem;
 using Application.Infrastructure.Entities.EntityExecutorCode;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+
 
 namespace Application.Infrastructure.Repositories
 {
     public class CodeProblemRep : ICodeProblemRep
     {
         private readonly TutorITDbContext _context;
-        private readonly IMapper _mapper;
 
-        public CodeProblemRep(TutorITDbContext context, IMapper mapper)
+
+        public CodeProblemRep(TutorITDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
 
@@ -28,13 +22,44 @@ namespace Application.Infrastructure.Repositories
             var CodeProblementity = await _context.CodeProblemEntity
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == Id);
-            return _mapper.Map<CodeProblem>(CodeProblementity);
+            return CodeProblem.Create(CodeProblementity.Id, CodeProblementity.Title, CodeProblementity.Description, CodeProblementity.Difficulty).Value;
         }
 
-        public async Task Create(string title, string description, string difficulty)
+        public async Task<Guid> Create(string title, string description, string difficulty)
         {
-            _context.CodeProblemEntity.Add(new CodeProblemEntity { Id = Guid.NewGuid(), Title = title, Description = description, Difficulty = difficulty });
+            var CodeProblementity = new CodeProblemEntity { Id = Guid.NewGuid(), Title = title, Description = description, Difficulty = difficulty };
+            _context.CodeProblemEntity.Add(CodeProblementity);
             await _context.SaveChangesAsync();
+            return CodeProblementity.Id;
+        }
+
+
+        public async Task AddTestCase(Guid id,string str)
+        {
+            var CodeProblementity = await GetById(id);
+
+            CodeProblementity._testCases.Add(new TestCasesEntity());
+        }
+
+
+
+        public async Task<List<CodeProblem>> GetAll()
+        {
+            var CodeProblementity = await _context.CodeProblemEntity
+                .AsNoTracking()
+                .ToListAsync();
+            return CodeProblementity.Select(x => CodeProblem.Create(x.Id, x.Title, x.Description, x.Difficulty).Value).ToList();
+        }
+
+
+
+        public async Task<bool> Delete(Guid id)
+        {
+            var entity = await _context.CodeProblemEntity.FindAsync(id);
+            if (entity == null) return false;
+            _context.CodeProblemEntity.Remove(entity);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
 

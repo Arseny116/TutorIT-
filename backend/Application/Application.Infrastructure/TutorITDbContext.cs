@@ -28,11 +28,6 @@ namespace Application.Infrastructure
         //public DbSet<{сущность}> {Имя сужности};
         public DbSet<CodeProblemEntity> CodeProblemEntity { get; set; }
 
-        public DbSet<CodeTemplateEntity> CodeTemplate { get; set; }
         public DbSet<ExecutionResultEntity> ExecutionResults { get; set; }
-
-        public DbSet<SubmissionEntity> Submissions { get; set; }
-        public DbSet<TestCasesEntity> TestCasesEntities { get; set; }
-
     }
 }
