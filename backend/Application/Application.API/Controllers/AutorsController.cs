@@ -1,4 +1,4 @@
-﻿using Application.API.DTO;
+﻿using Application.API.DTO.Autors;
 using Application.Domain.Interface;
 using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;

@@ -8,7 +8,7 @@ namespace Application.Infrastructure.Repositories
 {
     public class CoursesRepository : ICoursesRepository
     {
-        private CourseDbContext _context;
+        private readonly CourseDbContext _context;
 
         public CoursesRepository(CourseDbContext context)
         {

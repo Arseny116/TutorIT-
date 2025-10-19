@@ -12,19 +12,19 @@ namespace Application.Domain.Models
         /// <summary>
         /// Имя автора
         /// </summary>
-        public string? Name { get; }
+        public string Name { get; } = string.Empty;
 
         /// <summary>
         /// Информация об авторе
         /// </summary>
-        public string? Description { get; }
+        public string Description { get; } = string.Empty;
 
         /// <summary>
         /// Кол-во курсов, созданных автором
         /// </summary>
         public int CountCourses { get; } = 0;
 
-        public Autor(Guid id, string? name, string? description)
+        public Autor(Guid id, string name, string description)
         {
             Id = id;
             Name = name;

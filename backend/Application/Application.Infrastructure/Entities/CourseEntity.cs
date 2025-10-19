@@ -10,12 +10,12 @@
         /// <summary>
         /// Заголовок курса
         /// </summary>
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         /// <summary>
         /// Описание курса
         /// </summary>
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         /// <summary>
         /// Кол-во заданий на курсе
@@ -25,7 +25,7 @@
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
         /// </summary>
-        public double? Evaluation { get; set; }
+        public double Evaluation { get; set; } = 0.0;
 
         /// <summary>
         /// Отзывы о курсе
