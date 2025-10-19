@@ -30,7 +30,7 @@
         /// <summary>
         /// Отзывы о курсе
         /// </summary>
-        public string? Reviews { get; set; }
+        public List<string> Reviews { get; set; } = [];
 
         /// <summary>
         /// Кол-во людей записанных на курс

@@ -22,7 +22,7 @@ namespace Application.Domain.Models
         /// <summary>
         /// Кол-во курсов, созданных автором
         /// </summary>
-        public int CountCourses { get; } = 0;
+        public int CountCourses { get; private set; } = 0;
 
         public Autor(Guid id, string name, string description)
         {
@@ -31,7 +31,7 @@ namespace Application.Domain.Models
             Description = description;
         }
 
-        public static Result<Autor> Create(Guid id, string? name, string? description)
+        public static Result<Autor> Create(Guid id, string name, string description)
         {
             if (string.IsNullOrEmpty(name))
             {

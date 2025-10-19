@@ -6,7 +6,7 @@
         string? Description,
         int Tasks,
         double? Evaluation,
-        string? Reviews,
+        List<string> Reviews,
         int Subscribe
         );
 }

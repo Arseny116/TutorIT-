@@ -32,7 +32,7 @@ namespace Application.Domain.Models
         /// <summary>
         /// Отзывы о курсе
         /// </summary>
-        public string? Reviews { get; }
+        public List<string> Reviews { get; } = [];
 
         /// <summary>
         /// Кол-во людей записанных на курс
