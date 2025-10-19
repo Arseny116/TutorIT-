@@ -31,7 +31,7 @@ namespace Application.Domain.Models
             Description = description;
         }
 
-        public static Result<Autor> Crreate(Guid id, string? name, string? description)
+        public static Result<Autor> Create(Guid id, string? name, string? description)
         {
             if (string.IsNullOrEmpty(name))
             {
