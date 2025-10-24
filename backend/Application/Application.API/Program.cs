@@ -1,3 +1,7 @@
+using Application.App.Services;
+using Application.Domain;
+using Application.Infrastructure;
+using Application.Infrastructure.Repositories;
 namespace Application.API
 {
     public class Program
@@ -8,10 +12,11 @@ namespace Application.API
 
 
             builder.Services.AddControllers();
- 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            builder.Services.AddScoped<ICodeProblemRep, CodeProblemRep>();
+            builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
+            builder.Services.AddDbContext<TutorITDbContext>();
             var app = builder.Build();
 
 

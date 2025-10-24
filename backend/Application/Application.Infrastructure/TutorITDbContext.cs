@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using Application.Infrastructure.Configuration.ConfigurationExecutorCode;
+using Application.Infrastructure.Entities.EntityExecutorCode;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -9,10 +11,13 @@ namespace Application.Infrastructure
     public class TutorITDbContext : DbContext
     {
         private readonly IConfiguration _configuration;
+
         public TutorITDbContext(IConfiguration configuration)
         {
             _configuration = configuration;
         }
+
+    
 
         //Скрываем логику создания DB контекста
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -24,5 +29,10 @@ namespace Application.Infrastructure
 
 
         //public DbSet<{сущность}> {Имя сужности};
+        public DbSet<CodeProblemEntity> CodeProblemEntity { get; set; }
+
+        public DbSet<TestCasesEntity> TestCasesEntity { get; set; }
+
+        public DbSet<ExecutionResultEntity> ExecutionResults { get; set; }
     }
 }

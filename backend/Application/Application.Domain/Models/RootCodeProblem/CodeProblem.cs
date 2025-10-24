@@ -5,38 +5,38 @@ namespace Application.Domain.Models.RootCodeProblem
     //Попробывать когда нить через агрегат сделать
     public class CodeProblem
     {
-        public int Id { get; }
+        public Guid Id { get; }
         public string Title { get; }
         public string Description { get; }
         public string Difficulty { get; }
 
 
-        private readonly List<TestCase> _testCases = new();
+        public List<TestCase> _testCases = new List<TestCase>();
 
-        private readonly List<CodeTemplate> _templates = new();
+        public List<CodeTemplate> _templates = new List<CodeTemplate>();
 
         private CodeProblem(Guid id, string title, string description, string difficulty)
         {
+            Id = id;
             Title = title;
             Description = description;
             Difficulty = difficulty;
         }
 
-
-
         public static Result<CodeProblem> Create(Guid id, string title, string description, string difficulty)
         {
+            if (id == Guid.Empty)
+                return Result.Failure<CodeProblem>("Id cannot be empty");
 
-            //Добавить валидацию входных данных
-
+            if (string.IsNullOrWhiteSpace(title))
+                return Result.Failure<CodeProblem>("Title is required");
 
             var CodeProblem_item = new CodeProblem
             (
-                Guid.NewGuid(),
+                id,
                 title.Trim(),
                 description?.Trim() ?? string.Empty,
                 difficulty
-
             );
             return Result.Success(CodeProblem_item);
         }
