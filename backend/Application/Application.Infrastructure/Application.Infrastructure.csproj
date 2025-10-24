@@ -10,8 +10,8 @@
     <ProjectReference Include="..\Application.Domain\Application.Domain.csproj" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
