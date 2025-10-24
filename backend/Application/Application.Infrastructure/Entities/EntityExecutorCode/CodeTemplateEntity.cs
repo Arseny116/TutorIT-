@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace Application.Infrastructure.Entities.EntityExecutorCode
+﻿public class CodeTemplateEntity
 {
+    public Guid Id { get; set; }
+    public string Language { get; set; }
+    public string TemplateCode { get; set; }
 
-    [Owned]
-    public class CodeTemplateEntity
+    public CodeTemplateEntity(string language, string templateCode)
     {
-        public string Language { get; set; } = string.Empty;
-        public string TemplateCode { get; set; } = string.Empty;
+        Id = Guid.NewGuid();
+        Language = language;
+        TemplateCode = templateCode;
     }
+
+    public CodeTemplateEntity() { }
 }

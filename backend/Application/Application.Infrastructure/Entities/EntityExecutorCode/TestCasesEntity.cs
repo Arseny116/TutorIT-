@@ -1,16 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Infrastructure.Entities.EntityExecutorCode;
 
-namespace Application.Infrastructure.Entities.EntityExecutorCode
+public class TestCasesEntity
 {
-    public class TestCasesEntity
-    {
-        public string Input { get; set; }
-        public string ExpectedOutput { get; set; }
-        public bool IsHidden { get; set; }
+    public Guid Id { get; set; }
+    public Guid CodeProblemEntityId { get; set; }
+    public string Input { get; set; }
+    public string ExpectedOutput { get; set; }
 
+
+    public CodeProblemEntity CodeProblemEntity { get; set; }
+
+ 
+    public TestCasesEntity(Guid codeProblemEntityId, string input, string expectedOutput)
+    {
+        Id = Guid.NewGuid();
+        CodeProblemEntityId = codeProblemEntityId;
+        Input = input;
+        ExpectedOutput = expectedOutput;
     }
+
+    
+    public TestCasesEntity() { }
 }

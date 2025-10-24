@@ -17,26 +17,26 @@ namespace Application.Domain.Models.RootCodeProblem
 
         private CodeProblem(Guid id, string title, string description, string difficulty)
         {
+            Id = id;
             Title = title;
             Description = description;
             Difficulty = difficulty;
         }
 
-
-
         public static Result<CodeProblem> Create(Guid id, string title, string description, string difficulty)
         {
+            if (id == Guid.Empty)
+                return Result.Failure<CodeProblem>("Id cannot be empty");
 
-            //Добавить валидацию входных данных
-
+            if (string.IsNullOrWhiteSpace(title))
+                return Result.Failure<CodeProblem>("Title is required");
 
             var CodeProblem_item = new CodeProblem
             (
-                Guid.NewGuid(),
+                id,
                 title.Trim(),
                 description?.Trim() ?? string.Empty,
                 difficulty
-
             );
             return Result.Success(CodeProblem_item);
         }
