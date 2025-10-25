@@ -1,18 +1,18 @@
 ﻿using Application.Domain.Models.RootCodeProblem;
+using Application.Infrastructure.DataBase;
 using Application.Infrastructure.Entities.EntityExecutorCode;
-using AutoMapper;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace Application.Infrastructure.Repositories
+namespace Application.Infrastructure.Repositories.ExecutorCode
 {
     public class CodeProblemRep : ICodeProblemRep
     {
-        private readonly TutorITDbContext _context;
+        private readonly ExecutorCodeDbContext _context;
 
 
-        public CodeProblemRep(TutorITDbContext context)
+        public CodeProblemRep(ExecutorCodeDbContext context)
         {
             _context = context;
         }

@@ -1,7 +1,9 @@
 using Application.App.Services;
 using Application.Domain;
-using Application.Infrastructure;
+using Application.Domain.Interface;
+using Application.Infrastructure.DataBase;
 using Application.Infrastructure.Repositories;
+using Application.Infrastructure.Repositories.ExecutorCode;
 namespace Application.API
 {
     public class Program
@@ -14,11 +16,28 @@ namespace Application.API
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddScoped<ICodeProblemRep, CodeProblemRep>();
-            builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
-            builder.Services.AddDbContext<TutorITDbContext>();
-            var app = builder.Build();
 
+            //DbContext
+            builder.Services.AddDbContext<ExecutorCodeDbContext>();
+            builder.Services.AddDbContext<CourseDbContext>();
+            builder.Services.AddDbContext<AuthorDbContext>();
+
+
+            //Регистрация сервисов и репозиториев 
+
+                //ExecutorCode
+                builder.Services.AddScoped<ICodeProblemRep, CodeProblemRep>();
+                builder.Services.AddScoped<ICodeProblemService, ServiceCodeProblem>();
+                builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
+
+                //Course
+                builder.Services.AddScoped<IAuthorsService, AuthorService>();
+                builder.Services.AddScoped<ICoursesService, CoursesService>();
+                builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
+
+
+
+            var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
             {

@@ -6,13 +6,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Application.Infrastructure
+namespace Application.Infrastructure.DataBase
 {
-    public class TutorITDbContext : DbContext
+    public class ExecutorCodeDbContext : DbContext
     {
         private readonly IConfiguration _configuration;
 
-        public TutorITDbContext(IConfiguration configuration)
+        public ExecutorCodeDbContext(IConfiguration configuration)
         {
             _configuration = configuration;
         }

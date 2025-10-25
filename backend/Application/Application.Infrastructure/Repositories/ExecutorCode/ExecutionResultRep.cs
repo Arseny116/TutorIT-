@@ -1,12 +1,13 @@
-﻿using Application.Infrastructure.Entities.EntityExecutorCode;
+﻿using Application.Infrastructure.DataBase;
+using Application.Infrastructure.Entities.EntityExecutorCode;
 
-namespace Application.Infrastructure.RepositoriesExecutorCode
+namespace Application.Infrastructure.Repositories.ExecutorCode
 {
     public class ExecutionResultRep
     {
-        private readonly TutorITDbContext _context;
+        private readonly ExecutorCodeDbContext _context;
 
-        public ExecutionResultRep(TutorITDbContext context)
+        public ExecutionResultRep(ExecutorCodeDbContext context)
         {
             _context = context;
         }

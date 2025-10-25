@@ -3,7 +3,7 @@ using Application.Domain.Models.RootCodeProblem;
 
 namespace Application.App.Services
 {
-    public interface IServiceCodeProblem
+    public interface ICodeProblemService
     {
         Task AddTestCase(Guid id, string input, string output);
         Task<Guid> CreateCodeProblem(string title, string description, string difficulty);

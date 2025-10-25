@@ -9,9 +9,9 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class CodeProblemController : ControllerBase
     {
-        private readonly IServiceCodeProblem _serviceProvider;
+        private readonly ICodeProblemService _serviceProvider;
 
-        public CodeProblemController(IServiceCodeProblem serviceProvider)
+        public CodeProblemController(ICodeProblemService serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }

@@ -6,7 +6,7 @@ using Application.Infrastructure.Repositories;
 
 namespace Application.App.Services
 {
-    public class ServiceCodeProblem : IServiceCodeProblem
+    public class ServiceCodeProblem : ICodeProblemService
     {
         private readonly ICodeProblemRep _codeProblemRep;
 
