@@ -1,6 +1,5 @@
 ﻿using Application.Domain.Interface;
 using Application.Domain.Models;
-using Application.Infrastructure.DataBase;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +7,9 @@ namespace Application.Infrastructure.Repositories
 {
     public class CoursesRepository : ICoursesRepository
     {
-        private readonly CourseDbContext _context;
+        private readonly TutorITDbContext _context;
 
-        public CoursesRepository(CourseDbContext context)
+        public CoursesRepository(TutorITDbContext context)
         {
             _context = context;
         }

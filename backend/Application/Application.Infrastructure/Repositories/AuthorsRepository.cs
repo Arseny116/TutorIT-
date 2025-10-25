@@ -1,6 +1,5 @@
 ﻿using Application.Domain.Interface;
 using Application.Domain.Models;
-using Application.Infrastructure.DataBase;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +7,9 @@ namespace Application.Infrastructure.Repositories
 {
     public class AuthorsRepository : IAuthorsRepository
     {
-        private readonly AuthorDbContext _context;
+        private readonly TutorITDbContext _context;
 
-        public AuthorsRepository(AuthorDbContext context)
+        public AuthorsRepository(TutorITDbContext context)
         {
             _context = context;
         }
