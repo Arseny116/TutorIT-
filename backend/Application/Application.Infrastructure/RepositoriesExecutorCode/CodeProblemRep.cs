@@ -1,6 +1,5 @@
 ﻿using Application.Domain.Models.RootCodeProblem;
 using Application.Infrastructure.Entities.EntityExecutorCode;
-using AutoMapper;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
