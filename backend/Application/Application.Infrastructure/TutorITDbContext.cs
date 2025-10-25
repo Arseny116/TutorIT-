@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Application.Infrastructure.Configuration.ConfigurationExecutorCode;
+using Application.Infrastructure.Entities;
 using Application.Infrastructure.Entities.EntityExecutorCode;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -34,5 +35,7 @@ namespace Application.Infrastructure
         public DbSet<TestCasesEntity> TestCasesEntity { get; set; }
 
         public DbSet<ExecutionResultEntity> ExecutionResults { get; set; }
+
+        public DbSet<CourseEntity> Courses { get; set; }
     }
 }
