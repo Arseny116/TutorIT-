@@ -1,0 +1,94 @@
+.create-course-page
+{
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.create-course-page h1
+ {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.course-form 
+{
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group
+ {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label
+ {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input,
+.form-group textarea
+ {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus
+ {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-actions 
+{
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.btn-cancel,
+.btn-submit
+ {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-cancel 
+{
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-cancel:hover 
+{
+  background-color: #5a6268;
+}
+
+.btn-submit 
+{
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-submit:hover 
+{
+  background-color: #0056b3;
+}
