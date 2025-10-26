@@ -1,0 +1,46 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.header-left, .header-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.header-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #007bff;
+  background: white;
+  color: #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.header-btn:hover {
+  background: #007bff;
+  color: white;
+}
+
+/* Стиль для неактивной кнопки CP */
+.header-btn-disabled {
+  border-color: #6c757d;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.header-btn-disabled:hover {
+  background: white;
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.header-link {
+  text-decoration: none;
+}

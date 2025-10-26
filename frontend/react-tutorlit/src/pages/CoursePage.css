@@ -1,0 +1,199 @@
+.course-page 
+{
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.course-header
+ {
+  background: white;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-button 
+{
+  background: none;
+  border: 1px solid #007bff;
+  color: #007bff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover
+ {
+  background: #007bff;
+  color: white;
+}
+
+.course-title
+ {
+  margin: 0;
+  color: #333;
+  font-size: 2rem;
+}
+
+.course-layout
+ {
+  display: grid;
+  grid-template-columns: 250px 1fr 250px;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.course-sidebar-left 
+{
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+
+.course-sidebar-right
+ {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.sidebar-section > div 
+{
+  margin-bottom: 2rem;
+}
+
+.sidebar-section > div:last-child 
+{
+  margin-bottom: 0;
+}
+
+.assignments-count h3 
+{
+  margin-top: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.count {
+  display: block;
+  font-size: 1.8rem;
+  color: #007bff;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.evalution-section h4,
+.subscribe-section h4,
+.name-section h3,
+.description-section h4 {
+  color: #555;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.evalution-section p,
+.subscribe-section p,
+.name-section p,
+.description-section p {
+  color: #666;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.course-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem; 
+}
+
+.course-description {
+  background: white;
+  padding: 2.5rem; 
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 300px; 
+}
+
+.course-description h2 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 0.5rem;
+  font-size: 1.8rem; 
+}
+
+.course-description p {
+  line-height: 1.7; 
+  color: #555;
+  font-size: 1.1rem; 
+  margin-top: 1.5rem; 
+}
+
+.reviews-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem; 
+}
+
+.reviews-section h2 {
+  color: #333;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #28a745;
+  padding-bottom: 0.5rem;
+  font-size: 1.6rem;
+}
+
+.reviews-section p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .course-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .course-sidebar-left,
+  .course-sidebar-right {
+    order: 2;
+  }
+  
+  .course-main {
+    order: 1;
+    gap: 2rem;
+  }
+  
+  .course-description {
+    padding: 1.5rem;
+    min-height: auto;
+  }
+  
+  .course-description h2 {
+    font-size: 1.5rem;
+  }
+  
+  .course-description p {
+    font-size: 1rem;
+  }
+}
