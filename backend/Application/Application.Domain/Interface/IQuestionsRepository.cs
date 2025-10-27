@@ -2,7 +2,7 @@
 
 namespace Application.Domain.Interface
 {
-    public interface IQuestionRepository
+    public interface IQuestionsRepository
     {
         Task<List<Question>> Get();
 

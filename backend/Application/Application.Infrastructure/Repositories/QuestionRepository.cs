@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Infrastructure.Repositories
 {
-    public class QuestionRepository : IQuestionRepository
+    public class QuestionRepository : IQuestionsRepository
     {
         private readonly TutorITDbContext _context;
 
