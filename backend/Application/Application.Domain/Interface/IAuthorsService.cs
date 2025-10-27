@@ -4,7 +4,7 @@ namespace Application.Domain.Interface
 {
     public interface IAuthorsService
     {
-        Task<List<Author>> CetAutors();
+        Task<List<Author>> GetAutors();
 
         Task<Guid> CreateAutor(Author autor);
 

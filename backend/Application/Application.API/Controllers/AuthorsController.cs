@@ -19,7 +19,7 @@ namespace Application.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<AuthorsResponse>>> GetAutors()
         {
-            var autors = await _autorsService.CetAutors();
+            var autors = await _autorsService.GetAutors();
 
             var response = autors.Select(a => new AuthorsResponse(
                 a.Id,

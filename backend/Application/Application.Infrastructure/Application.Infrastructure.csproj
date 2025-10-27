@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DataBase\**" />
+    <EmbeddedResource Remove="DataBase\**" />
+    <None Remove="DataBase\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Application.Domain\Application.Domain.csproj" />
   </ItemGroup>
 
@@ -17,11 +23,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <Folder Include="DataBase\" />
   </ItemGroup>
 	
 </Project>

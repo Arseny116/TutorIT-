@@ -12,7 +12,7 @@ namespace Application.App.Services
             _autorsRepository = autorsRepository;
         }
 
-        public async Task<List<Author>> CetAutors()
+        public async Task<List<Author>> GetAutors()
         {
             return await _autorsRepository.Get();
         }
