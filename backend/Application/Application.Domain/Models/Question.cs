@@ -26,7 +26,7 @@ namespace Application.Domain.Models
             Answer = answer;
         }
 
-        public Result<Question> Create(Guid id, string name, bool answer)
+        public static Result<Question> Create(Guid id, string name, bool answer)
         {
             if (string.IsNullOrEmpty(name))
             {
