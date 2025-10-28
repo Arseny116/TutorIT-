@@ -22,17 +22,16 @@ namespace Application.Domain.Models.TaskQuestion
         /// <summary>
         /// Список вопросов
         /// </summary>
-        public List<Question> Questions { get; } = [];
+        public List<Question> Questions { get; } = new List<Question>();
 
-        public TaskCreator(Guid id, string name, string description, List<Question> questions)
+        public TaskCreator(Guid id, string name, string description)
         {
             Id = id;
             Name = name;
             Description = description;
-            Questions = questions;
         }
 
-        public static Result<TaskCreator> Create(Guid id, string name, string description, List<Question> questions)
+        public static Result<TaskCreator> Create(Guid id, string name, string description)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -43,19 +42,7 @@ namespace Application.Domain.Models.TaskQuestion
                 return Result.Failure<TaskCreator>("Описание задачи не может быть пустым");
             }
 
-
-            var successQuestions = new List<Question>();
-            foreach (Question question in questions)
-            {
-                var result = Question.Create(question.Id, question.Name, question.Answer);
-
-                if (result.IsSuccess)
-                {
-                    successQuestions.Add(result.Value);
-                }
-            }
-
-            TaskCreator taskCreator = new TaskCreator(id, name, description, successQuestions);
+            TaskCreator taskCreator = new TaskCreator(id, name, description);
 
             return Result.Success(taskCreator);
         }

@@ -37,8 +37,7 @@ namespace Application.API.Controllers
             var taskCreator = TaskCreator.Create(
                 Guid.NewGuid(),
                 request.Name,
-                request.Description,
-                request.Questions);
+                request.Description);
 
             if (!taskCreator.IsSuccess)
             {
@@ -55,8 +54,7 @@ namespace Application.API.Controllers
         {
             var taskCreatorId = await _tasksCreatorService.UpdateTaskCreator(id,
                 request.Name,
-                request.Description,
-                request.Questions);
+                request.Description);
 
             return Ok(taskCreatorId);
         }
