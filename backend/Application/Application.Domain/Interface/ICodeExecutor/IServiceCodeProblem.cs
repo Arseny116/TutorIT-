@@ -1,7 +1,7 @@
 ﻿using Application.Domain.Models;
 using Application.Domain.Models.RootCodeProblem;
 
-namespace Application.App.Services
+namespace Application.Domain.Interface.ICodeExecutor
 {
     public interface IServiceCodeProblem
     {

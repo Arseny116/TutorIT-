@@ -1,8 +1,12 @@
 using Application.App.Services;
-using Application.Domain;
-using Application.Domain.Interface;
+using Application.Domain.Interface.IAuthor;
+using Application.Domain.Interface.ICodeExecutor;
+using Application.Domain.Interface.ICourse;
+using Application.Domain.Interface.ITaskQuestion.IQuestion;
+using Application.Domain.Interface.ITaskQuestion.ITask;
 using Application.Infrastructure;
 using Application.Infrastructure.Repositories;
+using Application.Infrastructure.Repositories.RepositoriesExecutorCode;
 namespace Application.API
 {
     public class Program

@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Application.Infrastructure.Configuration
+namespace Application.Infrastructure.Configuration.TaskQuestionConfiguration
 {
     public class QuestionConfiguration : IEntityTypeConfiguration<QuestionEntity>
     {

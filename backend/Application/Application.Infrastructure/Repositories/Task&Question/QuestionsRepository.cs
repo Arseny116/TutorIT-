@@ -1,5 +1,5 @@
-﻿using Application.Domain.Interface;
-using Application.Domain.Models;
+﻿using Application.Domain.Interface.ITaskQuestion.IQuestion;
+using Application.Domain.Models.TaskQuestion;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 

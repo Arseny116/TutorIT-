@@ -1,5 +1,5 @@
-﻿using Application.Domain.Interface;
-using Application.Domain.Models;
+﻿using Application.Domain.Interface.ITaskQuestion.ITask;
+using Application.Domain.Models.TaskQuestion;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,12 +9,9 @@ namespace Application.Infrastructure.Repositories
     {
         private readonly TutorITDbContext _context;
 
-        private readonly IQuestionsRepository _service;
-
-        public TasksCreatorRepository(TutorITDbContext context, IQuestionsRepository service)
+        public TasksCreatorRepository(TutorITDbContext context)
         {
             _context = context;
-            _service = service;
         }
 
         public async Task<List<TaskCreator>> Get()

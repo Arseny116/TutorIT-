@@ -1,6 +1,6 @@
 ﻿using Application.Domain.Models.RootCodeProblem;
 
-namespace Application.Infrastructure.Repositories
+namespace Application.Domain.Interface.ICodeExecutor
 {
     public interface ICodeProblemRep
     {
