@@ -10,12 +10,12 @@ namespace Application.Domain.Models.TaskQuestion
         public Guid Id { get; }
 
         /// <summary>
-        /// Сам вопроса
+        /// Сам ответ на вопрос
         /// </summary>
         public string Name { get; } = string.Empty;
 
         /// <summary>
-        /// Ответ на вопрос
+        /// Ответ на вопрос(bool)
         /// </summary>
         public bool Answer { get; }
 

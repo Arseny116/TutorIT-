@@ -17,19 +17,19 @@ namespace Application.API.Controllers
             _tasksCreatorService = tasksCreatorService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
-        {
-            var tasksCreator = await _tasksCreatorService.GetTasksCreator();
+        //[HttpGet]
+        //public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
+        //{
+        //    var tasksCreator = await _tasksCreatorService.GetTasksCreator();
 
-            var response = tasksCreator.Select(t => new TasksCreatorResponse(
-                t.Id,
-                t.Name,
-                t.Description,
-                t.Questions));
+        //    var response = tasksCreator.Select(t => new TasksCreatorResponse(
+        //        t.Id,
+        //        t.Name,
+        //        t.Description,
+        //        t.Questions));
 
-            return Ok(response);
-        }
+        //    return Ok(response);
+        //}
 
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTaskCreator([FromBody] TasksCreatorRequest request)

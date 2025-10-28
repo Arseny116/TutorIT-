@@ -22,6 +22,6 @@ namespace Application.Infrastructure.Entities
         /// <summary>
         /// Список вопросов
         /// </summary>
-        public List<Question> Questions { get; set; } = [];
+        public List<QuestionEntity> Questions { get; set; } = new List<QuestionEntity>();
     }
 }
