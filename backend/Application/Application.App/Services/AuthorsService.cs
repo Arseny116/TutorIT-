@@ -3,11 +3,11 @@ using Application.Domain.Models;
 
 namespace Application.App.Services
 {
-    public class AuthorService : IAuthorsService
+    public class AuthorsService : IAuthorsService
     {
         private readonly IAuthorsRepository _autorsRepository;
 
-        public AuthorService(IAuthorsRepository autorsRepository)
+        public AuthorsService(IAuthorsRepository autorsRepository)
         {
             _autorsRepository = autorsRepository;
         }

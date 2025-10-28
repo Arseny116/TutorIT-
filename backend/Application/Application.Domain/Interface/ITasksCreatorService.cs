@@ -4,7 +4,7 @@ namespace Application.Domain.Interface
 {
     public interface ITasksCreatorService
     {
-        Task<List<TaskCreator>> GetTasksCreators();
+        Task<List<TaskCreator>> GetTasksCreator();
 
         Task<Guid> CreateTaskCreator(TaskCreator taskCreator);
 
