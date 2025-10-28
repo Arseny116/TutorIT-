@@ -3,8 +3,8 @@
 namespace Application.API.DTO.TasksCreator
 {
     public record class TasksCreatorResponse(
-        Guid id,
-        string? name,
-        string? description,
-        List<Question> questions);
+        Guid Id,
+        string? Name,
+        string? Description,
+        List<Question> Questions);
 }

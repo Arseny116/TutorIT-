@@ -2,7 +2,6 @@
 using Application.Domain.Models;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Metrics;
 
 namespace Application.Infrastructure.Repositories
 {
