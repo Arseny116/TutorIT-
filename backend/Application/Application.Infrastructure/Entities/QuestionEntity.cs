@@ -16,5 +16,9 @@
         /// Ответ на вопрос
         /// </summary>
         public bool Answer { get; set; }
+
+        public Guid TaskCreatorId { get; set; }
+
+        public TaskCreatorEntity? TaskCreator { get; set; }
     }
 }

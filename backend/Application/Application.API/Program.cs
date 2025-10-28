@@ -20,7 +20,8 @@ namespace Application.API
             builder.Services.AddDbContext<TutorITDbContext>();
             builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
             builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
-            builder.Services.AddScoped<IQuestionsRepository, QuestionRepository>();
+            builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
+            builder.Services.AddScoped<ITasksCreatorRepository, TasksCreatorRepository>();
             var app = builder.Build();
 
 
