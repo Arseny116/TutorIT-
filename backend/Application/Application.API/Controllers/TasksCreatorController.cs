@@ -17,19 +17,19 @@ namespace Application.API.Controllers
             _tasksCreatorService = tasksCreatorService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
-        {
-            var tasksCreator = await _tasksCreatorService.GetTasksCreator();
+        //[HttpGet]
+        //public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
+        //{
+        //    var tasksCreator = await _tasksCreatorService.GetTasksCreator();
 
-            var response = tasksCreator.Select(t => new TasksCreatorResponse(
-                t.Id,
-                t.Name,
-                t.Description,
-                t.Questions));
+        //    var response = tasksCreator.Select(t => new TasksCreatorResponse(
+        //        t.Id,
+        //        t.Name,
+        //        t.Description,
+        //        t.Questions));
 
-            return Ok(response);
-        }
+        //    return Ok(response);
+        //}
 
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTaskCreator([FromBody] TasksCreatorRequest request)
@@ -37,8 +37,7 @@ namespace Application.API.Controllers
             var taskCreator = TaskCreator.Create(
                 Guid.NewGuid(),
                 request.Name,
-                request.Description,
-                request.Questions);
+                request.Description);
 
             if (!taskCreator.IsSuccess)
             {
@@ -55,8 +54,7 @@ namespace Application.API.Controllers
         {
             var taskCreatorId = await _tasksCreatorService.UpdateTaskCreator(id,
                 request.Name,
-                request.Description,
-                request.Questions);
+                request.Description);
 
             return Ok(taskCreatorId);
         }

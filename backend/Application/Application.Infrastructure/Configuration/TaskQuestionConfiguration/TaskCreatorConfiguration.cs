@@ -13,8 +13,6 @@ namespace Application.Infrastructure.Configuration.TaskQuestionConfiguration
             builder.Property(n => n.Name).IsRequired();
 
             builder.Property(d => d.Description).IsRequired();
-
-            builder.Property(q => q.Questions).IsRequired();
         }
     }
 }

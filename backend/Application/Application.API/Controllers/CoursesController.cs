@@ -16,22 +16,22 @@ namespace Application.API.Controllers
             _coursesService = coursesService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
-        {
-            var courses = await _coursesService.CetCourses();
+        //[HttpGet]
+        //public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
+        //{
+        //    var courses = await _coursesService.CetCourses();
 
-            var response = courses.Select(c => new CoursesResponse(
-                c.Id,
-                c.Title,
-                c.Description,
-                c.Tasks,
-                c.Evaluation,
-                c.Reviews,
-                c.Subscribe));
+        //    var response = courses.Select(c => new CoursesResponse(
+        //        c.Id,
+        //        c.Title,
+        //        c.Description,
+        //        c.Tasks,
+        //        c.Evaluation,
+        //        c.Reviews,
+        //        c.Subscribe));
 
-            return Ok(response);
-        }
+        //    return Ok(response);
+        //}
 
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateCourse([FromBody] CoursesRequest request)

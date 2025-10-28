@@ -16,19 +16,20 @@ namespace Application.API.Controllers
             _autorsService = autorsService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<AuthorsResponse>>> GetAutors()
-        {
-            var autors = await _autorsService.GetAutors();
+        //[HttpGet]
+        //public async Task<ActionResult<List<AuthorsResponse>>> GetAutors()
+        //{
+        //    var autors = await _autorsService.GetAutors();
 
-            var response = autors.Select(a => new AuthorsResponse(
-                a.Id,
-                a.Name,
-                a.Description,
-                a.CountCourses));
+        //    var response = autors.Select(a => new AuthorsResponse(
+        //        a.Id,
+        //        a.Name,
+        //        a.Description,
+        //        a.CountCourses,
+        //        a.Courses));
 
-            return Ok(response);
-        }
+        //    return Ok(response);
+        //}
 
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateAutors([FromBody] AuthorsRequest request)

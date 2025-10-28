@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var tasksCreator = new List<TaskCreator>();
             foreach (var entity in taskCreatorEntity)
             {
-                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description, entity.Questions);
+                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description);
 
                 if (result.IsSuccess)
                 {
@@ -39,7 +39,6 @@ namespace Application.Infrastructure.Repositories
                 Id = taskCreator.Id,
                 Name = taskCreator.Name,
                 Description = taskCreator.Description,
-                Questions = taskCreator.Questions
             };
 
             await _context.TasksCreator.AddAsync(taskCreatorEntity);
@@ -48,13 +47,12 @@ namespace Application.Infrastructure.Repositories
             return taskCreatorEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string name, string description, List<Question> questions)
+        public async Task<Guid> Update(Guid id, string name, string description)
         {
             await _context.TasksCreator.Where(x => x.Id == id)
                 .ExecuteUpdateAsync(s => s
                 .SetProperty(n => n.Name, name)
-                .SetProperty(d => d.Description, description)
-                .SetProperty(q => q.Questions, questions));
+                .SetProperty(d => d.Description, description));
 
             return id;
         }

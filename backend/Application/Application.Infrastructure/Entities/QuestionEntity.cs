@@ -8,12 +8,12 @@
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Сам вопроса
+        /// Сам ответ на вопрос
         /// </summary>
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Ответ на вопрос
+        /// Ответ на вопрос(bool)
         /// </summary>
         public bool Answer { get; set; }
 

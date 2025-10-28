@@ -22,6 +22,6 @@
         /// </summary>
         public int CountCourses { get; set; } = 0;
 
-        public Dictionary<Guid, CourseEntity> Courses { get; set; } = [];
+        public List<CourseEntity> Courses { get; set; } = new List<CourseEntity>();
     }
 }

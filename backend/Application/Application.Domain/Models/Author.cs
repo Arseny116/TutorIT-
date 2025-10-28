@@ -24,6 +24,8 @@ namespace Application.Domain.Models
         /// </summary>
         public int CountCourses { get; private set; } = 0;
 
+        public List<Course> Courses { get; } = new List<Course>();
+
         public Author(Guid id, string name, string description)
         {
             Id = id;
