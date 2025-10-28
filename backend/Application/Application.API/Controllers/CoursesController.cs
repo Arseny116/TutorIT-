@@ -1,5 +1,5 @@
 ﻿using Application.API.DTO.Courses;
-using Application.Domain.Interface;
+using Application.Domain.Interface.ICourse;
 using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 

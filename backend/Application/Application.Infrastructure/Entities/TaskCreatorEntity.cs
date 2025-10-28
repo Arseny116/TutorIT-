@@ -1,4 +1,4 @@
-﻿using Application.Domain.Models;
+﻿using Application.Domain.Models.TaskQuestion;
 
 namespace Application.Infrastructure.Entities
 {

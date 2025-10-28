@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Application.Domain.Models
+namespace Application.Domain.Models.TaskQuestion
 {
     public class Question
     {

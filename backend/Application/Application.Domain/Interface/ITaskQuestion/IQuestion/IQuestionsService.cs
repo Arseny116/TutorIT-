@@ -1,6 +1,6 @@
-﻿using Application.Domain.Models;
+﻿using Application.Domain.Models.TaskQuestion;
 
-namespace Application.Domain.Interface
+namespace Application.Domain.Interface.ITaskQuestion.IQuestion
 {
     public interface IQuestionsService
     {

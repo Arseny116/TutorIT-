@@ -1,6 +1,6 @@
 ﻿using Application.Infrastructure.Entities.EntityExecutorCode;
 
-namespace Application.Infrastructure.RepositoriesExecutorCode
+namespace Application.Infrastructure.Repositories.RepositoriesExecutorCode
 {
     public class ExecutionResultRep
     {

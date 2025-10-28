@@ -1,10 +1,11 @@
-﻿using Application.Domain.Models.RootCodeProblem;
+﻿using Application.Domain.Interface.ICodeExecutor;
+using Application.Domain.Models.RootCodeProblem;
 using Application.Infrastructure.Entities.EntityExecutorCode;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace Application.Infrastructure.Repositories
+namespace Application.Infrastructure.Repositories.RepositoriesExecutorCode
 {
     public class CodeProblemRep : ICodeProblemRep
     {

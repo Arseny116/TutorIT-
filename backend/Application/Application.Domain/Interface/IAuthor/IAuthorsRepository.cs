@@ -1,6 +1,6 @@
 ﻿using Application.Domain.Models;
 
-namespace Application.Domain.Interface
+namespace Application.Domain.Interface.IAuthor
 {
     public interface IAuthorsRepository
     {

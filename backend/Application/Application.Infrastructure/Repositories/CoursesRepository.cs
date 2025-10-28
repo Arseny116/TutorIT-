@@ -1,4 +1,4 @@
-﻿using Application.Domain.Interface;
+﻿using Application.Domain.Interface.ICourse;
 using Application.Domain.Models;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;

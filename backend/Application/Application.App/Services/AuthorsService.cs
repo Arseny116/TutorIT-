@@ -1,4 +1,4 @@
-﻿using Application.Domain.Interface;
+﻿using Application.Domain.Interface.IAuthor;
 using Application.Domain.Models;
 
 namespace Application.App.Services

@@ -1,6 +1,6 @@
 ﻿using Application.API.DTO.TasksCreator;
-using Application.Domain.Interface;
-using Application.Domain.Models;
+using Application.Domain.Interface.ITaskQuestion.ITask;
+using Application.Domain.Models.TaskQuestion;
 using Microsoft.AspNetCore.Mvc;
 using System.Xml;
 
