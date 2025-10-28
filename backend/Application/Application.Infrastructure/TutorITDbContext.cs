@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Application.Domain.Models;
 using Application.Infrastructure.Configuration.ConfigurationExecutorCode;
 using Application.Infrastructure.Entities;
 using Application.Infrastructure.Entities.EntityExecutorCode;
@@ -18,7 +19,7 @@ namespace Application.Infrastructure
             _configuration = configuration;
         }
 
-    
+
 
         //Скрываем логику создания DB контекста
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -41,5 +42,7 @@ namespace Application.Infrastructure
         public DbSet<AuthorEntity> Autors { get; set; }
 
         public DbSet<QuestionEntity> Questions { get; set; }
+
+        public DbSet<TaskCreatorEntity> TasksCreator { get; set; }
     }
 }

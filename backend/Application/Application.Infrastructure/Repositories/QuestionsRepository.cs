@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Infrastructure.Repositories
 {
-    public class QuestionRepository : IQuestionsRepository
+    public class QuestionsRepository : IQuestionsRepository
     {
         private readonly TutorITDbContext _context;
 
-        public QuestionRepository(TutorITDbContext context)
+        public QuestionsRepository(TutorITDbContext context)
         {
             _context = context;
         }
