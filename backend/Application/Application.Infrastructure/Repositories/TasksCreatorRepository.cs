@@ -9,9 +9,12 @@ namespace Application.Infrastructure.Repositories
     {
         private readonly TutorITDbContext _context;
 
-        public TasksCreatorRepository(TutorITDbContext context)
+        private readonly IQuestionsRepository _service;
+
+        public TasksCreatorRepository(TutorITDbContext context, IQuestionsRepository service)
         {
             _context = context;
+            _service = service;
         }
 
         public async Task<List<TaskCreator>> Get()
@@ -21,7 +24,7 @@ namespace Application.Infrastructure.Repositories
             var tasksCreator = new List<TaskCreator>();
             foreach (var entity in taskCreatorEntity)
             {
-                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description);
+                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description, entity.Questions);
 
                 if (result.IsSuccess)
                 {
@@ -48,12 +51,13 @@ namespace Application.Infrastructure.Repositories
             return taskCreatorEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string name, string description)
+        public async Task<Guid> Update(Guid id, string name, string description, List<Question> questions)
         {
             await _context.TasksCreator.Where(x => x.Id == id)
                 .ExecuteUpdateAsync(s => s
                 .SetProperty(n => n.Name, name)
-                .SetProperty(d => d.Description, description));
+                .SetProperty(d => d.Description, description)
+                .SetProperty(q => q.Questions, questions));
 
             return id;
         }

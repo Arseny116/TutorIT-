@@ -8,7 +8,7 @@ namespace Application.Domain.Interface
 
         Task<Guid> Create(TaskCreator taskCreator);
 
-        Task<Guid> Update(Guid id, string name, string description);
+        Task<Guid> Update(Guid id, string name, string description, List<Question> questions);
 
         Task<Guid> Delete(Guid id);
     }

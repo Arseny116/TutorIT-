@@ -13,6 +13,8 @@ namespace Application.Infrastructure.Configuration
             builder.Property(n => n.Name).IsRequired();
 
             builder.Property(d => d.Description).IsRequired();
+
+            builder.Property(q => q.Questions).IsRequired();
         }
     }
 }

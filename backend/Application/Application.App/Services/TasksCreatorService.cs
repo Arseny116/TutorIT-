@@ -22,9 +22,9 @@ namespace Application.App.Services
             return await _tasksCreatorRepository.Create(taskCreator);
         }
 
-        public async Task<Guid> UpdateTaskCreator(Guid id, string name, string description)
+        public async Task<Guid> UpdateTaskCreator(Guid id, string name, string description, List<Question> questions)
         {
-            return await _tasksCreatorRepository.Update(id, name, description);
+            return await _tasksCreatorRepository.Update(id, name, description, questions);
         }
 
         public async Task<Guid> DeleteTaskCreator(Guid id)
