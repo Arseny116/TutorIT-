@@ -32,6 +32,8 @@ namespace Application.Infrastructure
 
         public DbSet<ExecutionResultEntity> ExecutionResults { get; set; }
 
+        public DbSet<UserEntity> Users { get; set; }
+
         public DbSet<CourseEntity> Courses { get; set; }
 
         public DbSet<AuthorEntity> Autors { get; set; }

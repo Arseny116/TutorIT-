@@ -1,12 +1,13 @@
-using Application.App.Services;
-using Application.Domain.Interface.IAuthor;
-using Application.Domain.Interface.ICodeExecutor;
-using Application.Domain.Interface.ICourse;
-using Application.Domain.Interface.ITaskQuestion.IQuestion;
-using Application.Domain.Interface.ITaskQuestion.ITask;
+using System.Text;
+using Application.App;
+using Application.Domain.Interface;
 using Application.Infrastructure;
 using Application.Infrastructure.Repositories;
 using Application.Infrastructure.Repositories.RepositoriesExecutorCode;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
+
 namespace Application.API
 {
     public class Program
@@ -15,19 +16,60 @@ namespace Application.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(nameof(JwtOptions)));
+
 
             builder.Services.AddControllers();
+
+            builder.Services.AddAutoMapper(x
+                => x.AddProfile(typeof(UserProfile))
+            );
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddScoped<ICodeProblemRep, CodeProblemRep>();
-            builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
+
+
             builder.Services.AddDbContext<TutorITDbContext>();
-            builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
-            builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
-            builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
-            builder.Services.AddScoped<ITasksCreatorRepository, TasksCreatorRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+            builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+            
+          
+
+            var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
+
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+
+                        OnMessageReceived = context =>
+                        {
+
+                            context.Token = context.Request.Cookies["Likes cookies"];
+
+                            return Task.CompletedTask;
+                        }
+                    };
+
+                });
+
             var app = builder.Build();
 
+          
 
             if (app.Environment.IsDevelopment())
             {
@@ -35,7 +77,14 @@ namespace Application.API
                 app.UseSwaggerUI();
             }
 
+            app.UseCookiePolicy();
+
             app.UseHttpsRedirection();
+
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
 
             app.MapControllers();
 
