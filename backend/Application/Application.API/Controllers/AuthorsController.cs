@@ -1,12 +1,14 @@
 ﻿using Application.API.DTO.Autors;
 using Application.Domain.Interface.IAuthor;
 using Application.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.API.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
+    [Authorize]
     public class AuthorsController : ControllerBase
     {
         public readonly IAuthorsService _autorsService;
@@ -16,20 +18,20 @@ namespace Application.API.Controllers
             _autorsService = autorsService;
         }
 
-        //[HttpGet]
-        //public async Task<ActionResult<List<AuthorsResponse>>> GetAutors()
-        //{
-        //    var autors = await _autorsService.GetAutors();
+        [HttpGet]
+        public async Task<ActionResult<List<AuthorsResponse>>> GetAutors()
+        {
+            var autors = await _autorsService.GetAutors();
 
-        //    var response = autors.Select(a => new AuthorsResponse(
-        //        a.Id,
-        //        a.Name,
-        //        a.Description,
-        //        a.CountCourses,
-        //        a.Courses));
+            var response = autors.Select(a => new AuthorsResponse(
+                a.Id,
+                a.Name,
+                a.Description,
+                a.CountCourses,
+                a.Courses));
 
-        //    return Ok(response);
-        //}
+            return Ok(response);
+        }
 
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateAutors([FromBody] AuthorsRequest request)
