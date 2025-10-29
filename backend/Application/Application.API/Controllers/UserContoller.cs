@@ -28,12 +28,7 @@ namespace Application.API.Controllers
         {
             var token = await _userService.Login(request.Email, request.Password);
 
-            Response.Cookies.Append("LikesCookies", token, new CookieOptions
-            {
-                HttpOnly = true, 
-                Secure = true,   
-                SameSite = SameSiteMode.Strict
-            });
+            Response.Cookies.Append("LikesCookies", token);
 
             return Ok(new { Token = token });
         }

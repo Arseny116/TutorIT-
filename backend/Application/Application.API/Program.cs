@@ -57,7 +57,7 @@ namespace Application.API
             builder.Services.AddScoped<ICoursesService, CoursesService>();
             builder.Services.AddScoped<ITasksCreatorService, TasksCreatorService>();
             builder.Services.AddScoped<IQuestionsService, QuestionsService>();
-
+            
 
             var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
 
@@ -80,13 +80,14 @@ namespace Application.API
                         OnMessageReceived = context =>
                         {
 
-                            context.Token = context.Request.Cookies["Likes cookies"];
+                            context.Token = context.Request.Cookies["LikesCookies"];
 
                             return Task.CompletedTask;
                         }
                     };
 
                 });
+            builder.Services.AddAuthorization();
 
             var app = builder.Build();
 
