@@ -21,13 +21,14 @@ namespace Application.API.Controllers
         {
             var courses = await _coursesService.GetCourses();
             var response = courses.Select(c => new CoursesResponse(
-               c.Id,
+                c.Id,
                 c.Title,
                 c.Description,
                 c.Chapters,
                 c.Evaluation,
                 c.Reviews,
-                c.Subscribe));
+                c.Subscribe,
+                c.NumberChapters));
 
             return Ok(response);
         }

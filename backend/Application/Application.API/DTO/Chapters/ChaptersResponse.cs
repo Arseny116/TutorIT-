@@ -4,6 +4,7 @@ using Application.Domain.Models.TaskQuestion;
 namespace Application.API.DTO.Chapters
 {
     public record class ChaptersResponse(
+        Guid id,
         string? Name,
         string? Description,
         int NumberTheoryBloks,
