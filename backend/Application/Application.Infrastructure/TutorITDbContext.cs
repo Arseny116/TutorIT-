@@ -25,7 +25,7 @@ namespace Application.Infrastructure
 
 
 
-        //public DbSet<{сущность}> {Имя сужности};
+        //public DbSet<{сущность}> {Имя сущности};
         public DbSet<CodeProblemEntity> CodeProblemEntity { get; set; }
 
         public DbSet<TestCasesEntity> TestCasesEntity { get; set; }
@@ -34,12 +34,16 @@ namespace Application.Infrastructure
 
         public DbSet<UserEntity> Users { get; set; }
 
-        public DbSet<CourseEntity> Courses { get; set; }
-
         public DbSet<AuthorEntity> Autors { get; set; }
 
-        public DbSet<QuestionEntity> Questions { get; set; }
+        public DbSet<CourseEntity> Courses { get; set; }
+
+        public DbSet<ChapterEntity> Chapters { get; set; }
+
+        public DbSet<TheoryEntity> Theories { get; set; }
 
         public DbSet<TaskCreatorEntity> TasksCreator { get; set; }
+
+        public DbSet<QuestionEntity> Questions { get; set; }
     }
 }
