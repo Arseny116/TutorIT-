@@ -20,9 +20,9 @@ namespace Application.Domain.Models
         public string Description { get; } = string.Empty;
 
         /// <summary>
-        /// Кол-во заданий на курсе
+        /// Кол-во глав в курсе
         /// </summary>
-        public int Tasks { get; }
+        public int Chapters { get; }
 
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
@@ -40,15 +40,15 @@ namespace Application.Domain.Models
         public int Subscribe { get; private set; } = 0;
 
 
-        private Course(Guid id, string title, string description, int tasks)
+        private Course(Guid id, string title, string description, int chapters)
         {
             Id = id;
             Title = title;
             Description = description;
-            Tasks = tasks;
+            Chapters = chapters;
         }
 
-        public static Result<Course> Create(Guid id, string title, string description, int tasks)
+        public static Result<Course> Create(Guid id, string title, string description, int chapters)
         {
             if (string.IsNullOrEmpty(title))
             {
@@ -60,12 +60,12 @@ namespace Application.Domain.Models
                 return Result.Failure<Course>($"Описание курса не может быть пустым");
             }
 
-            if (tasks <= 0)
+            if (chapters <= 0)
             {
                 return Result.Failure<Course>($"Кол-во заданий в курсе должно быть больше 0");
             }
 
-            Course course = new Course(id, title, description, tasks);
+            Course course = new Course(id, title, description, chapters);
 
             return Result.Success(course);
         }

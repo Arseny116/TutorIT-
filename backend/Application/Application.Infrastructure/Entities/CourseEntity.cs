@@ -18,9 +18,9 @@
         public string Description { get; set; } = string.Empty;
 
         /// <summary>
-        /// Кол-во заданий на курсе
+        /// Кол-во глав в курсе
         /// </summary>
-        public int Tasks { get; set; }
+        public int Chapters { get; set; }
 
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)

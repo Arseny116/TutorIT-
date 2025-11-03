@@ -4,7 +4,7 @@
         Guid Id,
         string? Title,
         string? Description,
-        int Tasks,
+        int Chapters,
         double? Evaluation,
         List<string> Reviews,
         int Subscribe

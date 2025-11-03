@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var courses = new List<Course>();
             foreach (var entity in courseEntity)
             {
-                var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Tasks);
+                var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Chapters);
 
                 if (result.IsSuccess)
                 {
@@ -42,7 +42,7 @@ namespace Application.Infrastructure.Repositories
                 Evaluation = course.Evaluation,
                 Reviews = course.Reviews,
                 Subscribe = course.Subscribe,
-                Tasks = course.Tasks
+                Chapters = course.Chapters
             };
 
             await _context.Courses.AddAsync(courseEntity);
@@ -51,13 +51,13 @@ namespace Application.Infrastructure.Repositories
             return courseEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string title, string description, int tasks)
+        public async Task<Guid> Update(Guid id, string title, string description, int chapters)
         {
             await _context.Courses.Where(c => c.Id == id)
                 .ExecuteUpdateAsync(s => s
                 .SetProperty(t => t.Title, t => title)
                 .SetProperty(d => d.Description, d => description)
-                .SetProperty(t => t.Tasks, t => tasks));
+                .SetProperty(t => t.Chapters, t => chapters));
 
             return id;
         }
