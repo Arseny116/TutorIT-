@@ -9,7 +9,7 @@ using Application.Domain.Interface.ICodeExecutor;
 using Application.Domain.Interface.ICourse;
 using Application.Domain.Interface.ITaskQuestion.IQuestion;
 using Application.Domain.Interface.ITaskQuestion.ITask;
-using Application.Domain.Models.TaskQuestion;
+using Application.Domain.Interface.ITheory;
 using Application.Infrastructure;
 using Application.Infrastructure.Repositories;
 using Application.Infrastructure.Repositories.RepositoriesExecutorCode;
@@ -49,12 +49,15 @@ namespace Application.API
             builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
             builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
             builder.Services.AddScoped<IChaptersRepository, ChaptersRepository>();
+            builder.Services.AddScoped<ITheoriesRepository, TheoriesRepository>();
             builder.Services.AddScoped<ITasksCreatorRepository, TasksCreatorRepository>();
             builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
 
             builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
             builder.Services.AddScoped<IAuthorsService, AuthorsService>();
             builder.Services.AddScoped<ICoursesService, CoursesService>();
+            builder.Services.AddScoped<IChaptersService, ChaptersService>();
+            builder.Services.AddScoped<ITheoriesService, TheoriesService>();
             builder.Services.AddScoped<ITasksCreatorService, TasksCreatorService>();
             builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 
