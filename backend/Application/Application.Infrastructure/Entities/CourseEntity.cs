@@ -37,6 +37,8 @@
         /// </summary>
         public int Subscribe { get; set; } = 0;
 
+        public List<ChapterEntity> NumberChapters { get; set; } = new List<ChapterEntity>();
+
         public Guid AutorId { get; set; }
 
         public AuthorEntity? Autor { get; set; }
