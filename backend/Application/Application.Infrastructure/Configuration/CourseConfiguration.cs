@@ -14,7 +14,7 @@ namespace Application.Infrastructure.Configuration
 
             builder.Property(d => d.Description).IsRequired();
 
-            builder.Property(t => t.Tasks).IsRequired();
+            builder.Property(t => t.Chapters).IsRequired();
         }
     }
 }

@@ -19,15 +19,16 @@ namespace Application.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
         {
-            var courses = await _coursesService.CetCourses();
+            var courses = await _coursesService.GetCourses();
             var response = courses.Select(c => new CoursesResponse(
-               c.Id,
+                c.Id,
                 c.Title,
                 c.Description,
-                c.Tasks,
+                c.Chapters,
                 c.Evaluation,
                 c.Reviews,
-                c.Subscribe));
+                c.Subscribe,
+                c.NumberChapters));
 
             return Ok(response);
         }
@@ -39,7 +40,7 @@ namespace Application.API.Controllers
                 Guid.NewGuid(),
                 request.Title,
                 request.Description,
-                request.Tasks);
+                request.Chapters);
 
             if (!course.IsSuccess)
             {
@@ -54,7 +55,7 @@ namespace Application.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] CoursesRequest request)
         {
-            var courseId = await _coursesService.UpdateCourse(id, request.Title, request.Description, request.Tasks);
+            var courseId = await _coursesService.UpdateCourse(id, request.Title, request.Description, request.Chapters);
 
             return Ok(courseId);
         }

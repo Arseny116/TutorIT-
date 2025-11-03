@@ -4,6 +4,7 @@ using Application.App.Services;
 using Application.App.Services.TaskQuestionService;
 using Application.Domain.Interface;
 using Application.Domain.Interface.IAuthor;
+using Application.Domain.Interface.IChapter;
 using Application.Domain.Interface.ICodeExecutor;
 using Application.Domain.Interface.ICourse;
 using Application.Domain.Interface.ITaskQuestion.IQuestion;
@@ -43,21 +44,20 @@ namespace Application.API
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<ICodeProblemRep, CodeProblemRep>();
-            
+
             builder.Services.AddDbContext<TutorITDbContext>();
-            builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
             builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
-            builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
+            builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
+            builder.Services.AddScoped<IChaptersRepository, ChaptersRepository>();
             builder.Services.AddScoped<ITasksCreatorRepository, TasksCreatorRepository>();
-
-
+            builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
 
             builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
             builder.Services.AddScoped<IAuthorsService, AuthorsService>();
             builder.Services.AddScoped<ICoursesService, CoursesService>();
             builder.Services.AddScoped<ITasksCreatorService, TasksCreatorService>();
             builder.Services.AddScoped<IQuestionsService, QuestionsService>();
-            
+
 
             var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
 
@@ -91,7 +91,7 @@ namespace Application.API
 
             var app = builder.Build();
 
-          
+
 
             if (app.Environment.IsDevelopment())
             {

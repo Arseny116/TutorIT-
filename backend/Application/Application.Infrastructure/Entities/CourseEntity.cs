@@ -18,9 +18,9 @@
         public string Description { get; set; } = string.Empty;
 
         /// <summary>
-        /// Кол-во заданий на курсе
+        /// Кол-во глав в курсе
         /// </summary>
-        public int Tasks { get; set; }
+        public int Chapters { get; set; }
 
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
@@ -36,6 +36,8 @@
         /// Кол-во людей записанных на курс
         /// </summary>
         public int Subscribe { get; set; } = 0;
+
+        public List<ChapterEntity> NumberChapters { get; set; } = new List<ChapterEntity>();
 
         public Guid AutorId { get; set; }
 

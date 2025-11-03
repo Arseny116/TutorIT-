@@ -2,27 +2,22 @@
 
 namespace Application.Infrastructure.Entities
 {
-    public class TaskCreatorEntity
+    public class TheoryEntity
     {
         /// <summary>
-        /// Id Задачи
+        /// Id блока теории
         /// </summary>
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Название задачи
+        /// Название блока теории
         /// </summary>
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Описание задачи
+        /// Содержимое блока теории
         /// </summary>
-        public string Description { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Список вопросов
-        /// </summary>
-        public List<QuestionEntity> Questions { get; set; } = new List<QuestionEntity>();
+        public string Article { get; set; } = string.Empty;
 
         public Guid ChpterID { get; set; }
 

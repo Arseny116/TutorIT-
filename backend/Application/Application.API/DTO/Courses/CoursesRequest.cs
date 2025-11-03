@@ -3,6 +3,6 @@
     public record class CoursesRequest(
         string Title,
         string Description,
-        int Tasks
+        int Chapters
         );
 }
