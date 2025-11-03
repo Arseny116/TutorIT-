@@ -57,6 +57,7 @@ namespace Application.API
             builder.Services.AddScoped<IAuthorsService, AuthorsService>();
             builder.Services.AddScoped<ICoursesService, CoursesService>();
             builder.Services.AddScoped<IChaptersService, ChaptersService>();
+            builder.Services.AddScoped<ITheoriesService, TheoriesService>();
             builder.Services.AddScoped<ITasksCreatorService, TasksCreatorService>();
             builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 

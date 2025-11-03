@@ -2,7 +2,7 @@
 
 namespace Application.Domain.Interface.ITheory
 {
-    public interface ITeoriesService
+    public interface ITheoriesService
     {
         Task<List<Theory>> GetTheories();
 
