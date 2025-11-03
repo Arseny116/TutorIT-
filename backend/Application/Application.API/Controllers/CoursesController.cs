@@ -19,7 +19,7 @@ namespace Application.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
         {
-            var courses = await _coursesService.CetCourses();
+            var courses = await _coursesService.GetCourses();
             var response = courses.Select(c => new CoursesResponse(
                c.Id,
                 c.Title,

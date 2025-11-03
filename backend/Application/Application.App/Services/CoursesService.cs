@@ -12,7 +12,7 @@ namespace Application.App.Services
             _coursesRepository = coursesRepository;
         }
 
-        public async Task<List<Course>> CetCourses()
+        public async Task<List<Course>> GetCourses()
         {
             return await _coursesRepository.Get();
         }
