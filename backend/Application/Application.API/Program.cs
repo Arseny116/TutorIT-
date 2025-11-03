@@ -9,6 +9,7 @@ using Application.Domain.Interface.ICodeExecutor;
 using Application.Domain.Interface.ICourse;
 using Application.Domain.Interface.ITaskQuestion.IQuestion;
 using Application.Domain.Interface.ITaskQuestion.ITask;
+using Application.Domain.Interface.Theory;
 using Application.Domain.Models.TaskQuestion;
 using Application.Infrastructure;
 using Application.Infrastructure.Repositories;
@@ -55,6 +56,7 @@ namespace Application.API
             builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
             builder.Services.AddScoped<IAuthorsService, AuthorsService>();
             builder.Services.AddScoped<ICoursesService, CoursesService>();
+            builder.Services.AddScoped<IChaptersService, ChaptersService>();
             builder.Services.AddScoped<ITasksCreatorService, TasksCreatorService>();
             builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 
