@@ -2,7 +2,7 @@
 
 namespace Application.Domain.Interface.IChapter
 {
-    interface IChaptersService
+    public interface IChaptersService
     {
         Task<List<Chapter>> GetChapters();
 
