@@ -38,7 +38,7 @@ namespace Application.Domain.Models
 
         public List<TaskCreator> Tasks { get; } = new List<TaskCreator>();
 
-        //public List<Theory> Theories { get; } = new List<Theory>();
+        public List<Theory> Theories { get; } = new List<Theory>();
 
         public Chapter(Guid id, string name, string description, int numberTheoryBloks, int numberTasks)
         {
