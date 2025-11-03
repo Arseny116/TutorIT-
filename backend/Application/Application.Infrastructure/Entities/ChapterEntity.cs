@@ -30,9 +30,9 @@ namespace Application.Infrastructure.Entities
         /// </summary>
         public int NumberTasks { get; set; } = 0;
 
-        public List<TaskCreatorEntity> Tasks { get; set; } = new List<TaskCreatorEntity>();
-
         public List<TheoryEntity> Theories { get; set; } = new List<TheoryEntity>();
+
+        public List<TaskCreatorEntity> Tasks { get; set; } = new List<TaskCreatorEntity>();
 
         public Guid CourseID { get; set; }
 

@@ -39,6 +39,7 @@ namespace Application.Domain.Models
         /// </summary>
         public int Subscribe { get; private set; } = 0;
 
+        public List<Chapter> NumberChapters { get; } = new List<Chapter>();
 
         private Course(Guid id, string title, string description, int chapters)
         {

@@ -36,9 +36,9 @@ namespace Application.Domain.Models
         /// </summary>
         public int NumberTasks { get; } = 0;
 
-        public List<TaskCreator> Tasks { get; } = new List<TaskCreator>();
-
         public List<Theory> Theories { get; } = new List<Theory>();
+
+        public List<TaskCreator> Tasks { get; } = new List<TaskCreator>();
 
         public Chapter(Guid id, string name, string description, int numberTheoryBloks, int numberTasks)
         {
