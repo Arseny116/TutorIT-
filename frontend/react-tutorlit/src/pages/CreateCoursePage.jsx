@@ -11,12 +11,14 @@ function CreateCoursePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!courseName.trim() || !description.trim() || !assignmentsCount) {
+    if (!courseName.trim() || !description.trim() || !assignmentsCount)
+         {
       alert('Заполните все поля');
       return;
     }
 
-    const newCourse = {
+    const newCourse =
+     {
       id: Date.now(),
       title: courseName,
       description: description,

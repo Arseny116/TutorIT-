@@ -28,7 +28,7 @@
   color: white;
 }
 
-/* Стиль для неактивной кнопки CP */
+
 .header-btn-disabled {
   border-color: #6c757d;
   color: #6c757d;
@@ -39,8 +39,5 @@
   background: white;
   color: #6c757d;
   border-color: #6c757d;
-}
-
-.header-link {
-  text-decoration: none;
+  transform: none; 
 }
