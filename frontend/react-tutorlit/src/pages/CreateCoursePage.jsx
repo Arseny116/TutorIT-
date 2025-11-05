@@ -5,24 +5,24 @@ import './CreateCoursePage.css';
 function CreateCoursePage() {
   const [courseName, setCourseName] = useState('');
   const [description, setDescription] = useState('');
-  const [assignmentsCount, setAssignmentsCount] = useState('');
+  const [sectionsCount, setSectionsCount] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!courseName.trim() || !description.trim() || !assignmentsCount)
-         {
+    if (!courseName.trim() || !description.trim() || !sectionsCount) {
       alert('Заполните все поля');
       return;
     }
 
-    const newCourse =
-     {
+    const newCourse = {
       id: Date.now(),
       title: courseName,
       description: description,
-      assignments: parseInt(assignmentsCount),
+      sections: parseInt(sectionsCount),
+      // ✅ ДОБАВЛЯЕМ ПУСТОЙ МАССИВ ДЛЯ РАЗДЕЛОВ
+      sectionsData: [],
       createdAt: new Date().toISOString()
     };
 
@@ -67,15 +67,15 @@ function CreateCoursePage() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="assignmentsCount">Количество заданий *</label>
+          <label htmlFor="sectionsCount">Количество разделов *</label>
           <input
-            id="assignmentsCount"
+            id="sectionsCount"
             type="number"
-            value={assignmentsCount}
-            onChange={(e) => setAssignmentsCount(e.target.value)}
-            placeholder="Введите число"
+            value={sectionsCount}
+            onChange={(e) => setSectionsCount(e.target.value)}
+            placeholder="Введите количество разделов"
             min="1"
-            max="100"
+            max="20"
             required
           />
         </div>

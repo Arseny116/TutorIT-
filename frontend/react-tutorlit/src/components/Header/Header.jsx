@@ -8,24 +8,13 @@ function Header() {
   return (
     <>
       <header className="header">
-        <div className="header-left">
-          <button className="header-btn header-btn-disabled" title="В разработке">
-            CP
-          </button>
-          
-   
-          <button 
-            className="header-btn"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Курсы
-          </button>
-        </div>
         
-        <div className="header-right">
-          <button className="header-btn">Вход</button>
-          <button className="header-btn">Регистрация</button>
-        </div>
+        <button 
+          className="header-btn"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Курсы
+        </button>
       </header>
 
       <CourseModal 
