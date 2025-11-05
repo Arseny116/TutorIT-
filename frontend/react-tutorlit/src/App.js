@@ -4,7 +4,8 @@ import Header from './components/Header/Header';
 import HomePage from './pages/HomePage';
 import CreateCoursePage from './pages/CreateCoursePage';
 import CoursePage from './pages/CoursePage';
-import CoursesPage from './pages/CoursesPage';  
+import CoursesPage from './pages/CoursesPage';
+import CourseBuilder from './pages/CourseBuilder';
 
 function App() {
   return (
@@ -15,7 +16,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/create-course" element={<CreateCoursePage />} />
           <Route path="/course/:courseId" element={<CoursePage />} />
-          <Route path="/courses" element={<CoursesPage />} />  
+          <Route path="/course/:courseId/builder" element={<CourseBuilder />} />
+          <Route path="/courses" element={<CoursesPage />} />
         </Routes>
       </div>
     </BrowserRouter>
