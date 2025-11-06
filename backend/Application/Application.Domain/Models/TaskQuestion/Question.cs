@@ -4,6 +4,8 @@ namespace Application.Domain.Models.TaskQuestion
 {
     public class Question
     {
+        const int MAX_LENGTH_ANSWER = 100;
+
         /// <summary>
         /// Id вопроса
         /// </summary>
@@ -19,7 +21,7 @@ namespace Application.Domain.Models.TaskQuestion
         /// </summary>
         public bool Answer { get; }
 
-        public Question(Guid id, string name, bool answer)
+        private Question(Guid id, string name, bool answer)
         {
             Id = id;
             Name = name;
@@ -28,9 +30,9 @@ namespace Application.Domain.Models.TaskQuestion
 
         public static Result<Question> Create(Guid id, string name, bool answer)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_ANSWER)
             {
-                return Result.Failure<Question>("Вопрос не может путь пустым");
+                return Result.Failure<Question>($"Вопрос не может путь пустым и превышать {MAX_LENGTH_ANSWER} символов");
             }
 
             Question question = new Question(id, name, answer);

@@ -25,6 +25,7 @@ namespace Application.API.Controllers
                 c.Title,
                 c.Description,
                 c.Chapters,
+                c.Сomplexity,
                 c.Evaluation,
                 c.Reviews,
                 c.Subscribe,
@@ -40,7 +41,8 @@ namespace Application.API.Controllers
                 Guid.NewGuid(),
                 request.Title,
                 request.Description,
-                request.Chapters);
+                request.Chapters,
+                request.Complexity);
 
             if (!course.IsSuccess)
             {
@@ -55,7 +57,7 @@ namespace Application.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] CoursesRequest request)
         {
-            var courseId = await _coursesService.UpdateCourse(id, request.Title, request.Description, request.Chapters);
+            var courseId = await _coursesService.UpdateCourse(id, request.Title, request.Description, request.Chapters, request.Complexity);
 
             return Ok(courseId);
         }

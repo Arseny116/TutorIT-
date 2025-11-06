@@ -7,6 +7,7 @@ namespace Application.API.DTO.Courses
         string? Title,
         string? Description,
         int Chapters,
+        int Complexity,
         double? Evaluation,
         List<string> Reviews,
         int Subscribe,

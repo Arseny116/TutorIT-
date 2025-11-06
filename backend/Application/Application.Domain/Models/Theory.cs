@@ -21,7 +21,7 @@ namespace Application.Domain.Models
         /// </summary>
         public string Article { get; } = string.Empty;
 
-        public Theory(Guid id, string name, string article)
+        private Theory(Guid id, string name, string article)
         {
             Id = id;
             Name = name;
