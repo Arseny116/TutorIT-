@@ -4,6 +4,10 @@ namespace Application.Domain.Models
 {
     public class Author
     {
+        const int MAX_LENGTH_NAME = 50;
+
+        const int MAX_LENGTH_DESCRIPTION = 500;
+
         /// <summary>
         /// Id автора
         /// </summary>
@@ -26,7 +30,7 @@ namespace Application.Domain.Models
 
         public List<Course> Courses { get; } = new List<Course>();
 
-        public Author(Guid id, string name, string description)
+        private Author(Guid id, string name, string description)
         {
             Id = id;
             Name = name;
@@ -35,14 +39,14 @@ namespace Application.Domain.Models
 
         public static Result<Author> Create(Guid id, string name, string description)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
-                return Result.Failure<Author>("Имя автора не может быть пустым");
+                return Result.Failure<Author>($"Имя автора не может быть пустым и превышать {MAX_LENGTH_NAME} символов");
             }
 
-            if (string.IsNullOrEmpty(description))
+            if (string.IsNullOrEmpty(description) || description.Length > MAX_LENGTH_DESCRIPTION)
             {
-                return Result.Failure<Author>("Информация об авторе не может быть пустым");
+                return Result.Failure<Author>($"Информация об авторе не может быть пустым и превышать {MAX_LENGTH_DESCRIPTION} символов");
             }
 
             Author autor = new Author(id, name, description);

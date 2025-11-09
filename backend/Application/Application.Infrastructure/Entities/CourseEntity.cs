@@ -23,6 +23,11 @@
         public int Chapters { get; set; }
 
         /// <summary>
+        /// Сложность курса
+        /// </summary>
+        public int Сomplexity { get; set; }
+
+        /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
         /// </summary>
         public double Evaluation { get; set; } = 0.0;

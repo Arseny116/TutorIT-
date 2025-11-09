@@ -22,9 +22,9 @@ namespace Application.App.Services
             return await _coursesRepository.Create(course);
         }
 
-        public async Task<Guid> UpdateCourse(Guid id, string title, string description, int chapters)
+        public async Task<Guid> UpdateCourse(Guid id, string title, string description, int chapters, int complexity)
         {
-            return await _coursesRepository.Update(id, title, description, chapters);
+            return await _coursesRepository.Update(id, title, description, chapters, complexity);
         }
 
         public async Task<Guid> DeleteCourse(Guid id)
