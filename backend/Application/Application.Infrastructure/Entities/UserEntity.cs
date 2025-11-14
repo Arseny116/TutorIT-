@@ -8,6 +8,10 @@ namespace Application.Infrastructure
 {
     public class UserEntity
     {
+        public UserEntity()
+        {
+        }
+
         public Guid Id { get; set; }
 
         public string UserName { get; set; } = string.Empty;

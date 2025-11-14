@@ -45,6 +45,36 @@ namespace Application.Infrastructure.Migrations
                     b.ToTable("Autors");
                 });
 
+            modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CourseID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("NumberTasks")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NumberTheoryBloks")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseID");
+
+                    b.ToTable("Chapters");
+                });
+
             modelBuilder.Entity("Application.Infrastructure.Entities.CourseEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -53,6 +83,9 @@ namespace Application.Infrastructure.Migrations
 
                     b.Property<Guid>("AutorId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Chapters")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -68,12 +101,12 @@ namespace Application.Infrastructure.Migrations
                     b.Property<int>("Subscribe")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Tasks")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Сomplexity")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -159,6 +192,12 @@ namespace Application.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ChapterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChpterID")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -169,7 +208,36 @@ namespace Application.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ChapterId");
+
                     b.ToTable("TasksCreator");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.TheoryEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Article")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ChapterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChpterID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterId");
+
+                    b.ToTable("Theories");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.UserEntity", b =>
@@ -243,6 +311,17 @@ namespace Application.Infrastructure.Migrations
                     b.ToTable("TestCasesEntity");
                 });
 
+            modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>
+                {
+                    b.HasOne("Application.Infrastructure.Entities.CourseEntity", "Course")
+                        .WithMany("NumberChapters")
+                        .HasForeignKey("CourseID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
             modelBuilder.Entity("Application.Infrastructure.Entities.CourseEntity", b =>
                 {
                     b.HasOne("Application.Infrastructure.Entities.AuthorEntity", "Autor")
@@ -263,6 +342,24 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("TaskCreator");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.TaskCreatorEntity", b =>
+                {
+                    b.HasOne("Application.Infrastructure.Entities.ChapterEntity", "Chapter")
+                        .WithMany("Tasks")
+                        .HasForeignKey("ChapterId");
+
+                    b.Navigation("Chapter");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.TheoryEntity", b =>
+                {
+                    b.HasOne("Application.Infrastructure.Entities.ChapterEntity", "Chapter")
+                        .WithMany("Theories")
+                        .HasForeignKey("ChapterId");
+
+                    b.Navigation("Chapter");
                 });
 
             modelBuilder.Entity("CodeTemplateEntity", b =>
@@ -286,6 +383,18 @@ namespace Application.Infrastructure.Migrations
             modelBuilder.Entity("Application.Infrastructure.Entities.AuthorEntity", b =>
                 {
                     b.Navigation("Courses");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>
+                {
+                    b.Navigation("Tasks");
+
+                    b.Navigation("Theories");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.CourseEntity", b =>
+                {
+                    b.Navigation("NumberChapters");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.EntityExecutorCode.CodeProblemEntity", b =>

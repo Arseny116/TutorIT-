@@ -2,6 +2,10 @@
 {
     public class QuestionEntity
     {
+        public QuestionEntity()
+        {
+        }
+
         /// <summary>
         /// Id вопроса
         /// </summary>

@@ -2,6 +2,10 @@
 {
     public class CourseEntity
     {
+        public CourseEntity()
+        {
+        }
+
         /// <summary>
         /// Id курса
         /// </summary>

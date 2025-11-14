@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Application.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class MVP : Migration
+    public partial class Update : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -56,19 +56,6 @@ namespace Application.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TasksCreator",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TasksCreator", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -89,7 +76,8 @@ namespace Application.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Tasks = table.Column<int>(type: "integer", nullable: false),
+                    Chapters = table.Column<int>(type: "integer", nullable: false),
+                    Сomplexity = table.Column<int>(type: "integer", nullable: false),
                     Evaluation = table.Column<double>(type: "double precision", nullable: false),
                     Reviews = table.Column<List<string>>(type: "text[]", nullable: false),
                     Subscribe = table.Column<int>(type: "integer", nullable: false),
@@ -146,6 +134,68 @@ namespace Application.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Chapters",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    NumberTheoryBloks = table.Column<int>(type: "integer", nullable: false),
+                    NumberTasks = table.Column<int>(type: "integer", nullable: false),
+                    CourseID = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Chapters", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Chapters_Courses_CourseID",
+                        column: x => x.CourseID,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TasksCreator",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    ChpterID = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChapterId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TasksCreator", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TasksCreator_Chapters_ChapterId",
+                        column: x => x.ChapterId,
+                        principalTable: "Chapters",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Theories",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Article = table.Column<string>(type: "text", nullable: false),
+                    ChpterID = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChapterId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Theories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Theories_Chapters_ChapterId",
+                        column: x => x.ChapterId,
+                        principalTable: "Chapters",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Questions",
                 columns: table => new
                 {
@@ -166,6 +216,11 @@ namespace Application.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Chapters_CourseID",
+                table: "Chapters",
+                column: "CourseID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CodeTemplateEntity_CodeProblemEntityId",
                 table: "CodeTemplateEntity",
                 column: "CodeProblemEntityId");
@@ -181,9 +236,19 @@ namespace Application.Infrastructure.Migrations
                 column: "TaskCreatorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TasksCreator_ChapterId",
+                table: "TasksCreator",
+                column: "ChapterId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TestCasesEntity_CodeProblemEntityId",
                 table: "TestCasesEntity",
                 column: "CodeProblemEntityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Theories_ChapterId",
+                table: "Theories",
+                column: "ChapterId");
         }
 
         /// <inheritdoc />
@@ -191,9 +256,6 @@ namespace Application.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "CodeTemplateEntity");
-
-            migrationBuilder.DropTable(
-                name: "Courses");
 
             migrationBuilder.DropTable(
                 name: "ExecutionResults");
@@ -205,16 +267,25 @@ namespace Application.Infrastructure.Migrations
                 name: "TestCasesEntity");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Theories");
 
             migrationBuilder.DropTable(
-                name: "Autors");
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "TasksCreator");
 
             migrationBuilder.DropTable(
                 name: "CodeProblemEntity");
+
+            migrationBuilder.DropTable(
+                name: "Chapters");
+
+            migrationBuilder.DropTable(
+                name: "Courses");
+
+            migrationBuilder.DropTable(
+                name: "Autors");
         }
     }
 }

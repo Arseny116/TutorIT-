@@ -25,6 +25,7 @@ namespace Application.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddCors();
             builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(nameof(JwtOptions)));
 
 
@@ -94,7 +95,7 @@ namespace Application.API
 
             var app = builder.Build();
 
-
+            app.UseCors(builder => builder.AllowAnyOrigin());
 
             if (app.Environment.IsDevelopment())
             {

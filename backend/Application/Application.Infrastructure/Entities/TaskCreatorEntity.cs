@@ -4,6 +4,10 @@ namespace Application.Infrastructure.Entities
 {
     public class TaskCreatorEntity
     {
+        public TaskCreatorEntity()
+        {
+        }
+
         /// <summary>
         /// Id Задачи
         /// </summary>
@@ -26,6 +30,6 @@ namespace Application.Infrastructure.Entities
 
         public Guid ChpterID { get; set; }
 
-        public Chapter? Chapter { get; set; }
+        public ChapterEntity? Chapter { get; set; }
     }
 }

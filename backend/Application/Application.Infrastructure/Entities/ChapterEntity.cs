@@ -1,10 +1,23 @@
-﻿using Application.Domain.Models.TaskQuestion;
-using Application.Domain.Models;
+﻿using Application.Domain.Models;
 
 namespace Application.Infrastructure.Entities
 {
     public class ChapterEntity
     {
+
+        public ChapterEntity()
+        {
+
+        }
+        public ChapterEntity(string name, string description, int numberTheoryBloks, int numberTasks)
+        {
+            Id = Guid.NewGuid();
+            Name = name;
+            Description = description;
+            NumberTheoryBloks = numberTheoryBloks;
+            NumberTasks = numberTasks;
+        }
+
         /// <summary>
         /// Id раздела
         /// </summary>
@@ -36,6 +49,6 @@ namespace Application.Infrastructure.Entities
 
         public Guid CourseID { get; set; }
 
-        public Course? Course { get; set; }
+        public CourseEntity? Course { get; set; }
     }
 }

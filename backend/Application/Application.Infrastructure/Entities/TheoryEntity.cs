@@ -4,6 +4,10 @@ namespace Application.Infrastructure.Entities
 {
     public class TheoryEntity
     {
+        public TheoryEntity()
+        {
+        }
+
         /// <summary>
         /// Id блока теории
         /// </summary>
@@ -21,6 +25,6 @@ namespace Application.Infrastructure.Entities
 
         public Guid ChpterID { get; set; }
 
-        public Chapter? Chapter { get; set; }
+        public ChapterEntity? Chapter { get; set; }
     }
 }

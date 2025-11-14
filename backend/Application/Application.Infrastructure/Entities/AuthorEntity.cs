@@ -2,6 +2,10 @@
 {
     public class AuthorEntity
     {
+        public AuthorEntity()
+        {
+        }
+
         /// <summary>
         /// Id автора
         /// </summary>
