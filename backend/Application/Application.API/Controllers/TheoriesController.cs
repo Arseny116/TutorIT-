@@ -16,7 +16,7 @@ namespace Application.API.Controllers
             _theoriesService = theoriesService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllTheories")]
         public async Task<ActionResult<List<TheoriesResponse>>> GetTheories()
         {
             var theories = await _theoriesService.GetTheories();
@@ -28,7 +28,7 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("CreateTheory")]
         public async Task<ActionResult<Guid>> CreateTheory([FromBody] TheoriesRequest request)
         {
             var theory = Theory.Create(

@@ -16,7 +16,7 @@ namespace Application.API.Controllers
             _chaptersService = chaptersService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllChapters")]
         public async Task<ActionResult<List<ChaptersResponse>>> GetChapters()
         {
             var chapters = await _chaptersService.GetChapters();
@@ -32,7 +32,7 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("CreateChapter")]
         public async Task<ActionResult<Guid>> CreateChapter([FromBody] ChaptersRequest request)
         {
             var chapter = Chapter.Create(

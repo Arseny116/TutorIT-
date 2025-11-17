@@ -12,7 +12,7 @@ namespace Application.App.Services
             _autorsRepository = autorsRepository;
         }
 
-        public async Task<List<Author>> GetAutors()
+        public async Task<List<Author>> GetAuthors()
         {
             return await _autorsRepository.Get();
         }
