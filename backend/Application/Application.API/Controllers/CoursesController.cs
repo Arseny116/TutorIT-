@@ -16,7 +16,7 @@ namespace Application.API.Controllers
             _coursesService = coursesService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllCourses")]
         public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
         {
             var courses = await _coursesService.GetCourses();
@@ -34,7 +34,7 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("CreateCourse")]
         public async Task<ActionResult<Guid>> CreateCourse([FromBody] CoursesRequest request)
         {
             var course = Course.Create(

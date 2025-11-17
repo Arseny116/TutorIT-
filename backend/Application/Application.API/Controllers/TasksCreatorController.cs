@@ -2,7 +2,6 @@
 using Application.Domain.Interface.ITaskQuestion.ITask;
 using Application.Domain.Models.TaskQuestion;
 using Microsoft.AspNetCore.Mvc;
-using System.Xml;
 
 namespace Application.API.Controllers
 {
@@ -17,7 +16,7 @@ namespace Application.API.Controllers
             _tasksCreatorService = tasksCreatorService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllTasks")]
         public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
         {
             var tasksCreator = await _tasksCreatorService.GetTasksCreator();
@@ -31,7 +30,7 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("CreateTask")]
         public async Task<ActionResult<Guid>> CreateTaskCreator([FromBody] TasksCreatorRequest request)
         {
             var taskCreator = TaskCreator.Create(

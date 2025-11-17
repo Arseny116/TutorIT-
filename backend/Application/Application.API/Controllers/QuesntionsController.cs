@@ -16,7 +16,7 @@ namespace Application.API.Controllers
             _questionsService = questionsService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllQuestions")]
         public async Task<ActionResult<List<QuestionsResponse>>> GetQuestions()
         {
             var questions = await _questionsService.GetQuestions();
@@ -29,8 +29,8 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Guid>> CreateQuestions([FromBody] QuestionsRequest request)
+        [HttpPost("CreateQuestion")]
+        public async Task<ActionResult<Guid>> CreateQuestion([FromBody] QuestionsRequest request)
         {
             var question = Question.Create(
                 Guid.NewGuid(),

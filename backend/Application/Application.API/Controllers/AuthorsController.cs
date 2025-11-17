@@ -18,10 +18,10 @@ namespace Application.API.Controllers
             _autorsService = autorsService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<AuthorsResponse>>> GetAutors()
+        [HttpGet("GetAllAuthors")]
+        public async Task<ActionResult<List<AuthorsResponse>>> GetAuthors()
         {
-            var autors = await _autorsService.GetAutors();
+            var autors = await _autorsService.GetAuthors();
 
             var response = autors.Select(a => new AuthorsResponse(
                 a.Id,
@@ -33,8 +33,8 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Guid>> CreateAutors([FromBody] AuthorsRequest request)
+        [HttpPost("CreareAuthor")]
+        public async Task<ActionResult<Guid>> CreateAutor([FromBody] AuthorsRequest request)
         {
             var autor = Author.Create(
                 Guid.NewGuid(),
