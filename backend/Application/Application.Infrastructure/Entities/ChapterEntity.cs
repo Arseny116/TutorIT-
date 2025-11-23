@@ -26,26 +26,26 @@ namespace Application.Infrastructure.Entities
         /// <summary>
         /// Название раздела
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; }
 
         /// <summary>
         /// Описание раздела
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string Description { get; set; } 
 
         /// <summary>
         /// Кол-во блоков теории
         /// </summary>
-        public int NumberTheoryBloks { get; set; } = 0;
+        public int NumberTheoryBloks { get; set; } 
 
         /// <summary>
         /// Кол-во задание
         /// </summary>
-        public int NumberTasks { get; set; } = 0;
+        public int NumberTasks { get; set; } 
 
-        public List<TheoryEntity> Theories { get; set; } = new List<TheoryEntity>();
+        public List<TheoryEntity> Theories { get; set; } 
 
-        public List<TaskCreatorEntity> Tasks { get; set; } = new List<TaskCreatorEntity>();
+        public List<TaskCreatorEntity> Tasks { get; set; } 
 
         public Guid CourseID { get; set; }
 

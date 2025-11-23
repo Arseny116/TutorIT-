@@ -14,12 +14,12 @@
         /// <summary>
         /// Заголовок курса
         /// </summary>
-        public string Title { get; set; } = string.Empty;
+        public string Title { get; set; } 
 
         /// <summary>
         /// Описание курса
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string Description { get; set; } 
 
         /// <summary>
         /// Кол-во глав в курсе
@@ -29,27 +29,23 @@
         /// <summary>
         /// Сложность курса
         /// </summary>
-        public int Сomplexity { get; set; }
+        public int Complexity { get; set; }
 
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
         /// </summary>
-        public double Evaluation { get; set; } = 0.0;
+        public double Evaluation { get; set; }
 
         /// <summary>
         /// Отзывы о курсе
         /// </summary>
-        public List<string> Reviews { get; set; } = [];
+        public List<string> Reviews { get; set; } 
 
         /// <summary>
         /// Кол-во людей записанных на курс
         /// </summary>
-        public int Subscribe { get; set; } = 0;
+        public int Subscribe { get; set; }
 
-        public List<ChapterEntity> NumberChapters { get; set; } = new List<ChapterEntity>();
-
-        public Guid AutorId { get; set; }
-
-        public AuthorEntity? Autor { get; set; }
+        public List<ChapterEntity> NumberChapters { get; set; }
     }
 }

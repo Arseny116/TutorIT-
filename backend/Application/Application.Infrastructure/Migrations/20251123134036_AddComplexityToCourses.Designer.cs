@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Application.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Application.Infrastructure.Migrations
 {
     [DbContext(typeof(TutorITDbContext))]
-    partial class TutorITDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251123134036_AddComplexityToCourses")]
+    partial class AddComplexityToCourses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,6 +25,28 @@ namespace Application.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.AuthorEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CountCourses")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Autors");
+                });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>
                 {
@@ -59,6 +84,9 @@ namespace Application.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("AutorId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Chapters")
                         .HasColumnType("integer");
 
@@ -84,6 +112,8 @@ namespace Application.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AutorId");
 
                     b.ToTable("Courses");
                 });
@@ -165,7 +195,10 @@ namespace Application.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ChapterID")
+                    b.Property<Guid?>("ChapterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChpterID")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Description")
@@ -178,7 +211,7 @@ namespace Application.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChapterID");
+                    b.HasIndex("ChapterId");
 
                     b.ToTable("TasksCreator");
                 });
@@ -193,7 +226,10 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ChapterID")
+                    b.Property<Guid?>("ChapterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChpterID")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
@@ -202,7 +238,7 @@ namespace Application.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChapterID");
+                    b.HasIndex("ChapterId");
 
                     b.ToTable("Theories");
                 });
@@ -289,6 +325,17 @@ namespace Application.Infrastructure.Migrations
                     b.Navigation("Course");
                 });
 
+            modelBuilder.Entity("Application.Infrastructure.Entities.CourseEntity", b =>
+                {
+                    b.HasOne("Application.Infrastructure.Entities.AuthorEntity", "Autor")
+                        .WithMany("Courses")
+                        .HasForeignKey("AutorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Autor");
+                });
+
             modelBuilder.Entity("Application.Infrastructure.Entities.QuestionEntity", b =>
                 {
                     b.HasOne("Application.Infrastructure.Entities.TaskCreatorEntity", "TaskCreator")
@@ -304,9 +351,7 @@ namespace Application.Infrastructure.Migrations
                 {
                     b.HasOne("Application.Infrastructure.Entities.ChapterEntity", "Chapter")
                         .WithMany("Tasks")
-                        .HasForeignKey("ChapterID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ChapterId");
 
                     b.Navigation("Chapter");
                 });
@@ -315,9 +360,7 @@ namespace Application.Infrastructure.Migrations
                 {
                     b.HasOne("Application.Infrastructure.Entities.ChapterEntity", "Chapter")
                         .WithMany("Theories")
-                        .HasForeignKey("ChapterID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ChapterId");
 
                     b.Navigation("Chapter");
                 });
@@ -338,6 +381,11 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("CodeProblemEntity");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.AuthorEntity", b =>
+                {
+                    b.Navigation("Courses");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>

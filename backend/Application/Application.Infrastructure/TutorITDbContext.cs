@@ -34,8 +34,6 @@ namespace Application.Infrastructure
 
         public DbSet<UserEntity> Users { get; set; }
 
-        public DbSet<AuthorEntity> Autors { get; set; }
-
         public DbSet<CourseEntity> Courses { get; set; }
 
         public DbSet<ChapterEntity> Chapters { get; set; }

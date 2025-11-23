@@ -35,19 +35,7 @@ namespace Application.API.Controllers
         [HttpPost("CreateChapter")]
         public async Task<ActionResult<Guid>> CreateChapter([FromBody] ChaptersRequest request)
         {
-            var chapter = Chapter.Create(
-                Guid.NewGuid(),
-                request.Name,
-                request.Description,
-                request.NumberTheoryBloks,
-                request.NumberTasks);
-
-            if (!chapter.IsSuccess)
-            {
-                return BadRequest(chapter.Error);
-            }
-
-            var chapterId = await _chaptersService.CreateChapter(chapter.Value);
+            var chapterId = await _chaptersService.CreateChapter(request.CoursesId,request.Name,request.Description,request.NumberTheoryBloks,request.NumberTasks);
 
             return Ok(chapterId);
         }

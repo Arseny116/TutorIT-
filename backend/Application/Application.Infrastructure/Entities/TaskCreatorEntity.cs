@@ -16,19 +16,19 @@ namespace Application.Infrastructure.Entities
         /// <summary>
         /// Название задачи
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; }
 
         /// <summary>
         /// Описание задачи
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string Description { get; set; }
 
         /// <summary>
         /// Список вопросов
         /// </summary>
-        public List<QuestionEntity> Questions { get; set; } = new List<QuestionEntity>();
+        public List<QuestionEntity> Questions { get; set; } 
 
-        public Guid ChpterID { get; set; }
+        public Guid ChapterID { get; set; }
 
         public ChapterEntity? Chapter { get; set; }
     }

@@ -16,7 +16,9 @@ namespace Application.Infrastructure.Configuration
 
             builder.Property(t => t.Chapters).IsRequired();
 
-            builder.Property(c => c.Сomplexity).IsRequired();
+            builder.Property(c => c.Complexity).IsRequired();
+
+         
         }
     }
 }

@@ -3,7 +3,7 @@ using Application.App;
 using Application.App.Services;
 using Application.App.Services.TaskQuestionService;
 using Application.Domain.Interface;
-using Application.Domain.Interface.IAuthor;
+
 using Application.Domain.Interface.IChapter;
 using Application.Domain.Interface.ICodeExecutor;
 using Application.Domain.Interface.ICourse;
@@ -45,7 +45,7 @@ namespace Application.API
             builder.Services.AddScoped<ICodeProblemRep, CodeProblemRep>();
 
             builder.Services.AddDbContext<TutorITDbContext>();
-            builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
+
             builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
             builder.Services.AddScoped<IChaptersRepository, ChaptersRepository>();
             builder.Services.AddScoped<ITheoriesRepository, TheoriesRepository>();
@@ -53,7 +53,7 @@ namespace Application.API
             builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
 
             builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
-            builder.Services.AddScoped<IAuthorsService, AuthorsService>();
+       
             builder.Services.AddScoped<ICoursesService, CoursesService>();
             builder.Services.AddScoped<IChaptersService, ChaptersService>();
             builder.Services.AddScoped<ITheoriesService, TheoriesService>();

@@ -16,14 +16,14 @@ namespace Application.Infrastructure.Entities
         /// <summary>
         /// Название блока теории
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; }
 
         /// <summary>
         /// Содержимое блока теории
         /// </summary>
-        public string Article { get; set; } = string.Empty;
+        public string Article { get; set; }
 
-        public Guid ChpterID { get; set; }
+        public Guid ChapterID { get; set; }
 
         public ChapterEntity? Chapter { get; set; }
     }

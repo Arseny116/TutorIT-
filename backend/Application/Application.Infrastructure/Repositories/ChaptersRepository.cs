@@ -32,15 +32,15 @@ namespace Application.Infrastructure.Repositories
             return chapters;
         }
 
-        public async Task<Guid> Create(Chapter chapter)
+        public async Task<Guid> Create(Guid Coursesid, string name, string description, int numberTheoryBloks, int numberTasks)
         {
             var chapterEntity = new ChapterEntity
             {
-                Id = chapter.Id,
-                Name = chapter.Name,
-                Description = chapter.Description,
-                NumberTheoryBloks = chapter.NumberTheoryBloks,
-                NumberTasks = chapter.NumberTasks
+                Name = name,
+                Description = description,
+                NumberTheoryBloks = numberTheoryBloks,
+                NumberTasks = numberTasks,
+                CourseID=Coursesid 
             };
 
             await _context.Chapters.AddAsync(chapterEntity);

@@ -17,9 +17,9 @@ namespace Application.App.Services
             return await _chaptersRepository.Get();
         }
 
-        public async Task<Guid> CreateChapter(Chapter chapter)
+        public async Task<Guid> CreateChapter(Guid Coursesid, string name, string description, int numberTheoryBloks, int numberTasks)
         {
-            return await _chaptersRepository.Create(chapter);
+            return await _chaptersRepository.Create( Coursesid, name,description, numberTheoryBloks,  numberTasks);
         }
 
         public async Task<Guid> UpdateChapter(Guid id, string name, string description, int numberTheoryBloks, int numberTasks)

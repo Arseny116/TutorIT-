@@ -6,7 +6,7 @@ namespace Application.Domain.Interface.IChapter
     {
         Task<List<Chapter>> Get();
 
-        Task<Guid> Create(Chapter chapter);
+        Task<Guid> Create(Guid Coursesid, string name, string description, int numberTheoryBloks, int numberTasks);
 
         Task<Guid> Update(Guid id, string name, string description, int numberTheoryBloks, int numberTasks);
 

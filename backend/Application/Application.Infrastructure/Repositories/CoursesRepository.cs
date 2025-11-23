@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var courses = new List<Course>();
             foreach (var entity in courseEntity)
             {
-                var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Chapters, entity.Сomplexity);
+                var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
 
                 if (result.IsSuccess)
                 {
@@ -43,7 +43,7 @@ namespace Application.Infrastructure.Repositories
                 Reviews = course.Reviews,
                 Subscribe = course.Subscribe,
                 Chapters = course.Chapters,
-                Сomplexity = course.Сomplexity
+                Complexity = course.Сomplexity
             };
 
             await _context.Courses.AddAsync(courseEntity);
@@ -59,7 +59,7 @@ namespace Application.Infrastructure.Repositories
                 .SetProperty(t => t.Title, t => title)
                 .SetProperty(d => d.Description, d => description)
                 .SetProperty(t => t.Chapters, t => chapters)
-                .SetProperty(c => c.Сomplexity, c => complexity));
+                .SetProperty(c => c.Complexity, c => complexity));
 
             return id;
         }

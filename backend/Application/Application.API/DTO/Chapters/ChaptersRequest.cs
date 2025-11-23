@@ -4,5 +4,7 @@
         string Name,
         string Description,
         int NumberTheoryBloks,
-        int NumberTasks);
+        int NumberTasks,
+        Guid CoursesId
+        );
 }
