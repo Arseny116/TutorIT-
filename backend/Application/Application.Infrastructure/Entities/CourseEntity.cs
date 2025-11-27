@@ -29,7 +29,7 @@
         /// <summary>
         /// Сложность курса
         /// </summary>
-        public int Complexity { get; set; }
+        public int  Complexity{ get; set; }
 
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)
