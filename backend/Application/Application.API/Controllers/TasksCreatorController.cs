@@ -1,22 +1,22 @@
 ﻿using Application.API.DTO.TasksCreator;
 using Application.Domain.Interface.ITaskQuestion.ITask;
-using Application.Domain.Models.TaskQuestion;
+using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.API.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class TasksCreatorController : ControllerBase
+    public class TasksCreatorsController : ControllerBase
     {
         private readonly ITasksCreatorService _tasksCreatorService;
 
-        public TasksCreatorController(ITasksCreatorService tasksCreatorService)
+        public TasksCreatorsController(ITasksCreatorService tasksCreatorService)
         {
             _tasksCreatorService = tasksCreatorService;
         }
 
-        [HttpGet("GetAllTasks")]
+        [HttpGet]
         public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
         {
             var tasksCreator = await _tasksCreatorService.GetTasksCreator();
@@ -30,11 +30,11 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("CreateTask")]
-        public async Task<ActionResult<Guid>> CreateTaskCreator([FromBody] TasksCreatorRequest request)
+        [HttpPost]
+        public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId , [FromBody] TasksCreatorRequest request)
         {
-            var taskCreator = TaskCreator.Create(
-                Guid.NewGuid(),
+            var taskCreator = TaskCreator.Create
+            (
                 request.Name,
                 request.Description);
 
@@ -43,7 +43,7 @@ namespace Application.API.Controllers
                 return BadRequest(taskCreator.Value);
             }
 
-            var taskCreatorId = await _tasksCreatorService.CreateTaskCreator(taskCreator.Value);
+            var taskCreatorId = await _tasksCreatorService.CreateTaskCreator(ChapterId ,taskCreator.Value);
 
             return Ok(taskCreatorId);
         }

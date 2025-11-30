@@ -1,5 +1,5 @@
 ﻿using Application.API.DTO.Chapters;
-using Application.Domain.Interface.IChapter;
+using Application.Domain.Interface;
 using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +16,7 @@ namespace Application.API.Controllers
             _chaptersService = chaptersService;
         }
 
-        [HttpGet("GetAllChapters")]
+        [HttpGet]
         public async Task<ActionResult<List<ChaptersResponse>>> GetChapters()
         {
             var chapters = await _chaptersService.GetChapters();
@@ -32,12 +32,18 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("CreateChapter")]
-        public async Task<ActionResult<Guid>> CreateChapter([FromBody] ChaptersRequest request)
+        [HttpPost("{CourseId:guid}")]
+        public async Task<ActionResult<Guid>> CreateChapter(Guid CourseId,[FromBody] ChaptersRequest request)
         {
-            var chapterId = await _chaptersService.CreateChapter(request.CoursesId,request.Name,request.Description,request.NumberTheoryBloks,request.NumberTasks);
+            var chapterDomain = Chapter.Create(
+                request.Name,
+                request.Description,
+                request.NumberTheoryBloks,
+                request.NumberTasks);
 
-            return Ok(chapterId);
+            await _chaptersService.CreateChapter(CourseId, chapterDomain.Value);
+
+            return Ok(CourseId);//Заменить на DTO 
         }
 
         [HttpPut("{id:guid}")]

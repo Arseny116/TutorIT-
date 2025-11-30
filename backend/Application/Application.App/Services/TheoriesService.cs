@@ -17,9 +17,9 @@ namespace Application.App.Services
             return await _theoriesRepository.Get();
         }
 
-        public async Task<Guid> CreateTheory(Theory theory)
+        public async Task<Guid> CreateTheory(Guid ChapterId,Theory theory)
         {
-            return await _theoriesRepository.Create(theory);
+            return await _theoriesRepository.Create(ChapterId,theory);
         }
 
         public async Task<Guid> UpdateTheory(Guid id, string name, string article)

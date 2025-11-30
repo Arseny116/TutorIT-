@@ -32,15 +32,17 @@ namespace Application.Infrastructure.Repositories
             return theories;
         }
 
-        public async Task<Guid> Create(Theory theory)
+        public async Task<Guid> Create(Guid chapterId, Theory theory)
         {
             var theoryEntity = new TheoryEntity
             {
                 Id = theory.Id,
                 Name = theory.Name,
                 Article = theory.Article,
+                ChapterID = chapterId
             };
-
+       
+            
             await _context.Theories.AddAsync(theoryEntity);
             await _context.SaveChangesAsync();
 
