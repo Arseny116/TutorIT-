@@ -1,18 +1,15 @@
 using System.Text;
 using Application.App;
 using Application.App.Services;
-using Application.App.Services.TaskQuestionService;
 using Application.Domain.Interface;
-
-using Application.Domain.Interface.IChapter;
-using Application.Domain.Interface.ICodeExecutor;
 using Application.Domain.Interface.ICourse;
 using Application.Domain.Interface.ITaskQuestion.IQuestion;
 using Application.Domain.Interface.ITaskQuestion.ITask;
 using Application.Domain.Interface.ITheory;
 using Application.Infrastructure;
+using Application.Infrastructure.Authentication;
 using Application.Infrastructure.Repositories;
-using Application.Infrastructure.Repositories.RepositoriesExecutorCode;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -38,13 +35,12 @@ namespace Application.API
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddDbContext<TutorITDbContext>();
+
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-            builder.Services.AddScoped<ICodeProblemRep, CodeProblemRep>();
 
-            builder.Services.AddDbContext<TutorITDbContext>();
 
             builder.Services.AddScoped<ICoursesRepository, CoursesRepository>();
             builder.Services.AddScoped<IChaptersRepository, ChaptersRepository>();
@@ -52,7 +48,6 @@ namespace Application.API
             builder.Services.AddScoped<ITasksCreatorRepository, TasksCreatorRepository>();
             builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
 
-            builder.Services.AddScoped<IServiceCodeProblem, ServiceCodeProblem>();
        
             builder.Services.AddScoped<ICoursesService, CoursesService>();
             builder.Services.AddScoped<IChaptersService, ChaptersService>();

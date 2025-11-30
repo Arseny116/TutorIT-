@@ -28,7 +28,24 @@ namespace Application.Domain.Models
             Article = article;
         }
 
-        public static Result<Theory> Create(Guid id, string name, string article)
+        public static Result<Theory> Create(string name, string article)
+        {
+            if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
+            {
+                return Result.Failure<Theory>($"Название блока теории не может быть пустым и превышать {MAX_LENGTH_NAME} символов");
+            }
+
+            if (string.IsNullOrEmpty(article))
+            {
+                return Result.Failure<Theory>("Содержимое блока не может быть пустым");
+            }
+
+            Theory theory = new Theory(Guid.NewGuid(), name, article);
+
+            return Result.Success(theory);
+        }
+
+        public static Result<Theory> Create(Guid id ,string name, string article)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -44,5 +61,6 @@ namespace Application.Domain.Models
 
             return Result.Success(theory);
         }
+
     }
 }

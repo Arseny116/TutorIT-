@@ -16,7 +16,7 @@ namespace Application.API.Controllers
             _theoriesService = theoriesService;
         }
 
-        [HttpGet("GetAllTheories")]
+        [HttpGet]
         public async Task<ActionResult<List<TheoriesResponse>>> GetTheories()
         {
             var theories = await _theoriesService.GetTheories();
@@ -28,20 +28,20 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("CreateTheory")]
-        public async Task<ActionResult<Guid>> CreateTheory([FromBody] TheoriesRequest request)
+        [HttpPost]
+        public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId,[FromBody] TheoriesRequest request)
         {
             var theory = Theory.Create(
                 Guid.NewGuid(),
                 request.Name,
-                request.Name);
+                request.Article);
 
             if (!theory.IsSuccess)
             {
                 return BadRequest(theory.Error);
             }
 
-            var theoryId = await _theoriesService.CreateTheory(theory.Value);
+            var theoryId = await _theoriesService.CreateTheory(ChapterId,theory.Value);
 
             return Ok(theoryId);
         }

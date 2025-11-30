@@ -1,4 +1,4 @@
-﻿using Application.Domain.Interface.IChapter;
+﻿using Application.Domain.Interface;
 using Application.Domain.Models;
 using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var chapters = new List<Chapter>();
             foreach (var entity in chaptersEntity)
             {
-                var result = Chapter.Create(entity.Id, entity.Name, entity.Description, entity.NumberTheoryBloks, entity.NumberTasks);
+                var result = Chapter.Create(entity.Id ,entity.Name, entity.Description, entity.NumberTheoryBloks, entity.NumberTasks);
 
                 if (result.IsSuccess)
                 {
@@ -32,14 +32,14 @@ namespace Application.Infrastructure.Repositories
             return chapters;
         }
 
-        public async Task<Guid> Create(Guid Coursesid, string name, string description, int numberTheoryBloks, int numberTasks)
+        public async Task<Guid> Create(Guid Coursesid, Chapter chapter)
         {
             var chapterEntity = new ChapterEntity
             {
-                Name = name,
-                Description = description,
-                NumberTheoryBloks = numberTheoryBloks,
-                NumberTasks = numberTasks,
+                Name = chapter.Name,
+                Description = chapter.Description,
+                NumberTheoryBloks = chapter.NumberTheoryBloks,
+                NumberTasks = chapter.NumberTasks,
                 CourseID=Coursesid 
             };
 

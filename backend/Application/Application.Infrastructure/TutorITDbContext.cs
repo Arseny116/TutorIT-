@@ -1,5 +1,4 @@
 ﻿using Application.Infrastructure.Entities;
-using Application.Infrastructure.Entities.EntityExecutorCode;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -26,11 +25,7 @@ namespace Application.Infrastructure
 
 
         //public DbSet<{сущность}> {Имя сущности};
-        public DbSet<CodeProblemEntity> CodeProblemEntity { get; set; }
-
-        public DbSet<TestCasesEntity> TestCasesEntity { get; set; }
-
-        public DbSet<ExecutionResultEntity> ExecutionResults { get; set; }
+    
 
         public DbSet<UserEntity> Users { get; set; }
 

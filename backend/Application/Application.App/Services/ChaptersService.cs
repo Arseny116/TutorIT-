@@ -1,4 +1,4 @@
-﻿using Application.Domain.Interface.IChapter;
+﻿using Application.Domain.Interface;
 using Application.Domain.Models;
 
 namespace Application.App.Services
@@ -17,9 +17,9 @@ namespace Application.App.Services
             return await _chaptersRepository.Get();
         }
 
-        public async Task<Guid> CreateChapter(Guid Coursesid, string name, string description, int numberTheoryBloks, int numberTasks)
+        public async Task<Guid> CreateChapter(Guid Coursesid, Chapter chapter)
         {
-            return await _chaptersRepository.Create( Coursesid, name,description, numberTheoryBloks,  numberTasks);
+            return await _chaptersRepository.Create( Coursesid, chapter);
         }
 
         public async Task<Guid> UpdateChapter(Guid id, string name, string description, int numberTheoryBloks, int numberTasks)
