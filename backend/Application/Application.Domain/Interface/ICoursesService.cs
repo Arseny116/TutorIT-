@@ -6,6 +6,8 @@ namespace Application.Domain.Interface.ICourse
     {
         Task<List<Course>> GetCourses();
 
+        Task<Course> GetCoursesById(Guid id);
+
         Task<Guid> CreateCourse(Course course);
 
         Task<Guid> UpdateCourse(Guid id, string title, string description, int chapters, int complexity);

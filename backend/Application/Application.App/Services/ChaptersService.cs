@@ -12,9 +12,9 @@ namespace Application.App.Services
             _chaptersRepository = chaptersRepository;
         }
 
-        public async Task<List<Chapter>> GetChapters()
+        public async Task<List<Chapter>> GetChapters(Guid CourseId)
         {
-            return await _chaptersRepository.Get();
+            return await _chaptersRepository.Get(CourseId);
         }
 
         public async Task<Guid> CreateChapter(Guid Coursesid, Chapter chapter)

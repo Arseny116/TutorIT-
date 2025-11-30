@@ -16,11 +16,13 @@ namespace Application.API.Controllers
             _chaptersService = chaptersService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<ChaptersResponse>>> GetChapters()
+        [HttpGet("{CourseId:guid}")]
+        public async Task<ActionResult<List<ChaptersResponse>>> GetChapters(Guid CourseId)
         {
-            var chapters = await _chaptersService.GetChapters();
-            var response = chapters.Select(chapter => new ChaptersResponse(
+            var chapters = await _chaptersService.GetChapters(CourseId);
+            var response = chapters
+                .
+                Select(chapter => new ChaptersResponse(
                 chapter.Id,
                 chapter.Name,
                 chapter.Description,
@@ -32,6 +34,7 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
+       
         [HttpPost("{CourseId:guid}")]
         public async Task<ActionResult<Guid>> CreateChapter(Guid CourseId,[FromBody] ChaptersRequest request)
         {

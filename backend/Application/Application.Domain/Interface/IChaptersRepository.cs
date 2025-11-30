@@ -4,7 +4,7 @@ namespace Application.Domain.Interface
 {
     public interface IChaptersRepository
     {
-        Task<List<Chapter>> Get();
+        Task<List<Chapter>> Get(Guid CourseId);
 
         Task<Guid> Create(Guid Coursesid, Chapter chapter);
 
