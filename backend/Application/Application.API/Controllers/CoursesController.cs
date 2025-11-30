@@ -34,6 +34,25 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<List<CoursesResponse>>> GetCoursesById(Guid id)
+        {
+            var c = await _coursesService.GetCoursesById(id);
+            var response = new CoursesResponse(
+                c.Id,
+                c.Title,
+                c.Description,
+                c.Chapters,
+                c.Сomplexity,
+                c.Evaluation,
+                c.Reviews,
+                c.Subscribe,
+                c.NumberChapters);
+
+            return Ok(response);
+        }
+
+
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateCourse([FromBody] CoursesRequest request)
         {

@@ -32,6 +32,21 @@ namespace Application.Infrastructure.Repositories
             return courses;
         }
 
+        public async Task<Course> GetById(Guid id )
+        {
+            var entity = await _context.Courses.
+                AsNoTracking().
+                SingleAsync(x => x.Id == id)
+                ;
+
+           
+           var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
+
+           return result.Value;
+        
+        }
+
+
         public async Task<Guid> Create(Course course)
         {
             var courseEntity = new CourseEntity

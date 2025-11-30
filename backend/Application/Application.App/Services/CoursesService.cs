@@ -17,6 +17,11 @@ namespace Application.App.Services
             return await _coursesRepository.Get();
         }
 
+        public async Task<Course> GetCoursesById(Guid id)
+        {
+            return await _coursesRepository.GetById(id);
+        }
+
         public async Task<Guid> CreateCourse(Course course)
         {
             return await _coursesRepository.Create(course);
