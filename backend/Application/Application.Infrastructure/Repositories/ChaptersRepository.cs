@@ -14,9 +14,9 @@ namespace Application.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Chapter>> Get()
+        public async Task<List<Chapter>> Get(Guid CourseId)
         {
-            var chaptersEntity = await _context.Chapters.AsNoTracking().ToListAsync();
+            var chaptersEntity = await _context.Chapters.Where(x=> x.CourseID ==CourseId).AsNoTracking().ToListAsync();
 
             var chapters = new List<Chapter>();
             foreach (var entity in chaptersEntity)

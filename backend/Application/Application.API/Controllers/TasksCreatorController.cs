@@ -17,7 +17,7 @@ namespace Application.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
+        public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator(Guid ChapterId)
         {
             var tasksCreator = await _tasksCreatorService.GetTasksCreator();
 
