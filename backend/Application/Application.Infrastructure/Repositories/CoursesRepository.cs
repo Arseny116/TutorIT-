@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var courses = new List<Course>();
             foreach (var entity in courseEntity)
             {
-                var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
+                var result = Course.Create(entity.Id, entity.PL, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
 
                 if (result.IsSuccess)
                 {
@@ -32,18 +32,17 @@ namespace Application.Infrastructure.Repositories
             return courses;
         }
 
-        public async Task<Course> GetById(Guid id )
+        public async Task<Course> GetById(Guid id)
         {
             var entity = await _context.Courses.
                 AsNoTracking().
-                SingleAsync(x => x.Id == id)
-                ;
+                SingleAsync(x => x.Id == id);
 
-           
-           var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
 
-           return result.Value;
-        
+            var result = Course.Create(entity.Id, entity.PL, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
+
+            return result.Value;
+
         }
 
 
@@ -52,6 +51,7 @@ namespace Application.Infrastructure.Repositories
             var courseEntity = new CourseEntity
             {
                 Id = course.Id,
+                PL = course.PL,
                 Title = course.Title,
                 Description = course.Description,
                 Evaluation = course.Evaluation,
@@ -67,10 +67,11 @@ namespace Application.Infrastructure.Repositories
             return courseEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string title, string description, int chapters, int complexity)
+        public async Task<Guid> Update(Guid id, string pl, string title, string description, int chapters, int complexity)
         {
             await _context.Courses.Where(c => c.Id == id)
                 .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.PL, p => pl)
                 .SetProperty(t => t.Title, t => title)
                 .SetProperty(d => d.Description, d => description)
                 .SetProperty(t => t.Chapters, t => chapters)

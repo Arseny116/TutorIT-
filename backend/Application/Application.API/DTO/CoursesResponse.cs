@@ -4,6 +4,7 @@ namespace Application.API.DTO.Courses
 {
     public record class CoursesResponse(
         Guid Id,
+        string PL,
         string? Title,
         string? Description,
         int Chapters,

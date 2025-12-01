@@ -10,6 +10,8 @@ namespace Application.Infrastructure.Configuration
         {
             builder.HasKey(x => x.Id);
 
+            builder.Property(pl => pl.PL).IsRequired();
+
             builder.Property(t => t.Title).IsRequired();
 
             builder.Property(d => d.Description).IsRequired();
@@ -17,8 +19,6 @@ namespace Application.Infrastructure.Configuration
             builder.Property(t => t.Chapters).IsRequired();
 
             builder.Property(c => c.Complexity).IsRequired();
-
-         
         }
     }
 }

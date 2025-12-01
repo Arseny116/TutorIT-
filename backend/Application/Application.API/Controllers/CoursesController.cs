@@ -22,6 +22,7 @@ namespace Application.API.Controllers
             var courses = await _coursesService.GetCourses();
             var response = courses.Select(c => new CoursesResponse(
                 c.Id,
+                c.PL,
                 c.Title,
                 c.Description,
                 c.Chapters,
@@ -40,6 +41,7 @@ namespace Application.API.Controllers
             var c = await _coursesService.GetCoursesById(id);
             var response = new CoursesResponse(
                 c.Id,
+                c.PL,
                 c.Title,
                 c.Description,
                 c.Chapters,
@@ -58,6 +60,7 @@ namespace Application.API.Controllers
         {
             var course = Course.Create(
                 Guid.NewGuid(),
+                request.PL,
                 request.Title,
                 request.Description,
                 request.Chapters,
@@ -76,7 +79,7 @@ namespace Application.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] CoursesRequest request)
         {
-            var courseId = await _coursesService.UpdateCourse(id, request.Title, request.Description, request.Chapters, request.Complexity);
+            var courseId = await _coursesService.UpdateCourse(id, request.PL, request.Title, request.Description, request.Chapters, request.Complexity);
 
             return Ok(courseId);
         }
