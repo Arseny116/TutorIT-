@@ -16,10 +16,10 @@ namespace Application.API.Controllers
             _theoriesService = theoriesService;
         }
 
-        [HttpGet("{ChapterId:guid}")]
-        public async Task<ActionResult<List<TheoriesResponse>>> GetTheories(Guid ChapterId)
+        [HttpGet]
+        public async Task<ActionResult<List<TheoriesResponse>>> GetTheories(Guid CharterId)
         {
-            var theories = await _theoriesService.GetTheories(ChapterId);
+            var theories = await _theoriesService.GetTheories(CharterId);
             var response = theories.Select(theory => new TheoriesResponse(
                 theory.Id,
                 theory.Name,

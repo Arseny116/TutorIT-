@@ -12,6 +12,11 @@
         public Guid Id { get; set; }
 
         /// <summary>
+        /// Язык программирования
+        /// </summary>
+        public string PL { get; set; }
+
+        /// <summary>
         /// Заголовок курса
         /// </summary>
         public string Title { get; set; } 

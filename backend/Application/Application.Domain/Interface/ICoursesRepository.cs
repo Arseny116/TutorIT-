@@ -9,7 +9,7 @@ namespace Application.Domain.Interface.ICourse
         Task<Guid> Create(Course course);
         Task<Course> GetById(Guid id);
 
-        Task<Guid> Update(Guid id, string title, string description, int chapters, int complexity);
+        Task<Guid> Update(Guid id, string pl, string title, string description, int chapters, int complexity);
 
         Task<Guid> Delete(Guid id);
     }
