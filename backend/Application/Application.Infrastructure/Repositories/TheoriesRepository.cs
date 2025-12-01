@@ -16,7 +16,7 @@ namespace Application.Infrastructure.Repositories
 
         public async Task<List<Theory>> Get(Guid ChapterId)
         {
-            var theoryEntity = await _context.Theories.Where(x=>x.ChapterID==ChapterId).AsNoTracking().ToListAsync();
+            var theoryEntity = await _context.Theories.Where(te => te.ChapterID==ChapterId) .AsNoTracking().ToListAsync();
 
             var theories = new List<Theory>();
             foreach (var entity in theoryEntity)

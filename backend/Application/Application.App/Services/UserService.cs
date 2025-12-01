@@ -21,7 +21,7 @@ namespace Application.App
             _passwordHasher = PasswordHasher;
             _jwtProvider = JwtProvider;
         }
-
+        
         public async Task Register(string userName, string email, string password)
         {
             var hashedPassword = _passwordHasher.Generate(password);

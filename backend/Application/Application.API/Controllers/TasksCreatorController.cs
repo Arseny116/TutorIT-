@@ -30,8 +30,7 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-
-        [HttpPost("{ChapterId:guid}")]
+        [HttpPost]
         public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId , [FromBody] TasksCreatorRequest request)
         {
             var taskCreator = TaskCreator.Create

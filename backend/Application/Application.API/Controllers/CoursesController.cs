@@ -78,7 +78,7 @@ namespace Application.API.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateCourse([FromBody] CoursesRequest request)
+        public async Task<ActionResult<Guid>> CreateCourse([FromBody] TasksCreatorRequest request)
         {
             var course = Course.Create(
                 Guid.NewGuid(),
@@ -99,7 +99,7 @@ namespace Application.API.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] CoursesRequest request)
+        public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] TasksCreatorRequest request)
         {
             var courseId = await _coursesService.UpdateCourse(id, request.PL, request.Title, request.Description, request.Chapters, request.Complexity);
 
