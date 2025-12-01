@@ -15,6 +15,28 @@ namespace Application.API.Controllers
         {
             _coursesService = coursesService;
         }
+        [HttpGet]
+        public async Task<ActionResult<List<CoursesResponse>>> GetCoursesFilters([FromQuery] string title, [FromQuery] string pl, [FromQuery] int complexity)
+        {
+            var courses = await _coursesService.GetCourses();
+            var response = courses.Where(
+      c => c.Title.ToLower().Contains(title.ToLower())
+      && c.PL.ToLower() == pl.ToLower()
+            && c.Сomplexity == complexity)
+                .Select(c => new CoursesResponse(
+                c.Id,
+                c.PL,
+                c.Title,
+                c.Description,
+                c.Chapters,
+                c.Сomplexity,
+                c.Evaluation,
+                c.Reviews,
+                c.Subscribe,
+                c.NumberChapters));
+
+            return Ok(response);
+        }
 
         [HttpGet]
         public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
