@@ -4,6 +4,8 @@ namespace Application.Domain.Models
 {
     public class Course
     {
+        const int MAX_LENGTH_PL = 40;
+
         const int MAX_LENGTH_TITLE = 300;
 
         const int MAX_LENGTH_DESCRIPTION = 3000;
@@ -16,6 +18,11 @@ namespace Application.Domain.Models
         /// Id курса
         /// </summary>
         public Guid Id { get; }
+
+        /// <summary>
+        /// Язык программирования
+        /// </summary>
+        public string PL { get; }
 
         /// <summary>
         /// Заголовок курса
@@ -54,17 +61,23 @@ namespace Application.Domain.Models
 
         public List<Chapter> NumberChapters { get; } = new List<Chapter>();
 
-        private Course(Guid id, string title, string description, int chapters, int complexity)
+        private Course(Guid id, string pl, string title, string description, int chapters, int complexity)
         {
             Id = id;
+            PL = pl;
             Title = title;
             Description = description;
             Chapters = chapters;
             Сomplexity = complexity;
         }
 
-        public static Result<Course> Create(Guid id, string title, string description, int chapters, int complexity)
+        public static Result<Course> Create(Guid id, string pl, string title, string description, int chapters, int complexity)
         {
+            if (string.IsNullOrEmpty(pl) || pl.Length > MAX_LENGTH_PL)
+            {
+                return Result.Failure<Course>($"Язык программирования курса не может быть пустым и превышать {MAX_LENGTH_PL} символов");
+            }
+
             if (string.IsNullOrEmpty(title) || title.Length > MAX_LENGTH_TITLE)
             {
                 return Result.Failure<Course>($"Заголовок курса не может быть пустым и превышать {MAX_LENGTH_TITLE} символов");
@@ -85,7 +98,7 @@ namespace Application.Domain.Models
                 return Result.Failure<Course>($"Сложность курса выходит за диапозон от {MIN_COMPLEXITY_AND_CHAPTERS} по {MAX_COMPLEXITY}");
             }
 
-            Course course = new Course(id, title, description, chapters, complexity);
+            Course course = new Course(id, pl, title, description, chapters, complexity);
 
             return Result.Success(course);
         }

@@ -9,7 +9,6 @@ using Application.Domain.Interface.ITheory;
 using Application.Infrastructure;
 using Application.Infrastructure.Authentication;
 using Application.Infrastructure.Repositories;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
