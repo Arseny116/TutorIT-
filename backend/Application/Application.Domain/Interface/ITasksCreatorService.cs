@@ -4,7 +4,7 @@ namespace Application.Domain.Interface.ITaskQuestion.ITask
 {
     public interface ITasksCreatorService
     {
-        Task<List<TaskCreator>> GetTasksCreator();
+        Task<List<TaskCreator>> GetTasksCreator(Guid ChapterId);
 
         Task<Guid> CreateTaskCreator(Guid ChapterId,TaskCreator taskCreator);
 

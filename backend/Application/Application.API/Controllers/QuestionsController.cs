@@ -16,10 +16,10 @@ namespace Application.API.Controllers
             _questionsService = questionsService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<QuestionsResponse>>> GetQuestions()
+        [HttpGet("{TaskCreator:guid}")]
+        public async Task<ActionResult<List<QuestionsResponse>>> GetQuestions(Guid TaskCreator)
         {
-            var questions = await _questionsService.GetQuestions();
+            var questions = await _questionsService.GetQuestions(TaskCreator    );
 
             var response = questions.Select(x => new QuestionsResponse(
                 x.Id,

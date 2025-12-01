@@ -4,7 +4,7 @@ namespace Application.Domain.Interface.ITheory
 {
     public interface ITheoriesService
     {
-        Task<List<Theory>> GetTheories();
+        Task<List<Theory>> GetTheories(Guid ChapterId);
 
         Task<Guid> CreateTheory(Guid ChapterId, Theory theory);
 
