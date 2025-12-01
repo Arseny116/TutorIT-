@@ -16,10 +16,10 @@ namespace Application.API.Controllers
             _tasksCreatorService = tasksCreatorService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator()
+        [HttpGet("{ChapterId:guid}")]
+        public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator(Guid ChapterId)
         {
-            var tasksCreator = await _tasksCreatorService.GetTasksCreator();
+            var tasksCreator = await _tasksCreatorService.GetTasksCreator(ChapterId);
 
             var response = tasksCreator.Select(t => new TasksCreatorResponse(
                 t.Id,
@@ -29,6 +29,7 @@ namespace Application.API.Controllers
 
             return Ok(response);
         }
+
 
         [HttpPost("{ChapterId:guid}")]
         public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId , [FromBody] TasksCreatorRequest request)

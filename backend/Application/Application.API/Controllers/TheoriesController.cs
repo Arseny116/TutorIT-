@@ -17,9 +17,9 @@ namespace Application.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<TheoriesResponse>>> GetTheories()
+        public async Task<ActionResult<List<TheoriesResponse>>> GetTheories(Guid CharterId)
         {
-            var theories = await _theoriesService.GetTheories();
+            var theories = await _theoriesService.GetTheories(CharterId);
             var response = theories.Select(theory => new TheoriesResponse(
                 theory.Id,
                 theory.Name,

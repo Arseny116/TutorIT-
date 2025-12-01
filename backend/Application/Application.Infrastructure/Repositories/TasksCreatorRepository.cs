@@ -14,9 +14,9 @@ namespace Application.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<TaskCreator>> Get()
+        public async Task<List<TaskCreator>> Get(Guid CharterId)
         {
-            var taskCreatorEntity = await _context.TasksCreator.AsNoTracking().ToListAsync();
+            var taskCreatorEntity = await _context.TasksCreator.Where(x=>x.ChapterID==CharterId).AsNoTracking().ToListAsync();
 
             var tasksCreator = new List<TaskCreator>();
             foreach (var entity in taskCreatorEntity)

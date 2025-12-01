@@ -14,9 +14,9 @@ namespace Application.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Question>> Get()
+        public async Task<List<Question>> Get(Guid TaskCreator)
         {
-            var questionEntity = await _context.Questions.AsNoTracking().ToListAsync();
+            var questionEntity = await _context.Questions.Where(x=>x.TaskCreatorId==TaskCreator).AsNoTracking().ToListAsync();
 
             var questions = new List<Question>();
             foreach (var entity in questionEntity)

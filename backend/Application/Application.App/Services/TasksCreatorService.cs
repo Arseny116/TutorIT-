@@ -12,9 +12,9 @@ namespace Application.App.Services
             _tasksCreatorRepository = tasksCreatorRepository;
         }
 
-        public async Task<List<TaskCreator>> GetTasksCreator()
+        public async Task<List<TaskCreator>> GetTasksCreator(Guid CharterId)
         {
-            return await _tasksCreatorRepository.Get();
+            return await _tasksCreatorRepository.Get(CharterId);
         }
 
         public async Task<Guid> CreateTaskCreator(Guid ChapterId, TaskCreator taskCreator)
