@@ -12,9 +12,9 @@ namespace Application.App.Services
             _theoriesRepository = theoriesRepository;
         }
 
-        public async Task<List<Theory>> GetTheories()
+        public async Task<List<Theory>> GetTheories(Guid ChapterId)
         {
-            return await _theoriesRepository.Get();
+            return await _theoriesRepository.Get(ChapterId);
         }
 
         public async Task<Guid> CreateTheory(Guid ChapterId,Theory theory)

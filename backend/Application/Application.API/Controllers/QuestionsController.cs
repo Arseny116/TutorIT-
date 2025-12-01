@@ -17,9 +17,9 @@ namespace Application.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<QuestionsResponse>>> GetQuestions()
+        public async Task<ActionResult<List<QuestionsResponse>>> GetQuestions(Guid TaskCreater)
         {
-            var questions = await _questionsService.GetQuestions();
+            var questions = await _questionsService.GetQuestions(TaskCreater);
 
             var response = questions.Select(x => new QuestionsResponse(
                 x.Id,

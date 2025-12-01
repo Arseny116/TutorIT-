@@ -4,7 +4,7 @@ namespace Application.Domain.Interface.ITaskQuestion.IQuestion
 {
     public interface IQuestionsService
     {
-        Task<List<Question>> GetQuestions();
+        Task<List<Question>> GetQuestions(Guid TaskCreater);
 
         Task<Guid> CreateQuestion(Guid TaskCreatorId ,Question question);
 

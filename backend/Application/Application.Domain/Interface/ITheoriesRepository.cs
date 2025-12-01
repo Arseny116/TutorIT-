@@ -4,7 +4,7 @@ namespace Application.Domain.Interface.ITheory
 {
     public interface ITheoriesRepository
     {
-        Task<List<Theory>> Get();
+        Task<List<Theory>> Get(Guid CharterId);
 
         Task<Guid> Create(Guid chapetId ,Theory theory);
 

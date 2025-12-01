@@ -12,9 +12,9 @@ namespace Application.App.Services
             _questionsRepository = questionsRepository;
         }
 
-        public async Task<List<Question>> GetQuestions()
+        public async Task<List<Question>> GetQuestions(Guid TaskCreator)
         {
-            return await _questionsRepository.Get();
+            return await _questionsRepository.Get(TaskCreator);
         }
 
         public async Task<Guid> CreateQuestion(Guid TaskCreatorId ,Question question)
