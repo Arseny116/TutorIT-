@@ -1,27 +1,107 @@
 .header {
-  display: flex;
-  justify-content: center; 
-  align-items: center;
+  background: white;
   padding: 1rem 2rem;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-title {
+  margin: 0;
+  color: #28a745;
+  font-size: 28px;
+  font-weight: bold;
 }
 
 .header-btn {
-  padding: 0.75rem 2rem;
-  border: 2px solid #007bff;
-  background: #007bff;
+  background: #28a745;
   color: white;
+  border: none;
+  padding: 12px 25px;
   border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1.1rem;
-  font-weight: 600;
+  margin-left: 20px;
 }
 
 .header-btn:hover {
-  background: #0056b3;
-  border-color: #0056b3;
+  background: #218838;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.header-btn:active {
+  transform: translateY(0);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-user-btn {
+  background: #f8f9fa;
+  color: #333;
+  border: 2px solid #dee2e6;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-user-btn:hover {
+  background: #e9ecef;
+  border-color: #28a745;
+  color: #28a745;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .header-left {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .header-btn {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 24px;
+  }
+  
+  .header-user-btn {
+    padding: 8px 15px;
+    font-size: 13px;
+  }
 }

@@ -7,6 +7,7 @@ function CoursesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
   const navigate = useNavigate();
 
   const programmingLanguages = [
@@ -21,62 +22,137 @@ function CoursesPage() {
   const loadCourses = async () => {
     try {
       setIsLoading(true);
+      setApiError(null);
       
       console.log('Загружаем курсы с API...');
       
-      const response = await fetch('/api/v1/Courses');
+      let apiCourses = [];
+      let usedEndpoint = '';
       
-      if (response.ok) {
-        const apiCourses = await response.json();
-        console.log('Курсы загружены с API:', apiCourses);
+      try {
+        const response = await fetch('/api/v1/Courses/GetAllCourses');
         
-        const formattedCourses = apiCourses.map(course => ({
-          id: course.id,
-          title: course.title,
-          description: course.description,
+        if (response.ok) {
+          usedEndpoint = 'GetAllCourses';
+          const coursesData = await response.json();
+          
+          if (Array.isArray(coursesData)) {
+            apiCourses = coursesData;
+            console.log(`✅ Успешно загружено ${apiCourses.length} курсов`);
+          } else {
+            throw new Error('API вернул некорректный формат данных');
+          }
+        } else {
+          throw new Error(`API вернул ${response.status}`);
+        }
+      } catch (primaryError) {
+        console.log('GetAllCourses не сработал:', primaryError.message);
+        
+        try {
+          const response = await fetch('/api/v1/Courses');
+          
+          if (response.ok) {
+            usedEndpoint = 'Courses';
+            const coursesData = await response.json();
+            
+            if (Array.isArray(coursesData)) {
+              apiCourses = coursesData;
+              console.log(`✅ Успешно загружено ${apiCourses.length} курсов`);
+            }
+          }
+        } catch (fallbackError) {
+          console.log('Оба эндпоинта не сработали');
+        }
+      }
+      
+      const formattedCourses = apiCourses
+        .filter(course => course && course.id)
+        .map(course => ({
+          id: course.id || `api-${Date.now()}`,
+          title: course.title || 'Без названия',
+          description: course.description || 'Описание отсутствует',
           sections: course.chapters || 0,
           difficulty: course.complexity || 1,
-          language: getLanguageFromTitle(course.title),
+          language: course.pl || 'Не указан',
+          pl: course.pl,
           isFromAPI: true,
-          createdAt: new Date().toISOString()
+          usedEndpoint: usedEndpoint,
+          evaluation: course.evaluation || 0,
+          subscribe: course.subscribe || 0,
+          reviews: course.reviews || [],
+          numberChapters: course.numberChapters || []
         }));
-
-        const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
-          .filter(course => !course.isFromAPI);
-
-        setCourses([...formattedCourses, ...localCourses]);
-        
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-    } catch (error) {
-      console.error('Ошибка загрузки с API:', error);
       
-      const savedCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+      const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
+        .filter(course => !course.isFromAPI)
+        .map(course => ({
+          ...course,
+          isFromAPI: false,
+          usedEndpoint: 'localStorage'
+        }));
+      
+      const allCourses = [...formattedCourses, ...localCourses];
+      
+      if (allCourses.length === 0) {
+        const defaultCourses = [
+          { 
+            id: 1, 
+            title: 'Введение в JavaScript', 
+            language: 'JavaScript', 
+            sections: 5, 
+            difficulty: 1, 
+            isDefault: true, 
+            description: 'Основы JavaScript для начинающих',
+            isFromAPI: false 
+          },
+          { 
+            id: 2, 
+            title: 'Python для анализа данных', 
+            language: 'Python', 
+            sections: 8, 
+            difficulty: 2, 
+            isDefault: true,
+            description: 'Анализ данных с использованием Python',
+            isFromAPI: false 
+          },
+          { 
+            id: 3, 
+            title: 'Java Spring Framework', 
+            language: 'Java', 
+            sections: 10, 
+            difficulty: 3, 
+            isDefault: true,
+            description: 'Создание веб-приложений на Spring',
+            isFromAPI: false 
+          },
+        ];
+        setCourses(defaultCourses);
+      } else {
+        setCourses(allCourses);
+      }
+      
+    } catch (error) {
+      console.error('❌ Ошибка загрузки с API:', error);
+      
+      const savedCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
+        .filter(course => !course.isFromAPI);
+      
       const defaultCourses = [
         { id: 1, title: 'Введение в JavaScript', language: 'JavaScript', sections: 5, difficulty: 1, isDefault: true },
         { id: 2, title: 'Python для анализа данных', language: 'Python', sections: 8, difficulty: 2, isDefault: true },
         { id: 3, title: 'Java Spring Framework', language: 'Java', sections: 10, difficulty: 3, isDefault: true },
-        { id: 4, title: 'C++ для начинающих', language: 'C++', sections: 6, difficulty: 1, isDefault: true },
-        { id: 5, title: 'Веб-разработка на PHP', language: 'PHP', sections: 7, difficulty: 2, isDefault: true },
-        { id: 6, title: 'Мобильная разработка на Swift', language: 'Swift', sections: 9, difficulty: 2, isDefault: true },
       ];
 
       setCourses([...defaultCourses, ...savedCourses]);
+      
+      setApiError({
+        message: 'Не удалось загрузить курсы с сервера',
+        details: 'Используются локальные курсы'
+      });
+      
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getLanguageFromTitle = (title) => {
-    const lowerTitle = title.toLowerCase();
-    for (const lang of programmingLanguages) {
-      if (lowerTitle.includes(lang.toLowerCase())) {
-        return lang;
-      }
-    }
-    return 'Other';
   };
 
   const handleDeleteCourse = async (courseId, isDefault = false, isFromAPI = false) => {
@@ -88,13 +164,7 @@ function CoursesPage() {
     if (window.confirm('Вы уверены, что хотите удалить этот курс?')) {
       if (isFromAPI) {
         try {
-          const response = await fetch(`/api/v1/Courses/${courseId}`, {
-            method: 'DELETE'
-          });
-          
-          if (!response.ok) {
-            throw new Error('Ошибка при удалении курса с сервера');
-          }
+          await fetch(`/api/v1/Courses/${courseId}`, { method: 'DELETE' });
         } catch (error) {
           console.error('Ошибка удаления курса:', error);
           alert('Ошибка при удалении курса с сервера');
@@ -109,7 +179,6 @@ function CoursesPage() {
       }
       
       setCourses(prev => prev.filter(course => course.id !== courseId));
-      
       alert('Курс успешно удален');
     }
   };
@@ -126,25 +195,32 @@ function CoursesPage() {
     );
   };
 
+  const handleTakeCourse = (courseId) => {
+    navigate(`/learn/${courseId}`);
+  };
+
   const filteredCourses = courses.filter(course => {
     const matchesLanguage = selectedLanguages.length === 0 || selectedLanguages.includes(course.language);
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase());
-    
     return matchesLanguage && matchesSearch;
   });
 
   if (isLoading) {
-    return <div className="courses-page"><div className="loading">Загрузка курсов...</div></div>;
+    return (
+      <div className="courses-page">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Загрузка курсов...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="courses-page">
       <header className="courses-header-nav">
-        <button 
-          className="back-to-home-btn"
-          onClick={handleBackToHome}
-        >
-          ← Назад на главную
+        <button className="back-to-home-btn" onClick={handleBackToHome}>
+          ← На главную
         </button>
       </header>
 
@@ -152,6 +228,13 @@ function CoursesPage() {
         <aside className="filters-sidebar">
           <div className="filters-section">
             <h3>Фильтры</h3>
+            
+            {apiError && (
+              <div className="api-error-banner">
+                <h4>⚠️ Используются локальные курсы</h4>
+                <p>API сервер временно недоступен</p>
+              </div>
+            )}
             
             <div className="filter-group">
               <label>Поиск по названию</label>
@@ -194,18 +277,8 @@ function CoursesPage() {
               className="refresh-courses-btn"
               onClick={loadCourses}
               disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                background: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginTop: '1rem'
-              }}
             >
-              {isLoading ? 'Обновление...' : '🔄 Обновить с сервера'}
+              {isLoading ? 'Обновление...' : '🔄 Обновить'}
             </button>
           </div>
         </aside>
@@ -214,9 +287,7 @@ function CoursesPage() {
           <div className="courses-header">
             <h1>Доступные курсы ({filteredCourses.length})</h1>
             <p className="courses-subtitle">
-              {filteredCourses.some(course => !course.isDefault) && 
-                'Ваши созданные курсы можно удалить'
-              }
+              Выберите курс для обучения
             </p>
           </div>
           
@@ -256,6 +327,15 @@ function CoursesPage() {
                     {course.description || 'Описание курса будет добавлено позже...'}
                   </p>
 
+                  <div className="course-actions">
+                    <button 
+                      className="take-course-btn"
+                      onClick={() => handleTakeCourse(course.id)}
+                    >
+                      🚀 Пройти курс
+                    </button>
+                  </div>
+
                   <div className="course-date">
                     {course.isFromAPI ? (
                       <span>Загружено с сервера</span>
@@ -268,11 +348,8 @@ function CoursesPage() {
             ) : (
               <div className="no-courses">
                 <h3>Курсы не найдены</h3>
-                <p>Попробуйте изменить параметры фильтров или очистить поиск</p>
-                <button 
-                  className="back-to-home-btn empty-state-btn"
-                  onClick={handleBackToHome}
-                >
+                <p>Попробуйте изменить параметры фильтров</p>
+                <button className="back-to-home-btn" onClick={handleBackToHome}>
                   ← Вернуться на главную
                 </button>
               </div>

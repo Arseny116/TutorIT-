@@ -7,13 +7,43 @@ function CreateCoursePage() {
   const [description, setDescription] = useState('');
   const [sectionsCount, setSectionsCount] = useState('');
   const [difficulty, setDifficulty] = useState('');
+  const [programmingLanguage, setProgrammingLanguage] = useState('');
+  const [customLanguage, setCustomLanguage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Список популярных языков программирования
+  const programmingLanguages = [
+    'JavaScript',
+    'Python', 
+    'Java',
+    'C++',
+    'C#',
+    'PHP',
+    'Ruby',
+    'Go',
+    'Swift',
+    'Kotlin',
+    'TypeScript',
+    'Rust',
+    'Scala',
+    'R',
+    'MATLAB',
+    'SQL',
+    'HTML/CSS',
+    'Другой (ввести вручную)'
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!courseName.trim() || !description.trim() || !sectionsCount || !difficulty) {
+    // Определяем язык программирования
+    let selectedLanguage = programmingLanguage;
+    if (programmingLanguage === 'Другой (ввести вручную)' && customLanguage.trim()) {
+      selectedLanguage = customLanguage.trim();
+    }
+    
+    if (!courseName.trim() || !description.trim() || !sectionsCount || !difficulty || !selectedLanguage) {
       alert('Заполните все поля');
       return;
     }
@@ -27,18 +57,20 @@ function CreateCoursePage() {
 
     try {
       const courseData = {
+        pl: selectedLanguage, // Добавляем поле pl
         title: courseName.trim(),
         description: description.trim(),
         chapters: parseInt(sectionsCount),
         complexity: parseInt(difficulty)
       };
 
-      console.log('Отправляю данные:', courseData);
+      console.log('Отправляю данные на API:', courseData);
 
       const response = await fetch('/api/v1/Courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'accept': 'text/plain'
         },
         body: JSON.stringify(courseData)
       });
@@ -58,6 +90,7 @@ function CreateCoursePage() {
       
       const newCourse = {
         id: courseId,
+        pl: selectedLanguage,
         title: courseData.title,
         description: courseData.description,
         sections: courseData.chapters,
@@ -77,8 +110,10 @@ function CreateCoursePage() {
       console.error('Ошибка:', error);
       alert(`Ошибка создания курса: ${error.message}`);
       
+      // Fallback на локальное сохранение
       const fallbackCourse = {
         id: Date.now(),
+        pl: selectedLanguage,
         title: courseName.trim(),
         description: description.trim(),
         sections: parseInt(sectionsCount),
@@ -134,6 +169,41 @@ function CreateCoursePage() {
         </div>
 
         <div className="form-group">
+          <label htmlFor="programmingLanguage">Язык программирования *</label>
+          <select
+            id="programmingLanguage"
+            value={programmingLanguage}
+            onChange={(e) => setProgrammingLanguage(e.target.value)}
+            required
+            disabled={isLoading}
+          >
+            <option value="">Выберите язык программирования</option>
+            {programmingLanguages.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
+            ))}
+          </select>
+          <small>Поле "pl" будет отправлено на сервер как язык программирования курса</small>
+        </div>
+
+        {programmingLanguage === 'Другой (ввести вручную)' && (
+          <div className="form-group">
+            <label htmlFor="customLanguage">Введите язык программирования *</label>
+            <input
+              id="customLanguage"
+              type="text"
+              value={customLanguage}
+              onChange={(e) => setCustomLanguage(e.target.value)}
+              placeholder="Например: Pascal, Delphi, Lua, Perl..."
+              required
+              disabled={isLoading}
+            />
+            <small>Любой язык программирования, которого нет в списке выше</small>
+          </div>
+        )}
+
+        <div className="form-group">
           <label htmlFor="sectionsCount">Количество разделов *</label>
           <input
             id="sectionsCount"
@@ -146,7 +216,7 @@ function CreateCoursePage() {
             required
             disabled={isLoading}
           />
-          <small>На бэкенде сохраняется как "chapters" (должно быть больше 0)</small>
+          <small>На бэкенде сохраняется как "chapters"</small>
         </div>
 
         <div className="form-group">

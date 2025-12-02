@@ -8,13 +8,18 @@ function Header() {
   return (
     <>
       <header className="header">
+        <div className="header-left">
+          <h1 className="header-title">TutorIT</h1>
+        </div>
         
-        <button 
-          className="header-btn"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Курсы
-        </button>
+        <div className="header-right">
+          <button 
+            className="header-user-btn"
+            onClick={() => alert('Профиль пользователя')}
+          >
+            👤 Пользователь
+          </button>
+        </div>
       </header>
 
       <CourseModal 
