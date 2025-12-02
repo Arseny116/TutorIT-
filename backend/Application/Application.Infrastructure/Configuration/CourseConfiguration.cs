@@ -10,7 +10,7 @@ namespace Application.Infrastructure.Configuration
         {
             builder.HasKey(x => x.Id);
 
-            builder.Property(pl => pl.PL).IsRequired();
+            builder.Property(pl => pl.Pl).IsRequired();
 
             builder.Property(t => t.Title).IsRequired();
 

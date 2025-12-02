@@ -12,7 +12,8 @@ using Application.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
+using FluentValidation;
+using FluentValidation.AspNetCore;
 namespace Application.API
 {
     public class Program
@@ -24,7 +25,15 @@ namespace Application.API
             builder.Services.AddCors();
             builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(nameof(JwtOptions)));
 
-            builder.Services.AddControllers();
+            builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+            
+            builder.Services.AddControllers()
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.SuppressModelStateInvalidFilter = true; // Отключаем стандартную валидацию
+                });
+
 
             builder.Services.AddAutoMapper(x
                 => x.AddProfile(typeof(UserProfile))

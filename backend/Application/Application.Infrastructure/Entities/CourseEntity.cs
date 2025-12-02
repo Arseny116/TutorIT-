@@ -1,4 +1,6 @@
-﻿namespace Application.Infrastructure.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Application.Infrastructure.Entities
 {
     public class CourseEntity
     {
@@ -11,10 +13,11 @@
         /// </summary>
         public Guid Id { get; set; }
 
+        
         /// <summary>
         /// Язык программирования
         /// </summary>
-        public string PL { get; set; }
+        public string Pl { get; set; }
 
         /// <summary>
         /// Заголовок курса

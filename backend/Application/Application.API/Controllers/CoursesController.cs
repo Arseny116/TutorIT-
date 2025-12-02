@@ -21,11 +21,11 @@ namespace Application.API.Controllers
             var courses = await _coursesService.GetCourses();
             var response = courses.Where(
       c => c.Title.ToLower().Contains(title.ToLower())
-      && c.PL.ToLower() == pl.ToLower()
+      && c.Pl.ToLower() == pl.ToLower()
             && c.Сomplexity == complexity)
                 .Select(c => new CoursesResponse(
                 c.Id,
-                c.PL,
+                c.Pl,
                 c.Title,
                 c.Description,
                 c.Chapters,
@@ -38,13 +38,13 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet]
+        [HttpGet("GetAllCourses")]
         public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
         {
             var courses = await _coursesService.GetCourses();
             var response = courses.Select(c => new CoursesResponse(
                 c.Id,
-                c.PL,
+                c.Pl,
                 c.Title,
                 c.Description,
                 c.Chapters,
@@ -63,7 +63,7 @@ namespace Application.API.Controllers
             var c = await _coursesService.GetCoursesById(id);
             var response = new CoursesResponse(
                 c.Id,
-                c.PL,
+                c.Pl,
                 c.Title,
                 c.Description,
                 c.Chapters,
@@ -78,7 +78,7 @@ namespace Application.API.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateCourse([FromBody] TasksCreatorRequest request)
+        public async Task<ActionResult<Guid>> CreateCourse([FromBody] CoursesRequest request)
         {
             var course = Course.Create(
                 Guid.NewGuid(),
@@ -99,7 +99,7 @@ namespace Application.API.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] TasksCreatorRequest request)
+        public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] CoursesRequest request)
         {
             var courseId = await _coursesService.UpdateCourse(id, request.PL, request.Title, request.Description, request.Chapters, request.Complexity);
 

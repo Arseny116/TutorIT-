@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Application.API.Validators
 {
-    public class CourseValidator: AbstractValidator<TasksCreatorRequest>
+    public class CourseValidator: AbstractValidator<CoursesRequest>
     {
         public CourseValidator()
         {

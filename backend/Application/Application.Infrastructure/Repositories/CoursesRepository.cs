@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var courses = new List<Course>();
             foreach (var entity in courseEntity)
             {
-                var result = Course.Create(entity.Id, entity.PL, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
+                var result = Course.Create(entity.Id, entity.Pl, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
 
                 if (result.IsSuccess)
                 {
@@ -39,7 +39,7 @@ namespace Application.Infrastructure.Repositories
                 SingleAsync(x => x.Id == id);
 
 
-            var result = Course.Create(entity.Id, entity.PL, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
+            var result = Course.Create(entity.Id, entity.Pl, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
 
             return result.Value;
 
@@ -51,7 +51,7 @@ namespace Application.Infrastructure.Repositories
             var courseEntity = new CourseEntity
             {
                 Id = course.Id,
-                PL = course.PL,
+                Pl = course.Pl,
                 Title = course.Title,
                 Description = course.Description,
                 Evaluation = course.Evaluation,
@@ -71,7 +71,7 @@ namespace Application.Infrastructure.Repositories
         {
             await _context.Courses.Where(c => c.Id == id)
                 .ExecuteUpdateAsync(s => s
-                .SetProperty(p => p.PL, p => pl)
+                .SetProperty(p => p.Pl, p => pl)
                 .SetProperty(t => t.Title, t => title)
                 .SetProperty(d => d.Description, d => description)
                 .SetProperty(t => t.Chapters, t => chapters)

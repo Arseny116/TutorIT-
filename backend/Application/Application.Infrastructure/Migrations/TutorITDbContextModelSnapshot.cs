@@ -72,6 +72,10 @@ namespace Application.Infrastructure.Migrations
                     b.Property<double>("Evaluation")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("Pl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.PrimitiveCollection<List<string>>("Reviews")
                         .IsRequired()
                         .HasColumnType("text[]");

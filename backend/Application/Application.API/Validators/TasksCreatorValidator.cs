@@ -1,4 +1,5 @@
 ﻿using Application.API.DTO.Courses;
+using Application.API.DTO.TasksCreator;
 using FluentValidation;
 
 namespace Application.API.Validators
@@ -7,7 +8,7 @@ namespace Application.API.Validators
     {
         public TasksCreatorValidator()
         {
-            RuleFor(N => N.Title)
+            RuleFor(N => N.Name)
                 .NotNull()
                 .NotEmpty()
                 .MaximumLength(60)

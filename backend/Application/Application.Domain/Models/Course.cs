@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using CSharpFunctionalExtensions;
 
 namespace Application.Domain.Models
 {
@@ -19,10 +20,7 @@ namespace Application.Domain.Models
         /// </summary>
         public Guid Id { get; }
 
-        /// <summary>
-        /// Язык программирования
-        /// </summary>
-        public string PL { get; }
+        public string  Pl { get; }
 
         /// <summary>
         /// Заголовок курса
@@ -64,7 +62,7 @@ namespace Application.Domain.Models
         private Course(Guid id, string pl, string title, string description, int chapters, int complexity)
         {
             Id = id;
-            PL = pl;
+            Pl = pl;
             Title = title;
             Description = description;
             Chapters = chapters;
