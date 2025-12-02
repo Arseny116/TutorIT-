@@ -284,4 +284,80 @@
   border-top: 2px solid #ffffff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+} 
+/* Стили для выбора языка программирования */
+.form-group select option {
+  padding: 0.5rem;
+  font-size: 1rem;
 }
+
+.form-group select option[value="Другой (ввести вручную)"] {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Информация о полях API */
+.api-info {
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+}
+
+.api-info h4 {
+  margin-top: 0;
+  color: #007bff;
+  margin-bottom: 0.5rem;
+}
+
+.api-info ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #666;
+}
+
+.api-info li {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .form-group select {
+    font-size: 16px; /* Отключает зум на iOS */
+  }
+  
+  .create-course-page {
+    padding: 1rem;
+  }
+  
+  .course-form {
+    padding: 1.5rem;
+  }
+}
+
+/* Подсказки для полей */
+.form-group small {
+  display: block;
+  margin-top: 0.5rem;
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+/* Стили для поля языка программирования */
+.form-group input[type="text"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Подсказка для поля pl */
+.form-group small {
+  display: block;
+  margin-top: 0.5rem;
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Ничего больше не меняем - все остальные стили как были */

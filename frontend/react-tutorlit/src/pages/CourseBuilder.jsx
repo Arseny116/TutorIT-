@@ -15,10 +15,12 @@ function CourseBuilder() {
   const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
-    const fetchAllChapters = async () => {
+    const fetchChaptersForCourse = async () => {
+      if (!cleanedCourseId) return;
+      
       try {
-        console.log('Загружаю все Chapters...');
-        const response = await fetch('/api/v1/Chapters', {
+        console.log('Загружаю Chapters для курса...', cleanedCourseId);
+        const response = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
           method: 'GET',
           headers: {
             'accept': 'text/plain'
@@ -28,15 +30,19 @@ function CourseBuilder() {
         if (response.ok) {
           const chapters = await response.json();
           setAllChapters(chapters);
-          console.log('Все Chapters загружены:', chapters.length);
+          console.log('Chapters загружены:', chapters.length);
+        } else {
+          console.log('Chapters не найдены или курс пустой');
+          setAllChapters([]);
         }
       } catch (error) {
         console.error('Ошибка загрузки Chapters:', error);
+        setAllChapters([]);
       }
     };
     
-    fetchAllChapters();
-  }, []);
+    fetchChaptersForCourse();
+  }, [cleanedCourseId]);
 
   useEffect(() => {
     if (courseId) {
@@ -161,7 +167,7 @@ function CourseBuilder() {
           
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          const chaptersResponse = await fetch('/api/v1/Chapters', {
+          const chaptersResponse = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
             method: 'GET',
             headers: {
               'accept': 'text/plain'
@@ -444,7 +450,38 @@ function CourseBuilder() {
         if (chapterId.startsWith('local-')) {
           console.log('Локальный Chapter, создаю локальную теорию');
           const localTheoryId = `theory-local-${Date.now()}`;
-          saveTheoryLocally(localTheoryId, chapterId, true);
+          
+          const updatedSections = [...course.sectionsData];
+          updatedSections[currentSectionIndex] = {
+            ...updatedSections[currentSectionIndex],
+            theory: {
+              ...theoryData,
+              id: localTheoryId,
+              chapterId: chapterId,
+              isFromAPI: false,
+              isFallback: true,
+              needsSync: true,
+              savedAt: new Date().toISOString()
+            },
+            hasTheory: true
+          };
+
+          const updatedCourse = {
+            ...course,
+            sectionsData: updatedSections
+          };
+          
+          const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+          const updatedCourses = courses.map(c => {
+            const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
+            return courseIdClean === cleanedCourseId ? updatedCourse : c;
+          });
+          
+          localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
+          setCourse(updatedCourse);
+          
+          alert('Теория сохранена локально!');
+          setCurrentStep('assignment');
           return;
         }
         
@@ -580,46 +617,6 @@ function CourseBuilder() {
       } finally {
         setIsSaving(false);
       }
-    };
-
-    const saveTheoryLocally = (theoryId, chapterId, isFallback = false) => {
-      const updatedSections = [...course.sectionsData];
-      updatedSections[currentSectionIndex] = {
-        ...updatedSections[currentSectionIndex],
-        theory: {
-          ...theoryData,
-          id: theoryId,
-          chapterId: chapterId,
-          isFromAPI: !isFallback,
-          isFallback: isFallback,
-          needsSync: isFallback,
-          savedAt: new Date().toISOString()
-        },
-        hasTheory: true
-      };
-
-      const updatedCourse = {
-        ...course,
-        sectionsData: updatedSections
-      };
-      
-      const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-      const updatedCourses = courses.map(c => {
-        const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-        return courseIdClean === cleanedCourseId ? updatedCourse : c;
-      });
-      
-      localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-      setCourse(updatedCourse);
-      
-      if (isFallback) {
-        alert('Локальная теория сохранена! Синхронизируйте с сервером позже.');
-      } else {
-        alert('Теория успешно создана!');
-      }
-      
-      setTheoryDebugInfo(`Теория сохранена: ${theoryId}`);
-      setCurrentStep('assignment');
     };
 
     return (
