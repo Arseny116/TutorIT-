@@ -6,20 +6,27 @@ function CourseBuilder() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
-  const [currentStep, setCurrentStep] = useState('section');
   const [isLoading, setIsLoading] = useState(false);
   const [cleanedCourseId, setCleanedCourseId] = useState('');
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [allChapters, setAllChapters] = useState([]);
   const [debugInfo, setDebugInfo] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const [currentStep, setCurrentStep] = useState('section-details');
+  const [sectionData, setSectionData] = useState({
+    totalSections: 0,
+    currentSectionIndex: 0,
+    sections: []
+  });
+  
+  const [currentTheoryIndex, setCurrentTheoryIndex] = useState(0);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
 
   useEffect(() => {
     const fetchChaptersForCourse = async () => {
       if (!cleanedCourseId) return;
       
       try {
-        console.log('Загружаю Chapters для курса...', cleanedCourseId);
         const response = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
           method: 'GET',
           headers: {
@@ -30,13 +37,10 @@ function CourseBuilder() {
         if (response.ok) {
           const chapters = await response.json();
           setAllChapters(chapters);
-          console.log('Chapters загружены:', chapters.length);
         } else {
-          console.log('Chapters не найдены или курс пустой');
           setAllChapters([]);
         }
       } catch (error) {
-        console.error('Ошибка загрузки Chapters:', error);
         setAllChapters([]);
       }
     };
@@ -48,15 +52,12 @@ function CourseBuilder() {
     if (courseId) {
       const cleanId = courseId.replace(/^["']+|["']+$/g, '').trim();
       setCleanedCourseId(cleanId);
-      console.log('CourseId очищен:', cleanId);
     }
   }, [courseId]);
 
   useEffect(() => {
     if (!cleanedCourseId) return;
 
-    console.log('Загружаю курс с ID:', cleanedCourseId);
-    
     const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
     
     const foundCourse = courses.find(c => {
@@ -65,76 +66,94 @@ function CourseBuilder() {
     });
     
     if (foundCourse) {
-      console.log('Курс найден:', foundCourse.title);
-      
       const courseWithSections = {
         ...foundCourse,
         sectionsData: foundCourse.sectionsData || []
       };
       setCourse(courseWithSections);
       
+      const totalSections = foundCourse.sections || foundCourse.chapters || 1;
+      
       if (courseWithSections.sectionsData.length > 0) {
-        setCurrentSectionIndex(courseWithSections.sectionsData.length - 1);
+        setSectionData({
+          totalSections: totalSections,
+          sections: courseWithSections.sectionsData,
+          currentSectionIndex: courseWithSections.sectionsData.length < totalSections 
+            ? courseWithSections.sectionsData.length 
+            : 0
+        });
+      } else {
+        const newSections = Array.from({ length: totalSections }, (_, i) => ({
+          id: null,
+          apiChapterId: null,
+          name: '',
+          description: '',
+          numberTheoryBloks: 0,
+          numberTasks: 0,
+          theory: [],
+          tasks: [],
+          sectionNumber: i + 1,
+          isFromAPI: false,
+          isFallback: false,
+          needsSync: false,
+          createdAt: new Date().toISOString()
+        }));
+        
+        setSectionData({
+          totalSections: totalSections,
+          currentSectionIndex: 0,
+          sections: newSections
+        });
       }
+      
+      setStatusMessage(`Курс "${foundCourse.title}" загружен. Создано ${totalSections} разделов.`);
+      setTimeout(() => setStatusMessage(''), 3000);
+      
     } else {
-      console.log('Курс не найден в localStorage');
       navigate(`/course/${courseId}`);
     }
   }, [cleanedCourseId, courseId, navigate]);
 
-  const checkChapterExists = (chapterId) => {
-    if (!chapterId || chapterId.startsWith('local-')) {
-      return false;
-    }
-    
-    return allChapters.some(chapter => {
-      const cleanChapterId = String(chapter.id).trim();
-      const cleanSearchId = String(chapterId).trim();
-      return cleanChapterId === cleanSearchId;
-    });
-  };
+  const SectionDetailsBuilder = () => {
+    const currentSection = sectionData.sections[sectionData.currentSectionIndex];
 
-  const findChapterByName = (chapterName) => {
-    return allChapters.find(chapter => 
-      chapter.name.toLowerCase() === chapterName.toLowerCase()
-    );
-  };
-
-  const SectionBuilder = () => {
-    const [sectionData, setSectionData] = useState({
-      name: '',
-      description: '',
-      numberTheoryBloks: 0,
-      numberTasks: 0
+    const [localSectionData, setLocalSectionData] = useState({
+      name: currentSection?.name || '',
+      description: currentSection?.description || '',
+      numberTheoryBloks: currentSection?.numberTheoryBloks || 0,
+      numberTasks: currentSection?.numberTasks || 0
     });
 
-    const handleSaveSection = async () => {
-      if (!sectionData.name || !sectionData.description) {
-        alert('Заполните название и описание раздела');
+    const handleSaveSectionDetails = async () => {
+      if (!localSectionData.name || !localSectionData.description) {
+        setStatusMessage('Заполните название и описание раздела');
+        setTimeout(() => setStatusMessage(''), 3000);
+        return;
+      }
+
+      if (localSectionData.numberTheoryBloks < 0 || localSectionData.numberTasks < 0) {
+        setStatusMessage('Количество блоков теории и заданий должно быть не менее 0');
+        setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
 
       setIsLoading(true);
       setDebugInfo('Создание раздела...');
+      setStatusMessage('Создание раздела...');
 
       try {
-        console.log('Создание раздела');
-        
         if (!cleanedCourseId) {
           throw new Error('CourseId не определен');
         }
 
         const apiUrl = `/api/v1/Chapters/${cleanedCourseId}`;
-        console.log('Создаю Chapter для курса:', cleanedCourseId);
         
         const requestData = {
-          name: sectionData.name,
-          description: sectionData.description,
-          numberTheoryBloks: parseInt(sectionData.numberTheoryBloks) || 0,
-          numberTasks: parseInt(sectionData.numberTasks) || 0
+          name: localSectionData.name,
+          description: localSectionData.description,
+          numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 0,
+          numberTasks: parseInt(localSectionData.numberTasks) || 0
         };
-        
-        console.log('Отправляю данные:', requestData);
         
         const response = await fetch(apiUrl, {
           method: 'POST',
@@ -146,24 +165,18 @@ function CourseBuilder() {
         });
 
         const responseText = await response.text();
-        console.log('Ответ от API создания Chapter:', {
-          status: response.status,
-          ok: response.ok,
-          text: responseText
-        });
 
         if (!response.ok) {
           throw new Error(`Ошибка создания раздела (${response.status}): ${responseText}`);
         }
 
         let chapterId = responseText.replace(/["'\s]/g, '').trim();
-        console.log('Ответ от API (ChapterId):', chapterId);
         
         if (!chapterId || chapterId === '' || chapterId === 'OK' || chapterId === 'true' || 
             chapterId === cleanedCourseId || chapterId.length < 10) {
           
-          console.log('API вернул некорректный ответ, ищу Chapter в списке...');
           setDebugInfo('Ищу созданный раздел на сервере...');
+          setStatusMessage('Ищу созданный раздел на сервере...');
           
           await new Promise(resolve => setTimeout(resolve, 1000));
           
@@ -179,45 +192,72 @@ function CourseBuilder() {
             setAllChapters(chapters);
             
             const foundChapter = chapters.find(chapter => 
-              chapter.name === sectionData.name
+              chapter.name === localSectionData.name
             );
             
             if (foundChapter) {
               chapterId = foundChapter.id;
-              console.log('Chapter найден по имени, ID:', chapterId);
               setDebugInfo(`Раздел найден: ${chapterId}`);
+              setStatusMessage(`Раздел найден: ${chapterId}`);
             } else {
-              console.log('Chapter не найден по имени, создаю локальный');
               chapterId = `local-${Date.now()}`;
               setDebugInfo('Создаю локальную версию раздела');
+              setStatusMessage('Создаю локальную версию раздела');
             }
           } else {
-            console.log('Не удалось получить список Chapters');
             chapterId = `local-${Date.now()}`;
             setDebugInfo('Не удалось получить список разделов');
+            setStatusMessage('Не удалось получить список разделов');
           }
         }
         
-        console.log('Final Chapter ID:', chapterId);
-        
-        const currentSections = course?.sectionsData || [];
-        const newSection = {
-          ...sectionData,
+        const theoryArray = Array.from({ length: localSectionData.numberTheoryBloks }, (_, i) => ({
+          id: null,
+          name: '',
+          article: '',
+          index: i,
+          isFromAPI: false,
+          isFallback: false,
+          needsSync: false
+        }));
+
+        const tasksArray = Array.from({ length: localSectionData.numberTasks }, (_, i) => ({
+          id: null,
+          name: '',
+          description: '',
+          index: i,
+          isFromAPI: false,
+          isFallback: false,
+          needsSync: false,
+          answers: ['', '', '', ''],
+          correctAnswerIndex: 0,
+          questions: []
+        }));
+
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex],
           id: chapterId,
           apiChapterId: chapterId.startsWith('local-') ? null : chapterId,
-          courseId: cleanedCourseId,
-          sectionNumber: currentSections.length + 1,
-          theory: null,
-          tasks: [],
-          createdAt: new Date().toISOString(),
+          name: localSectionData.name,
+          description: localSectionData.description,
+          numberTheoryBloks: localSectionData.numberTheoryBloks,
+          numberTasks: localSectionData.numberTasks,
+          theory: theoryArray,
+          tasks: tasksArray,
           isFromAPI: !chapterId.startsWith('local-'),
           isFallback: chapterId.startsWith('local-'),
           needsSync: chapterId.startsWith('local-')
         };
 
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
+
         const updatedCourse = {
           ...course,
-          sectionsData: [...currentSections, newSection]
+          sectionsData: updatedSections
         };
         
         const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
@@ -228,40 +268,79 @@ function CourseBuilder() {
         
         localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
         setCourse(updatedCourse);
-        setCurrentSectionIndex(updatedCourse.sectionsData.length - 1);
-        
+
         if (chapterId.startsWith('local-')) {
-          alert(`Раздел "${sectionData.name}" создан локально. Вы сможете синхронизировать его позже.`);
+          setStatusMessage(`Раздел "${localSectionData.name}" создан локально.`);
         } else if (chapterId === cleanedCourseId) {
-          alert(`Внимание! ID раздела совпадает с ID курса. Это может вызвать проблемы при создании теории.`);
+          setStatusMessage(`Внимание! ID раздела совпадает с ID курса.`);
         } else {
-          alert(`Раздел "${sectionData.name}" успешно создан! ID раздела: ${chapterId}`);
+          setStatusMessage(`Раздел "${localSectionData.name}" успешно создан!`);
         }
         
-        setCurrentStep('theory');
+        if (localSectionData.numberTheoryBloks > 0) {
+          setCurrentTheoryIndex(0);
+          setCurrentStep('theory');
+        } else if (localSectionData.numberTasks > 0) {
+          setCurrentTaskIndex(0);
+          setCurrentStep('assignment');
+        } else {
+          handleNextSectionOrFinish();
+        }
 
       } catch (error) {
-        console.error('Ошибка создания раздела:', error);
         setDebugInfo(`Ошибка: ${error.message}`);
+        setStatusMessage(`Ошибка создания раздела: ${error.message}`);
+        setTimeout(() => setStatusMessage(''), 5000);
         
-        const currentSections = course?.sectionsData || [];
         const localChapterId = `local-${Date.now()}`;
-        const newSection = {
-          ...sectionData,
+        
+        const theoryArray = Array.from({ length: localSectionData.numberTheoryBloks }, (_, i) => ({
+          id: null,
+          name: '',
+          article: '',
+          index: i,
+          isFromAPI: false,
+          isFallback: true,
+          needsSync: true
+        }));
+
+        const tasksArray = Array.from({ length: localSectionData.numberTasks }, (_, i) => ({
+          id: null,
+          name: '',
+          description: '',
+          index: i,
+          isFromAPI: false,
+          isFallback: true,
+          needsSync: true,
+          answers: ['', '', '', ''],
+          correctAnswerIndex: 0,
+          questions: []
+        }));
+
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex],
           id: localChapterId,
           apiChapterId: null,
-          courseId: cleanedCourseId,
-          sectionNumber: currentSections.length + 1,
-          theory: null,
-          tasks: [],
-          createdAt: new Date().toISOString(),
+          name: localSectionData.name,
+          description: localSectionData.description,
+          numberTheoryBloks: localSectionData.numberTheoryBloks,
+          numberTasks: localSectionData.numberTasks,
+          theory: theoryArray,
+          tasks: tasksArray,
+          isFromAPI: false,
           isFallback: true,
           needsSync: true
         };
 
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
+
         const updatedCourse = {
           ...course,
-          sectionsData: [...currentSections, newSection]
+          sectionsData: updatedSections
         };
         
         const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
@@ -272,30 +351,48 @@ function CourseBuilder() {
         
         localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
         setCourse(updatedCourse);
-        setCurrentSectionIndex(updatedCourse.sectionsData.length - 1);
-        setCurrentStep('theory');
+
+        setStatusMessage(`Раздел "${localSectionData.name}" создан локально.`);
         
-        alert(`Раздел "${sectionData.name}" создан локально.`);
+        if (localSectionData.numberTheoryBloks > 0) {
+          setCurrentTheoryIndex(0);
+          setCurrentStep('theory');
+        } else if (localSectionData.numberTasks > 0) {
+          setCurrentTaskIndex(0);
+          setCurrentStep('assignment');
+        } else {
+          handleNextSectionOrFinish();
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
+    const handleNextSectionOrFinish = () => {
+      if (sectionData.currentSectionIndex < sectionData.totalSections - 1) {
+        setSectionData(prev => ({
+          ...prev,
+          currentSectionIndex: prev.currentSectionIndex + 1
+        }));
+        setStatusMessage(`Переход к разделу ${sectionData.currentSectionIndex + 2}...`);
+      } else {
+        setStatusMessage('Все разделы созданы! Перенаправление на главную...');
+        setTimeout(() => navigate('/'), 2000);
+      }
+    };
+
     return (
       <div className="builder-step">
-        <h2>Шаг 1: Создание раздела</h2>
+        <h2>Раздел {sectionData.currentSectionIndex + 1} из {sectionData.totalSections}</h2>
         {debugInfo && <div className="debug-info">{debugInfo}</div>}
-        <p className="step-info">
-          Создайте новый раздел для курса<br />
-          <small>ID курса: {cleanedCourseId}</small>
-        </p>
+        {statusMessage && <div className="status-message">{statusMessage}</div>}
         
         <div className="form-group">
           <label>Название раздела *</label>
           <input
             type="text"
-            value={sectionData.name}
-            onChange={(e) => setSectionData(prev => ({...prev, name: e.target.value}))}
+            value={localSectionData.name}
+            onChange={(e) => setLocalSectionData(prev => ({...prev, name: e.target.value}))}
             placeholder="Введите название раздела"
             disabled={isLoading}
           />
@@ -304,8 +401,8 @@ function CourseBuilder() {
         <div className="form-group">
           <label>Описание раздела *</label>
           <textarea
-            value={sectionData.description}
-            onChange={(e) => setSectionData(prev => ({...prev, description: e.target.value}))}
+            value={localSectionData.description}
+            onChange={(e) => setLocalSectionData(prev => ({...prev, description: e.target.value}))}
             placeholder="Опишите содержание раздела"
             rows="3"
             disabled={isLoading}
@@ -317,8 +414,8 @@ function CourseBuilder() {
             <label>Количество блоков теории</label>
             <input
               type="number"
-              value={sectionData.numberTheoryBloks}
-              onChange={(e) => setSectionData(prev => ({...prev, numberTheoryBloks: parseInt(e.target.value) || 0}))}
+              value={localSectionData.numberTheoryBloks}
+              onChange={(e) => setLocalSectionData(prev => ({...prev, numberTheoryBloks: parseInt(e.target.value) || 0}))}
               min="0"
               max="10"
               disabled={isLoading}
@@ -329,8 +426,8 @@ function CourseBuilder() {
             <label>Количество заданий</label>
             <input
               type="number"
-              value={sectionData.numberTasks}
-              onChange={(e) => setSectionData(prev => ({...prev, numberTasks: parseInt(e.target.value) || 0}))}
+              value={localSectionData.numberTasks}
+              onChange={(e) => setLocalSectionData(prev => ({...prev, numberTasks: parseInt(e.target.value) || 0}))}
               min="0"
               max="10"
               disabled={isLoading}
@@ -338,218 +435,105 @@ function CourseBuilder() {
           </div>
         </div>
 
-        <button 
-          className="next-btn"
-          onClick={handleSaveSection}
-          disabled={!sectionData.name || !sectionData.description || isLoading}
-        >
-          {isLoading ? 'Создание...' : 'Дальше → Конструктор теории'}
-        </button>
+        <div className="navigation-buttons">
+          <button 
+            className="next-btn green-btn"
+            onClick={handleSaveSectionDetails}
+            disabled={!localSectionData.name || !localSectionData.description || isLoading}
+          >
+            {isLoading ? 'Создание...' : 
+             localSectionData.numberTheoryBloks > 0 
+               ? 'Дальше → Конструктор теории' 
+               : localSectionData.numberTasks > 0
+                 ? 'Дальше → Конструктор заданий'
+                 : sectionData.currentSectionIndex < sectionData.totalSections - 1
+                   ? 'Дальше → Конструктор теории'
+                   : 'Дальше → Конструктор теории'}
+          </button>
+        </div>
       </div>
     );
   };
 
   const TheoryBuilder = () => {
-    const currentSection = course?.sectionsData?.[currentSectionIndex];
+    const currentSection = sectionData.sections[sectionData.currentSectionIndex];
+    const currentTheory = currentSection?.theory?.[currentTheoryIndex];
+    
     const [theoryData, setTheoryData] = useState({
-      name: '',
-      article: ''
+      name: currentTheory?.name || '',
+      article: currentTheory?.article || ''
     });
-    const [isSaving, setIsSaving] = useState(false);
-    const [theoryDebugInfo, setTheoryDebugInfo] = useState('');
 
     useEffect(() => {
-      if (currentSection?.id) {
-        console.log('Текущий раздел для теории:', {
-          sectionId: currentSection.id,
-          sectionName: currentSection.name,
-          courseId: currentSection.courseId,
-          isFallback: currentSection.isFallback
+      if (currentTheory) {
+        setTheoryData({
+          name: currentTheory.name || '',
+          article: currentTheory.article || ''
         });
-        
-        if (currentSection.id === cleanedCourseId) {
-          console.error('КРИТИЧЕСКАЯ ОШИБКА: В section.id сохранен ID курса вместо ID раздела!');
-        }
-        
-        if (currentSection?.theory) {
-          setTheoryData({
-            name: currentSection.theory.name || '',
-            article: currentSection.theory.article || ''
-          });
-        } else {
-          setTheoryData({
-            name: '',
-            article: ''
-          });
-        }
       }
-    }, [currentSection, cleanedCourseId]);
+    }, [currentTheory]);
 
     const handleSaveTheory = async () => {
       if (!theoryData.name || !theoryData.article) {
-        alert('Заполните название и содержание теории');
+        setStatusMessage('Заполните название и содержание теории');
+        setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
 
-      if (!currentSection?.id) {
-        alert('Ошибка: ID раздела не найден');
-        return;
-      }
-
-      setIsSaving(true);
-      setTheoryDebugInfo('Создание теории...');
+      setIsLoading(true);
+      setStatusMessage('Создание теории...');
 
       try {
-        console.log('Создание теории');
+        const chapterId = currentSection.id;
         
-        let chapterId = currentSection.id;
-        const chapterName = currentSection.name;
-        
-        if (chapterId === cleanedCourseId) {
-          console.warn('Обнаружен ID курса вместо ID раздела, ищу правильный Chapter...');
-          
-          const correctChapter = findChapterByName(chapterName);
-          
-          if (correctChapter) {
-            chapterId = correctChapter.id;
-            console.log('Исправлен ChapterId:', chapterId);
-            setTheoryDebugInfo(`Исправлен ID раздела: ${chapterId}`);
-            
-            const updatedSections = [...course.sectionsData];
-            updatedSections[currentSectionIndex] = {
-              ...updatedSections[currentSectionIndex],
-              id: chapterId,
-              apiChapterId: chapterId
-            };
-            
-            const updatedCourse = {
-              ...course,
-              sectionsData: updatedSections
-            };
-            
-            const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-            const updatedCourses = courses.map(c => {
-              const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-              return courseIdClean === cleanedCourseId ? updatedCourse : c;
-            });
-            
-            localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-            setCourse(updatedCourse);
-          } else {
-            throw new Error(
-              `Не могу найти раздел "${chapterName}" на сервере.\n\n` +
-              `Возможно, раздел не был создан или был удален.\n` +
-              `Попробуйте создать раздел заново.`
-            );
-          }
-        }
-        
-        console.log('Используем ChapterId:', chapterId);
-        console.log('Название раздела:', chapterName);
+        let theoryId;
+        let isLocalTheory = false;
         
         if (chapterId.startsWith('local-')) {
-          console.log('Локальный Chapter, создаю локальную теорию');
-          const localTheoryId = `theory-local-${Date.now()}`;
+          theoryId = `theory-local-${Date.now()}`;
+          isLocalTheory = true;
+        } else {
+          const apiUrl = `/api/v1/Theories?ChapterId=${encodeURIComponent(chapterId)}`;
           
-          const updatedSections = [...course.sectionsData];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            theory: {
-              ...theoryData,
-              id: localTheoryId,
-              chapterId: chapterId,
-              isFromAPI: false,
-              isFallback: true,
-              needsSync: true,
-              savedAt: new Date().toISOString()
+          const requestData = {
+            name: theoryData.name,
+            article: theoryData.article
+          };
+          
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'accept': 'text/plain'
             },
-            hasTheory: true
-          };
-
-          const updatedCourse = {
-            ...course,
-            sectionsData: updatedSections
-          };
-          
-          const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-          const updatedCourses = courses.map(c => {
-            const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-            return courseIdClean === cleanedCourseId ? updatedCourse : c;
+            body: JSON.stringify(requestData)
           });
-          
-          localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-          setCourse(updatedCourse);
-          
-          alert('Теория сохранена локально!');
-          setCurrentStep('assignment');
-          return;
-        }
-        
-        const chapterExists = checkChapterExists(chapterId);
-        
-        if (!chapterExists) {
-          console.log('Chapter не найден по ID, проверяю по имени...');
-          const foundChapter = findChapterByName(chapterName);
-          
-          if (foundChapter) {
-            chapterId = foundChapter.id;
-            console.log('Найден Chapter по имени:', chapterId);
-          } else {
-            throw new Error(
-              `Раздел "${chapterName}" не найден на сервере.\n\n` +
-              `Проверьте:\n` +
-              `1. Раздел создан на сервере\n` +
-              `2. Название раздела правильное\n` +
-              `3. Список разделов загружен`
-            );
+
+          const responseText = await response.text();
+
+          if (!response.ok) {
+            throw new Error(`Ошибка сервера (${response.status}): ${responseText.substring(0, 200)}`);
           }
+
+          theoryId = responseText.replace(/["'\s]/g, '').trim();
         }
         
-        const apiUrl = `/api/v1/Theories?ChapterId=${encodeURIComponent(chapterId)}`;
-        console.log('URL для создания теории:', apiUrl);
-        
-        const requestData = {
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex].theory[currentTheoryIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex].theory[currentTheoryIndex],
+          id: theoryId,
           name: theoryData.name,
-          article: theoryData.article
+          article: theoryData.article,
+          isFromAPI: !isLocalTheory,
+          isFallback: isLocalTheory,
+          needsSync: isLocalTheory,
+          savedAt: new Date().toISOString()
         };
-        
-        console.log('Отправляю данные:', requestData);
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'accept': 'text/plain'
-          },
-          body: JSON.stringify(requestData)
-        });
 
-        const responseText = await response.text();
-        console.log('Ответ сервера:', {
-          status: response.status,
-          ok: response.ok,
-          text: responseText.substring(0, 100)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Ошибка сервера (${response.status}): ${responseText.substring(0, 200)}`);
-        }
-
-        const theoryId = responseText.replace(/["'\s]/g, '').trim();
-        console.log('Теория создана! ID:', theoryId);
-        
-        const updatedSections = [...course.sectionsData];
-        updatedSections[currentSectionIndex] = {
-          ...updatedSections[currentSectionIndex],
-          theory: {
-            ...theoryData,
-            id: theoryId,
-            chapterId: chapterId,
-            isFromAPI: true,
-            savedAt: new Date().toISOString()
-          },
-          hasTheory: true
-        };
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
 
         const updatedCourse = {
           ...course,
@@ -564,78 +548,96 @@ function CourseBuilder() {
         
         localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
         setCourse(updatedCourse);
+
+        setStatusMessage('Теория сохранена!');
         
-        alert('Теория успешно создана!');
-        setCurrentStep('assignment');
+        if (currentTheoryIndex < currentSection.theory.length - 1) {
+          setCurrentTheoryIndex(currentTheoryIndex + 1);
+          setTheoryData({ name: '', article: '' });
+          setStatusMessage(`Переход к блоку теории ${currentTheoryIndex + 2}...`);
+        } else if (currentSection.numberTasks > 0) {
+          setCurrentTaskIndex(0);
+          setCurrentStep('assignment');
+          setStatusMessage('Переход к конструктору заданий...');
+        } else {
+          handleNextSectionOrFinish();
+        }
 
       } catch (error) {
-        console.error('Ошибка создания теории:', error);
-        setTheoryDebugInfo(`Ошибка: ${error.message}`);
+        setStatusMessage(`Ошибка: ${error.message}`);
+        setTimeout(() => setStatusMessage(''), 5000);
         
-        const userConfirmed = window.confirm(
-          `${error.message}\n\n` +
-          `Создать локальную версию теории?\n` +
-          `Вы сможете синхронизировать её позже.`
-        );
+        const theoryId = `theory-local-${Date.now()}`;
         
-        if (userConfirmed) {
-          const chapterId = currentSection.id === cleanedCourseId ? 
-            `local-${Date.now()}` : currentSection.id;
-          
-          const localTheoryId = `theory-local-${Date.now()}`;
-          const updatedSections = [...course.sectionsData];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            theory: {
-              ...theoryData,
-              id: localTheoryId,
-              chapterId: chapterId,
-              isFallback: true,
-              needsSync: true,
-              savedAt: new Date().toISOString()
-            },
-            hasTheory: true
-          };
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex].theory[currentTheoryIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex].theory[currentTheoryIndex],
+          id: theoryId,
+          name: theoryData.name,
+          article: theoryData.article,
+          isFromAPI: false,
+          isFallback: true,
+          needsSync: true,
+          savedAt: new Date().toISOString()
+        };
 
-          const updatedCourse = {
-            ...course,
-            sectionsData: updatedSections
-          };
-          
-          const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-          const updatedCourses = courses.map(c => {
-            const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-            return courseIdClean === cleanedCourseId ? updatedCourse : c;
-          });
-          
-          localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-          setCourse(updatedCourse);
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
+
+        const updatedCourse = {
+          ...course,
+          sectionsData: updatedSections
+        };
+        
+        const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+        const updatedCourses = courses.map(c => {
+          const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
+          return courseIdClean === cleanedCourseId ? updatedCourse : c;
+        });
+        
+        localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
+        setCourse(updatedCourse);
+
+        setStatusMessage('Локальная теория сохранена!');
+        
+        if (currentTheoryIndex < currentSection.theory.length - 1) {
+          setCurrentTheoryIndex(currentTheoryIndex + 1);
+          setTheoryData({ name: '', article: '' });
+        } else if (currentSection.numberTasks > 0) {
+          setCurrentTaskIndex(0);
           setCurrentStep('assignment');
-          
-          alert('Локальная теория сохранена!');
+        } else {
+          handleNextSectionOrFinish();
         }
       } finally {
-        setIsSaving(false);
+        setIsLoading(false);
+      }
+    };
+
+    const handleNextSectionOrFinish = () => {
+      if (sectionData.currentSectionIndex < sectionData.totalSections - 1) {
+        setSectionData(prev => ({
+          ...prev,
+          currentSectionIndex: prev.currentSectionIndex + 1
+        }));
+        setCurrentTheoryIndex(0);
+        setCurrentStep('section-details');
+        setStatusMessage(`Переход к разделу ${sectionData.currentSectionIndex + 2}...`);
+      } else {
+        setStatusMessage('Все разделы созданы! Перенаправление на главную...');
+        setTimeout(() => navigate('/'), 2000);
       }
     };
 
     return (
       <div className="builder-step">
-        <h2>Шаг 2: Конструктор теории</h2>
-        {theoryDebugInfo && <div className="debug-info">{theoryDebugInfo}</div>}
+        <h2>Конструктор теории</h2>
+        {statusMessage && <div className="status-message">{statusMessage}</div>}
         <p className="step-info">
-          Раздел: <strong>{currentSection?.name}</strong>
-          {currentSection?.isFallback && (
-            <span className="warning-badge"> (локальный)</span>
-          )}
-          <br />
-          <small>
-            ID раздела: {currentSection?.id}<br />
-            ID курса: {cleanedCourseId}
-            {currentSection?.id === cleanedCourseId && (
-              <span style={{color: 'red', fontWeight: 'bold'}}> ОШИБКА: Это ID курса!</span>
-            )}
-          </small>
+          Раздел {sectionData.currentSectionIndex + 1}: <strong>{currentSection?.name}</strong> | 
+          Блок теории {currentTheoryIndex + 1} из {currentSection?.theory?.length}
         </p>
         
         <div className="form-group">
@@ -645,7 +647,7 @@ function CourseBuilder() {
             value={theoryData.name}
             onChange={(e) => setTheoryData(prev => ({...prev, name: e.target.value}))}
             placeholder="Введите название теории"
-            disabled={isSaving}
+            disabled={isLoading}
           />
         </div>
 
@@ -656,24 +658,22 @@ function CourseBuilder() {
             onChange={(e) => setTheoryData(prev => ({...prev, article: e.target.value}))}
             placeholder="Введите теоретические материалы..."
             rows="10"
-            disabled={isSaving}
+            disabled={isLoading}
           />
         </div>
 
         <div className="navigation-buttons">
           <button 
-            className="btn-back"
-            onClick={() => setCurrentStep('section')}
-            disabled={isSaving}
-          >
-            ← Назад к разделу
-          </button>
-          <button 
-            className="next-btn"
+            className="next-btn green-btn"
             onClick={handleSaveTheory}
-            disabled={!theoryData.name || !theoryData.article || isSaving}
+            disabled={!theoryData.name || !theoryData.article || isLoading}
           >
-            {isSaving ? 'Сохранение...' : 'Дальше → Конструктор заданий'}
+            {isLoading ? 'Сохранение...' : 
+             currentTheoryIndex < currentSection.theory.length - 1 
+               ? 'Дальше → Конструктор теории' 
+               : currentSection.numberTasks > 0
+                 ? 'Дальше → Конструктор заданий'
+                 : 'Дальше → Конструктор теории'}
           </button>
         </div>
       </div>
@@ -681,155 +681,84 @@ function CourseBuilder() {
   };
 
   const AssignmentBuilder = () => {
-    const currentSection = course?.sectionsData?.[currentSectionIndex];
-    const [tasks, setTasks] = useState(
-      currentSection?.tasks || []
-    );
-    const [newTask, setNewTask] = useState({
-      name: '',
-      description: ''
+    const currentSection = sectionData.sections[sectionData.currentSectionIndex];
+    const currentTask = currentSection?.tasks?.[currentTaskIndex];
+    
+    const [taskData, setTaskData] = useState({
+      name: currentTask?.name || '',
+      description: currentTask?.description || ''
     });
-    const [isSaving, setIsSaving] = useState(false);
-    const [tasksDebugInfo, setTasksDebugInfo] = useState('');
 
     useEffect(() => {
-      if (currentSection?.tasks) {
-        setTasks(currentSection.tasks);
+      if (currentTask) {
+        setTaskData({
+          name: currentTask.name || '',
+          description: currentTask.description || ''
+        });
       }
-    }, [currentSection]);
+    }, [currentTask]);
 
-    const handleAddTask = () => {
-      if (!newTask.name || !newTask.description) {
-        alert('Заполните название и описание задания');
+    const handleSaveAssignment = async () => {
+      if (!taskData.name || !taskData.description) {
+        setStatusMessage('Заполните название и описание задания');
+        setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
 
-      const updatedTasks = [...tasks, { 
-        ...newTask, 
-        id: `temp-${Date.now()}`,
-        questions: []
-      }];
-      setTasks(updatedTasks);
-      setNewTask({ name: '', description: '' });
-    };
-
-    const handleRemoveTask = (index) => {
-      const updatedTasks = tasks.filter((_, i) => i !== index);
-      setTasks(updatedTasks);
-    };
-
-    const handleSaveAssignments = async () => {
-      if (tasks.length === 0) {
-        alert('Добавьте хотя бы одно задание');
-        return;
-      }
-
-      setIsSaving(true);
-      setTasksDebugInfo('Сохранение заданий...');
+      setIsLoading(true);
+      setStatusMessage('Создание задания...');
 
       try {
-        console.log('Сохранение заданий');
+        const chapterId = currentSection.id;
         
-        if (!currentSection?.id) {
-          throw new Error('ID раздела не найден');
-        }
-
-        let chapterId = currentSection.id;
-        const chapterName = currentSection.name;
+        let taskId;
+        let isLocalTask = false;
         
-        if (chapterId === cleanedCourseId) {
-          console.warn('Обнаружен ID курса вместо ID раздела, ищу правильный Chapter...');
-          const correctChapter = findChapterByName(chapterName);
+        if (chapterId.startsWith('local-')) {
+          taskId = `task-local-${Date.now()}`;
+          isLocalTask = true;
+        } else {
+          const apiUrl = `/api/v1/TasksCreators?ChapterId=${encodeURIComponent(chapterId)}`;
           
-          if (correctChapter) {
-            chapterId = correctChapter.id;
-            console.log('Исправлен ChapterId для заданий:', chapterId);
-          } else {
-            throw new Error(`Не могу найти раздел "${chapterName}" на сервере.`);
-          }
-        }
-        
-        console.log('Используем ChapterId для заданий:', chapterId);
-        
-        const savedTasks = [];
-        
-        for (let i = 0; i < tasks.length; i++) {
-          const task = tasks[i];
-          setTasksDebugInfo(`Создание задания ${i + 1} из ${tasks.length}...`);
+          const requestData = {
+            name: taskData.name,
+            description: taskData.description
+          };
           
-          try {
-            if (chapterId.startsWith('local-')) {
-              console.log('Локальный Chapter, создаю локальное задание');
-              savedTasks.push({
-                ...task,
-                id: `task-local-${Date.now()}-${i}`,
-                isFallback: true,
-                needsSync: true
-              });
-              continue;
-            }
-            
-            const apiUrl = `/api/v1/TasksCreators?ChapterId=${encodeURIComponent(chapterId)}`;
-            console.log(`Создаю задание ${i + 1}:`, apiUrl);
-            
-            const requestData = {
-              name: task.name,
-              description: task.description
-            };
-            
-            console.log('Отправляю данные задания:', requestData);
-            
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'accept': 'text/plain'
-              },
-              body: JSON.stringify(requestData)
-            });
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'accept': 'text/plain'
+            },
+            body: JSON.stringify(requestData)
+          });
 
-            const responseText = await response.text();
-            console.log(`Ответ для задания ${i + 1}:`, {
-              status: response.status,
-              ok: response.ok,
-              text: responseText.substring(0, 100)
-            });
+          const responseText = await response.text();
 
-            if (!response.ok) {
-              throw new Error(`Ошибка создания задания (${response.status}): ${responseText.substring(0, 200)}`);
-            }
-
-            const taskId = responseText.replace(/["'\s]/g, '').trim();
-            console.log(`Задание ${i + 1} создано! ID:`, taskId);
-            
-            savedTasks.push({
-              ...task,
-              id: taskId,
-              apiTaskId: taskId,
-              isFromAPI: true
-            });
-            
-          } catch (taskError) {
-            console.error(`Ошибка создания задания ${i + 1}:`, taskError);
-            
-            const localTaskId = `task-local-${Date.now()}-${i}`;
-            savedTasks.push({
-              ...task,
-              id: localTaskId,
-              isFallback: true,
-              needsSync: true,
-              error: taskError.message
-            });
+          if (!response.ok) {
+            throw new Error(`Ошибка создания задания (${response.status}): ${responseText.substring(0, 200)}`);
           }
+
+          taskId = responseText.replace(/["'\s]/g, '').trim();
         }
         
-        console.log('Все задания обработаны:', savedTasks.length);
-        
-        const updatedSections = [...course.sectionsData];
-        updatedSections[currentSectionIndex] = {
-          ...updatedSections[currentSectionIndex],
-          tasks: savedTasks
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex],
+          id: taskId,
+          name: taskData.name,
+          description: taskData.description,
+          isFromAPI: !isLocalTask,
+          isFallback: isLocalTask,
+          needsSync: isLocalTask,
+          savedAt: new Date().toISOString()
         };
+
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
 
         const updatedCourse = {
           ...course,
@@ -844,202 +773,122 @@ function CourseBuilder() {
         
         localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
         setCourse(updatedCourse);
+
+        setStatusMessage('Задание сохранено!');
         
-        const hasLocalTasks = savedTasks.some(task => task.isFallback);
-        
-        if (hasLocalTasks) {
-          alert(`Задания сохранены!\n\n` +
-                `Некоторые задания сохранены локально.\n` +
-                `Синхронизируйте их с сервером позже.`);
-        } else {
-          alert('Все задания успешно созданы на сервере!');
-        }
-        
-        setCurrentTaskIndex(0);
         setCurrentStep('answers');
 
       } catch (error) {
-        console.error('Ошибка сохранения заданий:', error);
-        setTasksDebugInfo(`Ошибка: ${error.message}`);
+        setStatusMessage(`Ошибка: ${error.message}`);
+        setTimeout(() => setStatusMessage(''), 5000);
         
-        const userConfirmed = window.confirm(
-          `${error.message}\n\n` +
-          `Сохранить задания локально?\n` +
-          `Вы сможете синхронизировать их позже.`
-        );
+        const taskId = `task-local-${Date.now()}`;
         
-        if (userConfirmed) {
-          const localTasks = tasks.map((task, index) => ({
-            ...task,
-            id: `task-local-${Date.now()}-${index}`,
-            isFallback: true,
-            needsSync: true
-          }));
-          
-          const updatedSections = [...course.sectionsData];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            tasks: localTasks
-          };
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex],
+          id: taskId,
+          name: taskData.name,
+          description: taskData.description,
+          isFromAPI: false,
+          isFallback: true,
+          needsSync: true,
+          savedAt: new Date().toISOString()
+        };
 
-          const updatedCourse = {
-            ...course,
-            sectionsData: updatedSections
-          };
-          
-          const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-          const updatedCourses = courses.map(c => {
-            const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-            return courseIdClean === cleanedCourseId ? updatedCourse : c;
-          });
-          
-          localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-          setCourse(updatedCourse);
-          
-          setCurrentTaskIndex(0);
-          setCurrentStep('answers');
-          
-          alert('Задания сохранены локально!');
-        }
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
+
+        const updatedCourse = {
+          ...course,
+          sectionsData: updatedSections
+        };
+        
+        const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+        const updatedCourses = courses.map(c => {
+          const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
+          return courseIdClean === cleanedCourseId ? updatedCourse : c;
+        });
+        
+        localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
+        setCourse(updatedCourse);
+
+        setStatusMessage('Локальное задание сохранено!');
+        setCurrentStep('answers');
       } finally {
-        setIsSaving(false);
+        setIsLoading(false);
       }
     };
 
     return (
       <div className="builder-step">
-        <h2>Шаг 3: Конструктор заданий</h2>
-        {tasksDebugInfo && <div className="debug-info">{tasksDebugInfo}</div>}
+        <h2>Конструктор заданий</h2>
+        {statusMessage && <div className="status-message">{statusMessage}</div>}
         <p className="step-info">
-          Раздел: <strong>{currentSection?.name}</strong> | 
-          Заданий: {tasks.length}
+          Раздел {sectionData.currentSectionIndex + 1}: <strong>{currentSection?.name}</strong> | 
+          Задание {currentTaskIndex + 1} из {currentSection?.tasks?.length}
         </p>
         
         <div className="task-form">
-          <h3>Добавить задание</h3>
-          
           <div className="form-group">
             <label>Название задания *</label>
             <input
               type="text"
-              value={newTask.name}
-              onChange={(e) => setNewTask(prev => ({...prev, name: e.target.value}))}
+              value={taskData.name}
+              onChange={(e) => setTaskData(prev => ({...prev, name: e.target.value}))}
               placeholder="Введите название задания"
-              disabled={isSaving}
+              disabled={isLoading}
             />
           </div>
 
           <div className="form-group">
             <label>Описание задания *</label>
             <textarea
-              value={newTask.description}
-              onChange={(e) => setNewTask(prev => ({...prev, description: e.target.value}))}
+              value={taskData.description}
+              onChange={(e) => setTaskData(prev => ({...prev, description: e.target.value}))}
               placeholder="Опишите задание..."
               rows="4"
-              disabled={isSaving}
+              disabled={isLoading}
             />
           </div>
 
-          <button 
-            className="btn-add-task"
-            onClick={handleAddTask}
-            disabled={!newTask.name || !newTask.description || isSaving}
-          >
-            + Добавить задание
-          </button>
-        </div>
-
-        <div className="tasks-list">
-          <h3>Созданные задания ({tasks.length})</h3>
-          
-          {tasks.length === 0 ? (
-            <div className="empty-tasks">
-              <p>Пока нет созданных заданий</p>
-            </div>
-          ) : (
-            <div className="tasks-container">
-              {tasks.map((task, index) => (
-                <div key={index} className="task-card">
-                  <div className="task-header">
-                    <h4>{task.name}</h4>
-                    <button 
-                      className="btn-remove-task"
-                      onClick={() => handleRemoveTask(index)}
-                      title="Удалить задание"
-                      disabled={isSaving}
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <p className="task-description">{task.description}</p>
-                  <div className="task-meta">
-                    <span>Задание {index + 1}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="navigation-buttons">
-          <button 
-            className="btn-back"
-            onClick={() => setCurrentStep('theory')}
-            disabled={isSaving}
-          >
-            ← Назад к теории
-          </button>
-          <button 
-            className="next-btn"
-            onClick={handleSaveAssignments}
-            disabled={tasks.length === 0 || isSaving}
-          >
-            {isSaving ? 'Сохранение...' : 'Дальше → Конструктор ответов'}
-          </button>
+          <div className="navigation-buttons">
+            <button 
+              className="next-btn green-btn"
+              onClick={handleSaveAssignment}
+              disabled={!taskData.name || !taskData.description || isLoading}
+            >
+              {isLoading ? 'Создание...' : 'Дальше → Конструктор ответов'}
+            </button>
+          </div>
         </div>
       </div>
     );
   };
 
   const AnswersBuilder = () => {
-    const currentSection = course?.sectionsData?.[currentSectionIndex];
+    const currentSection = sectionData.sections[sectionData.currentSectionIndex];
     const currentTask = currentSection?.tasks?.[currentTaskIndex];
-    const [answers, setAnswers] = useState(
-      currentTask?.answers || ['', '', '', '']
-    );
-    const [correctAnswerIndex, setCorrectAnswerIndex] = useState(
-      currentTask?.correctAnswerIndex || 0
-    );
-    const [isSaving, setIsSaving] = useState(false);
-    const [answersDebugInfo, setAnswersDebugInfo] = useState('');
+    
+    const [answers, setAnswers] = useState(currentTask?.answers || ['', '', '', '']);
+    const [correctAnswerIndex, setCorrectAnswerIndex] = useState(currentTask?.correctAnswerIndex || 0);
 
     useEffect(() => {
-      if (currentTask?.answers) {
-        setAnswers(currentTask.answers);
-      }
-      if (currentTask?.correctAnswerIndex !== undefined) {
-        setCorrectAnswerIndex(currentTask.correctAnswerIndex);
+      if (currentTask) {
+        setAnswers(currentTask.answers || ['', '', '', '']);
+        setCorrectAnswerIndex(currentTask.correctAnswerIndex || 0);
       }
     }, [currentTask]);
 
-    const handleAnswerChange = (index, value) => {
-      const newAnswers = [...answers];
-      newAnswers[index] = value;
-      setAnswers(newAnswers);
-    };
-
     const createQuestion = async (taskId, questionName, isCorrect) => {
-      console.log('Создаю вопрос через API:', { taskId, questionName, isCorrect });
-      
       const apiUrl = `/api/v1/Questions?TaskCreatorId=${encodeURIComponent(taskId)}`;
-      console.log('API URL для создания вопроса:', apiUrl);
       
       const requestData = {
         name: questionName,
         answer: isCorrect
       };
-      
-      console.log('Отправляю данные вопроса:', requestData);
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -1051,89 +900,44 @@ function CourseBuilder() {
       });
 
       const responseText = await response.text();
-      console.log('Ответ от API создания вопроса:', {
-        status: response.status,
-        ok: response.ok,
-        text: responseText
-      });
-
+      
       if (!response.ok) {
         throw new Error(`Ошибка создания вопроса (${response.status}): ${responseText}`);
       }
 
-      const questionId = responseText.replace(/["'\s]/g, '').trim();
-      console.log('Вопрос создан! ID:', questionId);
-      
-      return questionId;
+      return responseText.replace(/["'\s]/g, '').trim();
     };
 
     const handleSaveAnswers = async () => {
       if (answers.some(answer => !answer.trim())) {
-        alert('Заполните все варианты ответов');
+        setStatusMessage('Заполните все варианты ответов');
+        setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
 
-      setIsSaving(true);
-      setAnswersDebugInfo('Сохранение ответов...');
+      setIsLoading(true);
+      setStatusMessage('Сохранение ответов...');
 
       try {
-        console.log('Сохранение ответов');
-        
         const taskId = currentTask.id;
-        const taskName = currentTask.name;
         
-        console.log('Текущее задание для ответов:', { taskId, taskName });
+        const questions = [];
         
-        if (taskId.startsWith('task-local-') || taskId.startsWith('temp-')) {
-          console.log('Локальное задание, сохраняю ответы локально');
+        for (let i = 0; i < answers.length; i++) {
+          const questionName = answers[i];
+          const isCorrect = i === correctAnswerIndex;
           
-          const updatedTasks = [...currentSection.tasks];
-          updatedTasks[currentTaskIndex] = {
-            ...updatedTasks[currentTaskIndex],
-            answers: answers,
-            correctAnswerIndex: correctAnswerIndex,
-            questions: answers.map((answer, index) => ({
-              id: `question-local-${Date.now()}-${index}`,
-              name: answer,
-              answer: index === correctAnswerIndex,
-              isFallback: true,
-              needsSync: true
-            }))
-          };
-
-          const updatedSections = [...course.sectionsData];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            tasks: updatedTasks
-          };
-
-          const updatedCourse = {
-            ...course,
-            sectionsData: updatedSections
-          };
-          
-          const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-          const updatedCourses = courses.map(c => {
-            const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-            return courseIdClean === cleanedCourseId ? updatedCourse : c;
-          });
-          
-          localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-          setCourse(updatedCourse);
-          
-        } else {
-          console.log('Создаю вопросы для задания через API');
-          setAnswersDebugInfo('Создаю вопросы через API...');
-          
-          const questions = [];
-          
-          for (let i = 0; i < answers.length; i++) {
-            const questionName = answers[i];
-            const isCorrect = i === correctAnswerIndex;
-            
-            try {
-              setAnswersDebugInfo(`Создаю вопрос ${i + 1} из ${answers.length}...`);
-              
+          try {
+            if (taskId.startsWith('local-')) {
+              questions.push({
+                id: `question-local-${Date.now()}-${i}`,
+                name: questionName,
+                answer: isCorrect,
+                isFromAPI: false,
+                isFallback: true,
+                needsSync: true
+              });
+            } else {
               const questionId = await createQuestion(taskId, questionName, isCorrect);
               
               questions.push({
@@ -1143,193 +947,143 @@ function CourseBuilder() {
                 isFromAPI: true,
                 savedAt: new Date().toISOString()
               });
-              
-              console.log(`Вопрос ${i + 1} создан:`, questionId);
-              
-            } catch (error) {
-              console.error(`Ошибка создания вопроса ${i + 1}:`, error);
-              
-              questions.push({
-                id: `question-local-${Date.now()}-${i}`,
-                name: questionName,
-                answer: isCorrect,
-                isFallback: true,
-                needsSync: true,
-                error: error.message,
-                savedAt: new Date().toISOString()
-              });
             }
-          }
-          
-          console.log('Все вопросы обработаны:', questions.length);
-          
-          const hasLocalQuestions = questions.some(q => q.isFallback);
-          
-          const updatedTasks = [...currentSection.tasks];
-          updatedTasks[currentTaskIndex] = {
-            ...updatedTasks[currentTaskIndex],
-            answers: answers,
-            correctAnswerIndex: correctAnswerIndex,
-            questions: questions,
-            hasQuestions: true,
-            questionsSavedAt: new Date().toISOString()
-          };
-
-          const updatedSections = [...course.sectionsData];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            tasks: updatedTasks
-          };
-
-          const updatedCourse = {
-            ...course,
-            sectionsData: updatedSections
-          };
-          
-          const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-          const updatedCourses = courses.map(c => {
-            const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-            return courseIdClean === cleanedCourseId ? updatedCourse : c;
-          });
-          
-          localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-          setCourse(updatedCourse);
-          
-          if (hasLocalQuestions) {
-            setAnswersDebugInfo('Некоторые вопросы сохранены локально');
-          } else {
-            setAnswersDebugInfo('Все вопросы созданы на сервере');
+          } catch (error) {
+            questions.push({
+              id: `question-local-${Date.now()}-${i}`,
+              name: questionName,
+              answer: isCorrect,
+              isFallback: true,
+              needsSync: true,
+              error: error.message,
+              savedAt: new Date().toISOString()
+            });
           }
         }
+        
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex],
+          answers: answers,
+          correctAnswerIndex: correctAnswerIndex,
+          questions: questions,
+          hasQuestions: true,
+          questionsSavedAt: new Date().toISOString()
+        };
+
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
+
+        const updatedCourse = {
+          ...course,
+          sectionsData: updatedSections
+        };
+        
+        const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+        const updatedCourses = courses.map(c => {
+          const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
+          return courseIdClean === cleanedCourseId ? updatedCourse : c;
+        });
+        
+        localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
+        setCourse(updatedCourse);
+
+        setStatusMessage('Ответы сохранены!');
         
         if (currentTaskIndex < currentSection.tasks.length - 1) {
           setCurrentTaskIndex(currentTaskIndex + 1);
-          setAnswers(['', '', '', '']);
-          setCorrectAnswerIndex(0);
-          setAnswersDebugInfo(`Перехожу к заданию ${currentTaskIndex + 2}`);
-          
-          await new Promise(resolve => setTimeout(resolve, 500));
+          setCurrentStep('assignment');
+          setStatusMessage(`Переход к заданию ${currentTaskIndex + 2}...`);
         } else {
-          const allTasks = currentSection.tasks;
-          const hasLocalData = allTasks.some(task => 
-            task.isFallback || 
-            (task.questions && task.questions.some(q => q.isFallback))
-          );
-          
-          if (hasLocalData) {
-            alert('Все задания и ответы сохранены!\n\n' +
-                  'Некоторые данные сохранены локально.\n' +
-                  'Синхронизируйте их с сервером позже.');
-          } else {
-            alert('Поздравляем! Раздел полностью создан!\n\n' +
-                  'Все данные успешно сохранены на сервере.');
-          }
-          
-          navigate(`/course/${courseId}`);
+          handleNextSectionOrFinish();
         }
 
       } catch (error) {
-        console.error('Ошибка сохранения ответов:', error);
-        setAnswersDebugInfo(`Ошибка: ${error.message}`);
+        setStatusMessage(`Ошибка: ${error.message}`);
+        setTimeout(() => setStatusMessage(''), 5000);
         
-        const userConfirmed = window.confirm(
-          `${error.message}\n\n` +
-          `Сохранить ответы локально?\n` +
-          `Вы сможете синхронизировать их позже.`
-        );
+        const questions = answers.map((answer, index) => ({
+          id: `question-local-${Date.now()}-${index}`,
+          name: answer,
+          answer: index === correctAnswerIndex,
+          isFallback: true,
+          needsSync: true
+        }));
         
-        if (userConfirmed) {
-          const questions = answers.map((answer, index) => ({
-            id: `question-local-${Date.now()}-${index}`,
-            name: answer,
-            answer: index === correctAnswerIndex,
-            isFallback: true,
-            needsSync: true
-          }));
-          
-          const updatedTasks = [...currentSection.tasks];
-          updatedTasks[currentTaskIndex] = {
-            ...updatedTasks[currentTaskIndex],
-            answers: answers,
-            correctAnswerIndex: correctAnswerIndex,
-            questions: questions,
-            hasQuestions: true,
-            isFallback: true
-          };
+        const updatedSections = [...sectionData.sections];
+        updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex] = {
+          ...updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex],
+          answers: answers,
+          correctAnswerIndex: correctAnswerIndex,
+          questions: questions,
+          hasQuestions: true,
+          isFallback: true,
+          questionsSavedAt: new Date().toISOString()
+        };
 
-          const updatedSections = [...course.sectionsData];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            tasks: updatedTasks
-          };
+        setSectionData(prev => ({
+          ...prev,
+          sections: updatedSections
+        }));
 
-          const updatedCourse = {
-            ...course,
-            sectionsData: updatedSections
-          };
-          
-          const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-          const updatedCourses = courses.map(c => {
-            const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
-            return courseIdClean === cleanedCourseId ? updatedCourse : c;
-          });
-          
-          localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-          setCourse(updatedCourse);
-          
-          if (currentTaskIndex < currentSection.tasks.length - 1) {
-            setCurrentTaskIndex(currentTaskIndex + 1);
-            setAnswers(['', '', '', '']);
-            setCorrectAnswerIndex(0);
-            setAnswersDebugInfo('Ответы сохранены локально, перехожу к следующему заданию');
-          } else {
-            alert('Все ответы сохранены локально!');
-            navigate(`/course/${courseId}`);
-          }
+        const updatedCourse = {
+          ...course,
+          sectionsData: updatedSections
+        };
+        
+        const courses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+        const updatedCourses = courses.map(c => {
+          const courseIdClean = String(c.id).replace(/^["']+|["']+$/g, '').trim();
+          return courseIdClean === cleanedCourseId ? updatedCourse : c;
+        });
+        
+        localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
+        setCourse(updatedCourse);
+
+        setStatusMessage('Локальные ответы сохранены!');
+        
+        if (currentTaskIndex < currentSection.tasks.length - 1) {
+          setCurrentTaskIndex(currentTaskIndex + 1);
+          setCurrentStep('assignment');
+        } else {
+          handleNextSectionOrFinish();
         }
       } finally {
-        setIsSaving(false);
+        setIsLoading(false);
       }
     };
 
-    const handleBackToTask = () => {
-      if (currentTaskIndex > 0) {
-        setCurrentTaskIndex(currentTaskIndex - 1);
+    const handleNextSectionOrFinish = () => {
+      if (sectionData.currentSectionIndex < sectionData.totalSections - 1) {
+        setSectionData(prev => ({
+          ...prev,
+          currentSectionIndex: prev.currentSectionIndex + 1
+        }));
+        setCurrentTaskIndex(0);
+        setCurrentTheoryIndex(0);
+        setCurrentStep('section-details');
+        setStatusMessage(`Переход к разделу ${sectionData.currentSectionIndex + 2}...`);
       } else {
-        setCurrentStep('assignment');
+        setStatusMessage('Поздравляем! Курс полностью создан! Перенаправление на главную...');
+        setTimeout(() => navigate('/'), 2000);
       }
     };
-
-    if (!currentTask) {
-      return (
-        <div className="builder-step">
-          <h2>Шаг 4: Конструктор ответов</h2>
-          <div className="error-message">
-            Задание не найдено. Пожалуйста, вернитесь и создайте задания.
-          </div>
-          <button 
-            className="btn-back"
-            onClick={() => setCurrentStep('assignment')}
-          >
-            ← Назад к заданиям
-          </button>
-        </div>
-      );
-    }
 
     return (
       <div className="builder-step">
-        <h2>Шаг 4: Конструктор ответов</h2>
-        {answersDebugInfo && <div className="debug-info">{answersDebugInfo}</div>}
+        <h2>Конструктор ответов</h2>
+        {statusMessage && <div className="status-message">{statusMessage}</div>}
         <p className="step-info">
-          Раздел: <strong>{currentSection?.name}</strong> | 
+          Раздел {sectionData.currentSectionIndex + 1}: <strong>{currentSection?.name}</strong> | 
           Задание {currentTaskIndex + 1} из {currentSection?.tasks?.length}
         </p>
         
         <div className="current-task-info">
-          <h3>Задание: {currentTask.name}</h3>
-          <p className="task-description-preview">{currentTask.description}</p>
-          {currentTask.id?.startsWith('local-') && (
+          <h3>Задание: {currentTask?.name}</h3>
+          <p className="task-description-preview">{currentTask?.description}</p>
+          {currentTask?.id?.startsWith('local-') && (
             <p className="task-local-badge">⚠️ Локальное задание</p>
           )}
         </div>
@@ -1339,34 +1093,40 @@ function CourseBuilder() {
           <p className="hint">Отметьте правильный ответ (может быть только один)</p>
           
           {answers.map((answer, index) => (
-            <div key={index} className="answer-item">
-              <div className="answer-header">
-                <label className="answer-label">Вариант {index + 1} *</label>
-                <div className="correct-radio-container">
-                  <input
-                    type="radio"
-                    name="correctAnswer"
-                    checked={correctAnswerIndex === index}
-                    onChange={() => setCorrectAnswerIndex(index)}
-                    id={`answer-${index}`}
-                    className="correct-radio"
-                    disabled={isSaving}
-                  />
-                  <label 
-                    htmlFor={`answer-${index}`}
-                    className="correct-label"
-                  >
-                    Правильный ответ
-                  </label>
+            <div key={index} className="answer-item-vertical">
+              <div className="answer-header-vertical">
+                <div className="answer-top-row">
+                  <label className="answer-label-vertical">{index + 1} *</label>
+                  <div className="correct-radio-container-vertical">
+                    <input
+                      type="radio"
+                      name="correctAnswer"
+                      checked={correctAnswerIndex === index}
+                      onChange={() => setCorrectAnswerIndex(index)}
+                      id={`answer-${index}`}
+                      className="correct-radio-vertical"
+                      disabled={isLoading}
+                    />
+                    <label 
+                      htmlFor={`answer-${index}`}
+                      className="correct-label-vertical"
+                    >
+                      Правильный ответ
+                    </label>
+                  </div>
                 </div>
               </div>
-              <input
-                type="text"
+              <textarea
                 value={answer}
-                onChange={(e) => handleAnswerChange(index, e.target.value)}
-                placeholder={`Введите текст варианта ${index + 1}`}
-                className="answer-input"
-                disabled={isSaving}
+                onChange={(e) => {
+                  const newAnswers = [...answers];
+                  newAnswers[index] = e.target.value;
+                  setAnswers(newAnswers);
+                }}
+                placeholder={`Введите текст ответа ${index + 1} здесь...`}
+                className="answer-textarea"
+                disabled={isLoading}
+                rows="4"
               />
             </div>
           ))}
@@ -1374,21 +1134,16 @@ function CourseBuilder() {
 
         <div className="navigation-buttons">
           <button 
-            className="btn-back"
-            onClick={handleBackToTask}
-            disabled={isSaving}
-          >
-            {currentTaskIndex > 0 ? '← Предыдущее задание' : '← Назад к заданиям'}
-          </button>
-          <button 
-            className="next-btn"
+            className="next-btn green-btn"
             onClick={handleSaveAnswers}
-            disabled={answers.some(answer => !answer.trim()) || isSaving}
+            disabled={answers.some(answer => !answer.trim()) || isLoading}
           >
-            {isSaving ? 'Сохранение...' : 
+            {isLoading ? 'Сохранение...' : 
              currentTaskIndex < currentSection.tasks.length - 1 
-              ? 'Сохранить и перейти к следующему заданию →' 
-              : 'Завершить создание раздела'}
+               ? 'Дальше → Конструктор заданий' 
+               : sectionData.currentSectionIndex < sectionData.totalSections - 1
+                 ? 'Дальше → Конструктор раздела'
+                 : 'Дальше → Завершить курс'}
           </button>
         </div>
       </div>
@@ -1399,8 +1154,6 @@ function CourseBuilder() {
     return (
       <div className="loading-container">
         <p>Загрузка курса...</p>
-        <p>ID курса: {courseId}</p>
-        <p>Очищенный ID: {cleanedCourseId}</p>
       </div>
     );
   }
@@ -1408,17 +1161,17 @@ function CourseBuilder() {
   return (
     <div className="course-builder">
       <header className="builder-header">
-        <button onClick={() => navigate(`/course/${courseId}`)} className="back-button">
-          ← Назад к курсу
-        </button>
         <h1>Конструктор курса: {course.title}</h1>
         <div className="progress">
-          Раздел {course.sectionsData?.length || 0} из {course.sections}
+          {currentStep === 'section-details' && `Раздел ${sectionData.currentSectionIndex + 1} из ${sectionData.totalSections}`}
+          {currentStep === 'theory' && `Теория для раздела ${sectionData.currentSectionIndex + 1}`}
+          {currentStep === 'assignment' && `Задания для раздела ${sectionData.currentSectionIndex + 1}`}
+          {currentStep === 'answers' && `Ответы для раздела ${sectionData.currentSectionIndex + 1}`}
         </div>
       </header>
 
-      <div className="builder-content">
-        {currentStep === 'section' && <SectionBuilder />}
+      <div className="builder-content-centered">
+        {currentStep === 'section-details' && <SectionDetailsBuilder />}
         {currentStep === 'theory' && <TheoryBuilder />}
         {currentStep === 'assignment' && <AssignmentBuilder />}
         {currentStep === 'answers' && <AnswersBuilder />}

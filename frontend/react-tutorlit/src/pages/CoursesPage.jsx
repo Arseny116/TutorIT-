@@ -93,43 +93,8 @@ function CoursesPage() {
       
       const allCourses = [...formattedCourses, ...localCourses];
       
-      if (allCourses.length === 0) {
-        const defaultCourses = [
-          { 
-            id: 1, 
-            title: 'Введение в JavaScript', 
-            language: 'JavaScript', 
-            sections: 5, 
-            difficulty: 1, 
-            isDefault: true, 
-            description: 'Основы JavaScript для начинающих',
-            isFromAPI: false 
-          },
-          { 
-            id: 2, 
-            title: 'Python для анализа данных', 
-            language: 'Python', 
-            sections: 8, 
-            difficulty: 2, 
-            isDefault: true,
-            description: 'Анализ данных с использованием Python',
-            isFromAPI: false 
-          },
-          { 
-            id: 3, 
-            title: 'Java Spring Framework', 
-            language: 'Java', 
-            sections: 10, 
-            difficulty: 3, 
-            isDefault: true,
-            description: 'Создание веб-приложений на Spring',
-            isFromAPI: false 
-          },
-        ];
-        setCourses(defaultCourses);
-      } else {
-        setCourses(allCourses);
-      }
+     
+      setCourses(allCourses);
       
     } catch (error) {
       console.error('❌ Ошибка загрузки с API:', error);
@@ -137,13 +102,8 @@ function CoursesPage() {
       const savedCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
         .filter(course => !course.isFromAPI);
       
-      const defaultCourses = [
-        { id: 1, title: 'Введение в JavaScript', language: 'JavaScript', sections: 5, difficulty: 1, isDefault: true },
-        { id: 2, title: 'Python для анализа данных', language: 'Python', sections: 8, difficulty: 2, isDefault: true },
-        { id: 3, title: 'Java Spring Framework', language: 'Java', sections: 10, difficulty: 3, isDefault: true },
-      ];
-
-      setCourses([...defaultCourses, ...savedCourses]);
+      
+      setCourses(savedCourses);
       
       setApiError({
         message: 'Не удалось загрузить курсы с сервера',
@@ -155,32 +115,26 @@ function CoursesPage() {
     }
   };
 
-  const handleDeleteCourse = async (courseId, isDefault = false, isFromAPI = false) => {
-    if (isDefault) {
-      alert('Системные курсы нельзя удалить');
-      return;
+  const handleDeleteCourse = async (courseId, isFromAPI = false) => {
+    
+    if (isFromAPI) {
+      try {
+        await fetch(`/api/v1/Courses/${courseId}`, { method: 'DELETE' });
+      } catch (error) {
+        console.error('Ошибка удаления курса:', error);
+        alert('Ошибка при удалении курса с сервера');
+        return;
+      }
     }
 
-    if (window.confirm('Вы уверены, что хотите удалить этот курс?')) {
-      if (isFromAPI) {
-        try {
-          await fetch(`/api/v1/Courses/${courseId}`, { method: 'DELETE' });
-        } catch (error) {
-          console.error('Ошибка удаления курса:', error);
-          alert('Ошибка при удалении курса с сервера');
-          return;
-        }
-      }
-
-      if (!isFromAPI) {
-        const existingCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-        const updatedCourses = existingCourses.filter(course => course.id !== courseId);
-        localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
-      }
-      
-      setCourses(prev => prev.filter(course => course.id !== courseId));
-      alert('Курс успешно удален');
+    if (!isFromAPI) {
+      const existingCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+      const updatedCourses = existingCourses.filter(course => course.id !== courseId);
+      localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
     }
+    
+    setCourses(prev => prev.filter(course => course.id !== courseId));
+    
   };
 
   const handleBackToHome = () => {
@@ -272,14 +226,8 @@ function CoursesPage() {
             >
               Сбросить фильтры
             </button>
-
-            <button 
-              className="refresh-courses-btn"
-              onClick={loadCourses}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Обновление...' : '🔄 Обновить'}
-            </button>
+            
+            
           </div>
         </aside>
 
@@ -297,15 +245,14 @@ function CoursesPage() {
                 <div key={course.id} className="course-card">
                   <div className="course-header">
                     <h3>{course.title}</h3>
-                    {!course.isDefault && (
-                      <button 
-                        className="delete-course-btn"
-                        onClick={() => handleDeleteCourse(course.id, course.isDefault, course.isFromAPI)}
-                        title="Удалить курс"
-                      >
-                        ×
-                      </button>
-                    )}
+                    
+                    <button 
+                      className="delete-course-btn"
+                      onClick={() => handleDeleteCourse(course.id, course.isFromAPI)}
+                      title="Удалить курс"
+                    >
+                      ×
+                    </button>
                   </div>
                   
                   <div className="course-meta">
@@ -314,9 +261,8 @@ function CoursesPage() {
                     <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
                       Сложность: {course.difficulty || 1}
                     </span>
-                    {course.isDefault ? (
-                      <span className="system-tag">Системный</span>
-                    ) : course.isFromAPI ? (
+                    
+                    {course.isFromAPI ? (
                       <span className="api-tag">Серверный</span>
                     ) : (
                       <span className="user-tag">Ваш курс</span>
@@ -339,7 +285,7 @@ function CoursesPage() {
                   <div className="course-date">
                     {course.isFromAPI ? (
                       <span>Загружено с сервера</span>
-                    ) : !course.isDefault && course.createdAt ? (
+                    ) : course.createdAt ? (
                       <span>Создан: {new Date(course.createdAt).toLocaleDateString()}</span>
                     ) : null}
                   </div>

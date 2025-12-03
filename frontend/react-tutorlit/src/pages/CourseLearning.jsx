@@ -16,6 +16,8 @@ function CourseLearning() {
   const [score, setScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [userAnswers, setUserAnswers] = useState({});
+  const [totalScore, setTotalScore] = useState(0);
+  const [completedSections, setCompletedSections] = useState([]);
 
   useEffect(() => {
     loadCourseData();
@@ -26,93 +28,19 @@ function CourseLearning() {
     
     try {
       const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-      console.log('Все курсы в localStorage:', localCourses);
-      
-      const courseIdStr = String(courseId);
+      console.log('Загружаю курс с ID:', courseId);
       
       const foundCourse = localCourses.find(course => {
         const storedId = String(course.id).replace(/^["']+|["']+$/g, '').trim();
-        return storedId === courseIdStr;
+        const searchId = String(courseId).replace(/^["']+|["']+$/g, '').trim();
+        return storedId === searchId;
       });
       
       console.log('Найденный курс:', foundCourse);
       
       if (!foundCourse) {
-        console.log('Курс не найден, создаю тестовый...');
-        const testCourse = {
-          id: courseId,
-          title: 'Тестовый курс',
-          description: 'Это тестовый курс для демонстрации',
-          sections: 3,
-          difficulty: 1,
-          language: 'JavaScript',
-          sectionsData: []
-        };
-        
-        const testSections = [
-          {
-            id: 'section-1',
-            name: 'Введение',
-            description: 'Основы программирования',
-            theory: {
-              name: 'Что такое программирование?',
-              article: 'Программирование - это процесс создания компьютерных программ. Программа - это набор инструкций, которые компьютер выполняет для решения задачи.\n\nОсновные понятия:\n1. Алгоритм\n2. Переменные\n3. Условия\n4. Циклы'
-            },
-            tasks: [
-              {
-                id: 'task-1',
-                name: 'Первый вопрос',
-                description: 'Что такое алгоритм?',
-                answers: [
-                  'Последовательность шагов для решения задачи',
-                  'Язык программирования',
-                  'Тип данных',
-                  'Имя переменной'
-                ],
-                correctAnswerIndex: 0
-              },
-              {
-                id: 'task-2',
-                name: 'Второй вопрос',
-                description: 'Что такое переменная?',
-                answers: [
-                  'Имя для хранения данных',
-                  'Тип цикла',
-                  'Математическая функция',
-                  'Синтаксическая ошибка'
-                ],
-                correctAnswerIndex: 0
-              }
-            ]
-          },
-          {
-            id: 'section-2',
-            name: 'Переменные и типы данных',
-            description: 'Работа с данными в программировании',
-            theory: {
-              name: 'Типы данных',
-              article: 'Типы данных определяют, какого рода информацию может хранить переменная.\n\nОсновные типы:\n1. Числа (int, float)\n2. Строки (string)\n3. Булевы значения (boolean)\n4. Массивы\n5. Объекты'
-            },
-            tasks: [
-              {
-                id: 'task-3',
-                name: 'Типы данных',
-                description: 'Какой тип используется для хранения текста?',
-                answers: [
-                  'String',
-                  'Integer',
-                  'Boolean',
-                  'Array'
-                ],
-                correctAnswerIndex: 0
-              }
-            ]
-          }
-        ];
-        
-        setCourse(testCourse);
-        setSections(testSections);
-        
+        console.log('Курс не найден');
+  
       } else {
         setCourse({
           id: foundCourse.id,
@@ -120,25 +48,122 @@ function CourseLearning() {
           description: foundCourse.description || 'Описание курса',
           sections: foundCourse.sections || 0,
           difficulty: foundCourse.difficulty || 1,
-          language: foundCourse.language || 'Не указан'
+          language: foundCourse.language || foundCourse.pl || 'Не указан',
+          isFromAPI: foundCourse.isFromAPI
         });
         
+        
         if (foundCourse.sectionsData && foundCourse.sectionsData.length > 0) {
-          const loadedSections = foundCourse.sectionsData.map((section, index) => ({
-            id: section.id || `section-${index}`,
-            name: section.name || `Раздел ${index + 1}`,
-            description: section.description || 'Описание раздела',
-            theory: section.theory || null,
-            tasks: section.tasks || [],
-            completed: false,
-            progress: 0,
-            sectionNumber: index + 1
-          }));
+          console.log('Загружаю разделы из sectionsData:', foundCourse.sectionsData.length);
+          
+          const loadedSections = foundCourse.sectionsData.map((section, index) => {
+            
+            const sectionId = section.id || `section-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`;
+            
+          
+            const sectionForLearning = {
+              id: sectionId,
+              name: section.name || `Раздел ${index + 1}`,
+              description: section.description || 'Описание раздела',
+              sectionNumber: index + 1,
+              completed: false,
+              progress: 0
+            };
+            
+            
+            if (section.theory) {
+              if (Array.isArray(section.theory)) {
+              
+                sectionForLearning.theory = {
+                  name: section.theory[0]?.name || `Теория ${index + 1}`,
+                  article: section.theory[0]?.article || section.theory.map(t => t.article).join('\n\n')
+                };
+              } else {
+             
+                sectionForLearning.theory = {
+                  name: section.theory.name || `Теория ${index + 1}`,
+                  article: section.theory.article || 'Теоретический материал'
+                };
+              }
+            }
+          
+            if (section.tasks && Array.isArray(section.tasks)) {
+              sectionForLearning.tasks = section.tasks.map((task, taskIndex) => {
+                
+                const taskId = task.id || `task-${sectionId}-${taskIndex}-${Math.random().toString(36).substr(2, 9)}`;
+                
+                let correctAnswerIndex = 0;
+                if (task.questions && Array.isArray(task.questions)) {
+                  const correctQuestion = task.questions.find(q => q.answer === true);
+                  if (correctQuestion && task.questions.indexOf(correctQuestion) !== -1) {
+                    correctAnswerIndex = task.questions.indexOf(correctQuestion);
+                  }
+                } else if (task.correctAnswerIndex !== undefined) {
+                  correctAnswerIndex = task.correctAnswerIndex;
+                }
+                
+                return {
+                  id: taskId,
+                  name: task.name || `Задание ${taskIndex + 1}`,
+                  description: task.description || 'Описание задания',
+                  answers: task.answers || task.questions?.map(q => q.name) || 
+                           ['Вариант 1', 'Вариант 2', 'Вариант 3', 'Вариант 4'],
+                  correctAnswerIndex: correctAnswerIndex,
+                  isFromAPI: task.isFromAPI
+                };
+              });
+            } else if (section.numberTasks > 0) {
+              
+              sectionForLearning.tasks = Array.from({ length: section.numberTasks }, (_, taskIndex) => ({
+                id: `task-${sectionId}-${taskIndex}-${Math.random().toString(36).substr(2, 9)}`,
+                name: `Задание ${taskIndex + 1}`,
+                description: 'Пример задания',
+                answers: ['Правильный ответ', 'Неправильный вариант 1', 'Неправильный вариант 2', 'Неправильный вариант 3'],
+                correctAnswerIndex: 0
+              }));
+            } else {
+              sectionForLearning.tasks = [];
+            }
+            
+            return sectionForLearning;
+          });
+          
+          console.log('Преобразованные разделы:', loadedSections);
           setSections(loadedSections);
+          
+        } else if (foundCourse.sections > 0) {
+  
+          console.log('Создаю тестовые разделы для курса');
+          const testSections = Array.from({ length: foundCourse.sections }, (_, index) => ({
+            id: `section-generated-${index}-${Date.now()}`,
+            name: `Раздел ${index + 1}`,
+            description: 'Описание раздела',
+            sectionNumber: index + 1,
+            theory: {
+              name: `Теория ${index + 1}`,
+              article: 'Теоретический материал для изучения.'
+            },
+            tasks: [
+              {
+                id: `task-generated-${index}-${Date.now()}`,
+                name: 'Пример вопроса',
+                description: 'Выберите правильный вариант ответа',
+                answers: [
+                  'Правильный ответ',
+                  'Неправильный вариант 1',
+                  'Неправильный вариант 2',
+                  'Неправильный вариант 3'
+                ],
+                correctAnswerIndex: 0
+              }
+            ]
+          }));
+          setSections(testSections);
         } else {
+     
           const testSections = [
             {
-              id: 'section-1',
+              id: `section-fallback-${Date.now()}`,
               name: 'Введение',
               description: 'Основы программирования',
               theory: {
@@ -147,7 +172,7 @@ function CourseLearning() {
               },
               tasks: [
                 {
-                  id: 'task-1',
+                  id: `task-fallback-${Date.now()}`,
                   name: 'Пример вопроса',
                   description: 'Выберите правильный вариант ответа',
                   answers: [
@@ -179,6 +204,7 @@ function CourseLearning() {
     setSelectedAnswer(null);
     setShowAnswerResult(false);
     setScore(0);
+    setUserAnswers({});
   };
 
   const handleStartTasks = () => {
@@ -223,8 +249,31 @@ function CourseLearning() {
         setShowAnswerResult(false);
       } else {
         setCurrentStep('results');
+      
+        if (!completedSections.includes(currentSection.id)) {
+          setCompletedSections(prev => [...prev, currentSection.id]);
+          setTotalScore(prev => prev + score);
+          
+      
+          saveProgress();
+        }
       }
     }, 1500);
+  };
+
+  const saveProgress = () => {
+    try {
+      const progressKey = `course-progress-${courseId}`;
+      const progressData = {
+        courseId: courseId,
+        completedSections: completedSections,
+        totalScore: totalScore + score,
+        lastAccessed: new Date().toISOString()
+      };
+      localStorage.setItem(progressKey, JSON.stringify(progressData));
+    } catch (error) {
+      console.error('Ошибка сохранения прогресса:', error);
+    }
   };
 
   const handleNextTask = () => {
@@ -268,8 +317,39 @@ function CourseLearning() {
     if (currentIndex < sections.length - 1) {
       handleSelectSection(sections[currentIndex + 1]);
     } else {
-      alert('🎉 Поздравляем! Вы завершили курс!');
+      const totalTasks = sections.reduce((sum, section) => sum + (section.tasks?.length || 0), 0);
+      const finalScore = totalTasks > 0 ? Math.round((totalScore / totalTasks) * 100) : 0;
+      
+      saveFinalResult(finalScore);
+      
       navigate('/courses');
+    }
+  };
+
+  const saveFinalResult = (finalScore) => {
+    try {
+      const resultsKey = 'course-results';
+      const results = JSON.parse(localStorage.getItem(resultsKey) || '[]');
+      
+      const existingResultIndex = results.findIndex(r => r.courseId === courseId);
+      const resultData = {
+        courseId: courseId,
+        courseTitle: course.title,
+        finalScore: finalScore,
+        completedAt: new Date().toISOString(),
+        sectionsCompleted: completedSections.length,
+        totalSections: sections.length
+      };
+      
+      if (existingResultIndex !== -1) {
+        results[existingResultIndex] = resultData;
+      } else {
+        results.push(resultData);
+      }
+      
+      localStorage.setItem(resultsKey, JSON.stringify(results));
+    } catch (error) {
+      console.error('Ошибка сохранения результата:', error);
     }
   };
 
@@ -318,6 +398,7 @@ function CourseLearning() {
             <h1>{course.title}</h1>
             <p style={{ opacity: 0.9, fontSize: '14px' }}>
               {course.language} • Сложность: {course.difficulty}
+              {course.isFromAPI && ' • Серверный курс'}
             </p>
           </div>
           <div className="learning-progress">
@@ -334,16 +415,26 @@ function CourseLearning() {
               <div className="sections-header">
                 <h2>Выберите раздел для изучения</h2>
                 <p>{sections.length} разделов доступно</p>
+                {completedSections.length > 0 && (
+                  <p className="progress-info">
+                    Завершено: {completedSections.length}/{sections.length} разделов
+                  </p>
+                )}
               </div>
               
               <div className="sections-grid">
                 {sections.map((section, index) => (
                   <div 
-                    key={section.id}
-                    className={`section-card ${currentSection?.id === section.id ? 'active' : ''}`}
+                    key={`${section.id}-${index}`} 
+                    className={`section-card ${currentSection?.id === section.id ? 'active' : ''} ${completedSections.includes(section.id) ? 'completed' : ''}`}
                     onClick={() => handleSelectSection(section)}
                   >
-                    <h3>{section.name}</h3>
+                    <h3>
+                      {section.name}
+                      {completedSections.includes(section.id) && (
+                        <span className="completed-badge">✓</span>
+                      )}
+                    </h3>
                     <p className="section-description">{section.description}</p>
                     <div className="section-meta">
                       <span className="meta-item">
@@ -427,7 +518,7 @@ function CourseLearning() {
                     
                     return (
                       <div 
-                        key={index}
+                        key={`answer-${currentSection.tasks[currentTaskIndex].id}-${index}`}
                         className={answerClass}
                         onClick={() => handleSelectAnswer(index)}
                       >

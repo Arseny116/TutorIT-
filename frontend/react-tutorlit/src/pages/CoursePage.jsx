@@ -83,15 +83,9 @@ function CoursePage() {
               <span className="count">{course.sections || course.chapters || 0}</span>
             </div>
             
-            <div className="evalution-section">
-              <h4>Evalution</h4>
-              <p>Текст evalution будет здесь</p>
-            </div>
             
-            <div className="subscribe-section">
-              <h4>Subscribe</h4>
-              <p>Текст subscribe будет здесь</p>
-            </div>
+            
+            
           </div>
         </aside>
 
@@ -119,17 +113,7 @@ function CoursePage() {
           </div>
         </main>
 
-        <aside className="course-sidebar-right">
-          <div className="info-section">
-            <h3>A name</h3>
-            <p>Текст для A name будет здесь</p>
-            
-            <div className="description-section">
-              <h4>A description</h4>
-              <p>Текст для A description будет здесь</p>
-            </div>
-          </div>
-        </aside>
+        
       </div>
     </div>
   );
