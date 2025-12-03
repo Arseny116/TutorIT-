@@ -5,6 +5,9 @@ import CourseModal from '../CourseModal/CourseModal';
 function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const handleUserClick = () => {
+  };
+
   return (
     <>
       <header className="header">
@@ -15,7 +18,7 @@ function Header() {
         <div className="header-right">
           <button 
             className="header-user-btn"
-            onClick={() => alert('Профиль пользователя')}
+            onClick={handleUserClick}
           >
             👤 Пользователь
           </button>

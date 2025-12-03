@@ -10,9 +10,9 @@ function CreateCoursePage() {
   const [programmingLanguage, setProgrammingLanguage] = useState('');
   const [customLanguage, setCustomLanguage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Список популярных языков программирования
   const programmingLanguages = [
     'JavaScript',
     'Python', 
@@ -36,20 +36,20 @@ function CreateCoursePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     
-    // Определяем язык программирования
     let selectedLanguage = programmingLanguage;
     if (programmingLanguage === 'Другой (ввести вручную)' && customLanguage.trim()) {
       selectedLanguage = customLanguage.trim();
     }
     
     if (!courseName.trim() || !description.trim() || !sectionsCount || !difficulty || !selectedLanguage) {
-      alert('Заполните все поля');
+      setError('Заполните все поля');
       return;
     }
 
     if (parseInt(sectionsCount) <= 0) {
-      alert('Количество разделов должно быть больше 0');
+      setError('Количество разделов должно быть больше 0');
       return;
     }
 
@@ -57,7 +57,7 @@ function CreateCoursePage() {
 
     try {
       const courseData = {
-        pl: selectedLanguage, // Добавляем поле pl
+        pl: selectedLanguage,
         title: courseName.trim(),
         description: description.trim(),
         chapters: parseInt(sectionsCount),
@@ -82,7 +82,7 @@ function CreateCoursePage() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}. ${errorText}`);
+        throw new Error(`Ошибка сервера: ${errorText || response.status}`);
       }
 
       const courseId = await response.text();
@@ -95,6 +95,7 @@ function CreateCoursePage() {
         description: courseData.description,
         sections: courseData.chapters,
         difficulty: courseData.complexity,
+        language: selectedLanguage,
         sectionsData: [],
         createdAt: new Date().toISOString(),
         isFromAPI: true
@@ -104,30 +105,14 @@ function CreateCoursePage() {
       existingCourses.push(newCourse);
       localStorage.setItem('tutorit-courses', JSON.stringify(existingCourses));
 
+      
       navigate(`/course/${courseId}`);
 
     } catch (error) {
-      console.error('Ошибка:', error);
-      alert(`Ошибка создания курса: ${error.message}`);
+      console.error('Ошибка создания курса:', error);
+      setError(`Ошибка создания курса: ${error.message}`);
+ 
       
-      // Fallback на локальное сохранение
-      const fallbackCourse = {
-        id: Date.now(),
-        pl: selectedLanguage,
-        title: courseName.trim(),
-        description: description.trim(),
-        sections: parseInt(sectionsCount),
-        difficulty: parseInt(difficulty),
-        sectionsData: [],
-        createdAt: new Date().toISOString(),
-        isFallback: true
-      };
-
-      const existingCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-      existingCourses.push(fallbackCourse);
-      localStorage.setItem('tutorit-courses', JSON.stringify(existingCourses));
-
-      navigate(`/course/${fallbackCourse.id}`);
     } finally {
       setIsLoading(false);
     }
@@ -140,6 +125,12 @@ function CreateCoursePage() {
   return (
     <div className="create-course-page">
       <h1>Создание нового курса</h1>
+      
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="course-form">
         <div className="form-group">
@@ -184,7 +175,6 @@ function CreateCoursePage() {
               </option>
             ))}
           </select>
-          <small>Поле "pl" будет отправлено на сервер как язык программирования курса</small>
         </div>
 
         {programmingLanguage === 'Другой (ввести вручную)' && (
@@ -199,7 +189,6 @@ function CreateCoursePage() {
               required
               disabled={isLoading}
             />
-            <small>Любой язык программирования, которого нет в списке выше</small>
           </div>
         )}
 
@@ -216,7 +205,6 @@ function CreateCoursePage() {
             required
             disabled={isLoading}
           />
-          <small>На бэкенде сохраняется как "chapters"</small>
         </div>
 
         <div className="form-group">
@@ -233,7 +221,6 @@ function CreateCoursePage() {
             <option value="2">2 — Средний уровень</option>
             <option value="3">3 — Продвинутый уровень</option>
           </select>
-          <small>На бэкенде сохраняется как "complexity"</small>
         </div>
 
         <div className="form-actions">

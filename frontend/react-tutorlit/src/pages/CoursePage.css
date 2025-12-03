@@ -42,7 +42,6 @@
   padding: 2rem;
 }
 
-/* Левая колонка */
 .course-sidebar-left {
   background: white;
   padding: 1.5rem;
@@ -51,7 +50,6 @@
   height: fit-content;
 }
 
-/* Правая колонка */
 .course-sidebar-right {
   background: white;
   padding: 1.5rem;
@@ -101,7 +99,7 @@
   font-size: 0.9rem;
 }
 
-/* Центральная часть */
+
 .course-main {
   display: flex;
   flex-direction: column;
@@ -131,7 +129,7 @@
   margin-top: 1.5rem;
 }
 
-/* Reviews */
+
 .reviews-section {
   background: white;
   padding: 2rem;
@@ -153,7 +151,6 @@
   line-height: 1.6;
 }
 
-/* Стили для секции "Дальше" */
 .next-section {
   margin-top: 3rem;
   padding-top: 2rem;
@@ -193,7 +190,7 @@
   color: #666;
 }
 
-/* Адаптивность для мобильных */
+
 @media (max-width: 768px) {
   .course-layout {
     grid-template-columns: 1fr;
@@ -223,7 +220,7 @@
     font-size: 1rem;
   }
 }
-/* Стили для всех шагов */
+
 .builder-step {
   background: white;
   border-radius: 12px;
@@ -240,7 +237,6 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* Навигация по шагам */
 .progress-steps {
   display: flex;
   gap: 20px;
@@ -287,7 +283,6 @@
   font-weight: 500;
 }
 
-/* Кнопки навигации */
 .navigation-buttons {
   display: flex;
   justify-content: space-between;
@@ -335,7 +330,7 @@
   box-shadow: none;
 }
 
-/* Теория */
+
 .theory-container {
   margin: 20px 0;
 }
@@ -426,7 +421,7 @@
   color: #6b7280;
 }
 
-/* Задания */
+
 .assignments-container {
   margin: 20px 0;
 }
@@ -515,7 +510,7 @@
   margin-top: 0;
 }
 
-/* Завершение */
+
 .summary-card {
   background: #f0f9ff;
   border: 1px solid #bae6fd;
@@ -624,7 +619,7 @@
   background: #e5e7eb;
 }
 
-/* Адаптивность */
+
 @media (max-width: 768px) {
   .builder-step {
     padding: 20px;
