@@ -18,6 +18,7 @@ function CourseLearning() {
   const [userAnswers, setUserAnswers] = useState({});
   const [totalScore, setTotalScore] = useState(0);
   const [completedSections, setCompletedSections] = useState([]);
+  const [currentTheoryIndex, setCurrentTheoryIndex] = useState(0); // Добавил для отслеживания текущей теории
 
   useEffect(() => {
     loadCourseData();
@@ -60,33 +61,46 @@ function CourseLearning() {
             
             const sectionId = section.id || `section-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`;
             
-          
+            // Обрабатываем multiple теории
+            let theoriesArray = [];
+            if (section.theory) {
+              if (Array.isArray(section.theory)) {
+                // Преобразуем массив теорий
+                theoriesArray = section.theory.map((theoryItem, theoryIndex) => ({
+                  id: theoryItem.id || `theory-${sectionId}-${theoryIndex}`,
+                  name: theoryItem.name || `Теория ${theoryIndex + 1}`,
+                  article: theoryItem.article || 'Теоретический материал',
+                  index: theoryIndex,
+                  isFromAPI: theoryItem.isFromAPI || false
+                }));
+              } else {
+                // Если теория в виде объекта, делаем из нее массив с одним элементом
+                theoriesArray = [{
+                  id: section.theory.id || `theory-${sectionId}-0`,
+                  name: section.theory.name || `Теория 1`,
+                  article: section.theory.article || 'Теоретический материал',
+                  index: 0,
+                  isFromAPI: section.theory.isFromAPI || false
+                }];
+              }
+            }
+            
+            // Подсчитываем количество теорий
+            const theoryCount = theoriesArray.length > 0 ? theoriesArray.length : 
+                                (section.numberTheoryBloks || 0);
+            
             const sectionForLearning = {
               id: sectionId,
               name: section.name || `Раздел ${index + 1}`,
               description: section.description || 'Описание раздела',
               sectionNumber: index + 1,
+              theoryCount: theoryCount,
+              theories: theoriesArray, // Массив теорий
               completed: false,
               progress: 0
             };
             
-            
-            if (section.theory) {
-              if (Array.isArray(section.theory)) {
-              
-                sectionForLearning.theory = {
-                  name: section.theory[0]?.name || `Теория ${index + 1}`,
-                  article: section.theory[0]?.article || section.theory.map(t => t.article).join('\n\n')
-                };
-              } else {
-             
-                sectionForLearning.theory = {
-                  name: section.theory.name || `Теория ${index + 1}`,
-                  article: section.theory.article || 'Теоретический материал'
-                };
-              }
-            }
-          
+            // Обрабатываем задания
             if (section.tasks && Array.isArray(section.tasks)) {
               sectionForLearning.tasks = section.tasks.map((task, taskIndex) => {
                 
@@ -139,10 +153,13 @@ function CourseLearning() {
             name: `Раздел ${index + 1}`,
             description: 'Описание раздела',
             sectionNumber: index + 1,
-            theory: {
+            theoryCount: 1,
+            theories: [{
+              id: `theory-generated-${index}-${Date.now()}`,
               name: `Теория ${index + 1}`,
-              article: 'Теоретический материал для изучения.'
-            },
+              article: 'Теоретический материал для изучения.',
+              index: 0
+            }],
             tasks: [
               {
                 id: `task-generated-${index}-${Date.now()}`,
@@ -166,10 +183,13 @@ function CourseLearning() {
               id: `section-fallback-${Date.now()}`,
               name: 'Введение',
               description: 'Основы программирования',
-              theory: {
+              theoryCount: 1,
+              theories: [{
+                id: `theory-fallback-${Date.now()}`,
                 name: 'Теория раздела 1',
-                article: 'Это теоретический материал для изучения.'
-              },
+                article: 'Это теоретический материал для изучения.',
+                index: 0
+              }],
               tasks: [
                 {
                   id: `task-fallback-${Date.now()}`,
@@ -199,12 +219,31 @@ function CourseLearning() {
 
   const handleSelectSection = (section) => {
     setCurrentSection(section);
+    setCurrentTheoryIndex(0); // Сбрасываем индекс теории к первой
     setCurrentStep('theory');
     setCurrentTaskIndex(0);
     setSelectedAnswer(null);
     setShowAnswerResult(false);
     setScore(0);
     setUserAnswers({});
+  };
+
+  const handleNextTheory = () => {
+    if (currentSection && currentTheoryIndex < currentSection.theoryCount - 1) {
+      setCurrentTheoryIndex(prev => prev + 1);
+    } else {
+      // Если это последняя теория, переходим к заданиям
+      handleStartTasks();
+    }
+  };
+
+  const handlePrevTheory = () => {
+    if (currentTheoryIndex > 0) {
+      setCurrentTheoryIndex(prev => prev - 1);
+    } else {
+      // Если это первая теория, возвращаемся к выбору раздела
+      setCurrentStep('sections');
+    }
   };
 
   const handleStartTasks = () => {
@@ -254,7 +293,6 @@ function CourseLearning() {
           setCompletedSections(prev => [...prev, currentSection.id]);
           setTotalScore(prev => prev + score);
           
-      
           saveProgress();
         }
       }
@@ -297,6 +335,7 @@ function CourseLearning() {
   const handleBackToSections = () => {
     setCurrentStep('sections');
     setCurrentSection(null);
+    setCurrentTheoryIndex(0);
   };
 
   const handleBackToTheory = () => {
@@ -390,6 +429,10 @@ function CourseLearning() {
     );
   }
 
+  // Получаем текущую теорию
+  const currentTheory = currentSection?.theories?.[currentTheoryIndex] || 
+                       (currentSection?.theories?.length > 0 ? currentSection.theories[0] : null);
+
   return (
     <div className="course-learning">
       <div className="learning-container">
@@ -403,7 +446,7 @@ function CourseLearning() {
           </div>
           <div className="learning-progress">
             {currentStep === 'sections' && 'Выбор раздела'}
-            {currentStep === 'theory' && 'Теория'}
+            {currentStep === 'theory' && `Теория ${currentTheoryIndex + 1} из ${currentSection?.theoryCount || 1}`}
             {currentStep === 'task' && `Задание ${currentTaskIndex + 1} из ${currentSection?.tasks?.length || 0}`}
             {currentStep === 'results' && 'Результаты'}
           </div>
@@ -438,6 +481,9 @@ function CourseLearning() {
                     <p className="section-description">{section.description}</p>
                     <div className="section-meta">
                       <span className="meta-item">
+                        {section.theoryCount} теорий
+                      </span>
+                      <span className="meta-item">
                         {section.tasks?.length || 0} заданий
                       </span>
                       <span className="meta-item">
@@ -463,14 +509,17 @@ function CourseLearning() {
               <div className="theory-header">
                 <h2>{currentSection.name}</h2>
                 <p className="theory-description">{currentSection.description}</p>
+                <div className="theory-progress">
+                  Теория {currentTheoryIndex + 1} из {currentSection.theoryCount}
+                </div>
               </div>
               
               <div className="theory-content">
-                {currentSection.theory ? (
+                {currentTheory ? (
                   <>
-                    <h3>{currentSection.theory.name}</h3>
+                    <h3>{currentTheory.name}</h3>
                     <div style={{ whiteSpace: 'pre-line' }}>
-                      {currentSection.theory.article || 'Теоретический материал отсутствует'}
+                      {currentTheory.article || 'Теоретический материал отсутствует'}
                     </div>
                   </>
                 ) : (
@@ -479,11 +528,11 @@ function CourseLearning() {
               </div>
               
               <div className="navigation-buttons">
-                <button className="nav-btn back" onClick={handleBackToSections}>
-                  ← Назад к разделам
+                <button className="nav-btn back" onClick={currentTheoryIndex === 0 ? handleBackToSections : handlePrevTheory}>
+                  {currentTheoryIndex === 0 ? '← Назад к разделам' : '← Предыдущая теория'}
                 </button>
-                <button className="nav-btn next" onClick={handleStartTasks}>
-                  К заданиям →
+                <button className="nav-btn next" onClick={handleNextTheory}>
+                  {currentTheoryIndex < currentSection.theoryCount - 1 ? 'Следующая теория →' : 'К заданиям →'}
                 </button>
               </div>
             </div>
@@ -576,6 +625,10 @@ function CourseLearning() {
                 <p className="results-message">
                   Вы ответили правильно на {score} из {currentSection.tasks.length} вопросов
                 </p>
+                
+                <div className="section-stats">
+                  <p>Пройдено: {currentSection.theoryCount} теорий</p>
+                </div>
                 
                 <div className="navigation-buttons">
                   <button className="nav-btn back" onClick={handleRetrySection}>

@@ -2,7 +2,7 @@
   "name": "tutorit-app",
   "version": "1.0.0",
   "private": true,
-  "proxy": "http://tutor-it.ru",
+  "proxy": "https://tutor-it.ru",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
