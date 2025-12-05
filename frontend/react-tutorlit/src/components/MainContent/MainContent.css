@@ -1,0 +1,160 @@
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.main-content h1 {
+  font-size: 42px;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.main-description {
+  font-size: 20px;
+  color: #666;
+  margin-bottom: 50px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.about-section {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 30px;
+  margin: 40px auto;
+  max-width: 900px;
+}
+
+.about-section h2 {
+  color: #28a745;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.about-text {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.7;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.main-actions {
+  margin-top: 50px;
+}
+
+.main-courses-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 16px 35px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.main-courses-btn:hover {
+  background: #218838;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+}
+
+.main-courses-btn:active {
+  transform: translateY(0);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 40px;
+  margin-top: 40px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.feature-card {
+  background: white;
+  border-radius: 15px;
+  padding: 35px 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  border-color: #28a745;
+  box-shadow: 0 15px 35px rgba(40, 167, 69, 0.15);
+}
+
+.feature-icon {
+  font-size: 45px;
+  margin-bottom: 25px;
+}
+
+.feature-card h3 {
+  color: #333;
+  font-size: 22px;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.feature-card p {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 2rem 1rem;
+  }
+  
+  .main-content h1 {
+    font-size: 32px;
+  }
+  
+  .main-description {
+    font-size: 18px;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    gap: 30px;
+  }
+  
+  .about-section {
+    padding: 20px;
+  }
+  
+  .feature-card {
+    padding: 25px 20px;
+  }
+  
+  .feature-icon {
+    font-size: 40px;
+    margin-bottom: 20px;
+  }
+  
+  .feature-card h3 {
+    font-size: 20px;
+  }
+  
+  .feature-card p {
+    font-size: 15px;
+  }
+}
