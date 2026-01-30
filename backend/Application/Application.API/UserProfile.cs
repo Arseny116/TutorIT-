@@ -9,7 +9,8 @@ namespace Application.API
         public UserProfile()
         {
             CreateMap<UserEntity, User>()
-           .ConstructUsing(src => User.Create(
+           .ConstructUsing(src => User.Create
+           (
                src.Id,
                src.UserName,
                src.PasswordHash,
