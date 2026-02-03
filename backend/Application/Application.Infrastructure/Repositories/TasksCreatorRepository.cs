@@ -16,12 +16,12 @@ namespace Application.Infrastructure.Repositories
 
         public async Task<List<TaskCreator>> Get(Guid ChapterId)
         {
-            var taskCreatorEntity = await _context.TasksCreator.Where(tc =>tc.ChapterID == ChapterId).AsNoTracking().ToListAsync();
+            var taskCreatorEntity = await _context.TasksCreator.Where(tc => tc.ChapterID == ChapterId).AsNoTracking().ToListAsync();
 
             var tasksCreator = new List<TaskCreator>();
             foreach (var entity in taskCreatorEntity)
             {
-                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description);
+                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description, entity.Hint);
 
                 if (result.IsSuccess)
                 {
@@ -39,6 +39,7 @@ namespace Application.Infrastructure.Repositories
                 Id = taskCreator.Id,
                 Name = taskCreator.Name,
                 Description = taskCreator.Description,
+                Hint = taskCreator.Hint,
                 ChapterID = chapterId
             };
         
@@ -48,12 +49,13 @@ namespace Application.Infrastructure.Repositories
             return taskCreatorEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string name, string description)
+        public async Task<Guid> Update(Guid id, string name, string description, string hint)
         {
             await _context.TasksCreator.Where(x => x.Id == id)
                 .ExecuteUpdateAsync(s => s
                 .SetProperty(n => n.Name, name)
-                .SetProperty(d => d.Description, description));
+                .SetProperty(d => d.Description, description)
+                .SetProperty(h => h.Hint, hint));
 
             return id;
         }

@@ -6,5 +6,6 @@ namespace Application.API.DTO.TasksCreator
         Guid Id,
         string? Name,
         string? Description,
+        string? Hint,
         List<Question> Questions);
 }

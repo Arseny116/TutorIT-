@@ -8,6 +8,8 @@ namespace Application.Domain.Models
 
         const int MAX_LENHTH_DESCRIPTION = 1500;
 
+        const int MAX_LENGTH_HINT = 100;
+
         /// <summary>
         /// Id Задачи
         /// </summary>
@@ -24,18 +26,24 @@ namespace Application.Domain.Models
         public string Description { get; } = string.Empty;
 
         /// <summary>
+        /// Подсказка к вопросу
+        /// </summary>
+        public string Hint { get; } = string.Empty;
+
+        /// <summary>
         /// Список вопросов
         /// </summary>
         public List<Question> Questions { get; } = new List<Question>();
 
-        private TaskCreator(Guid id, string name, string description)
+        private TaskCreator(Guid id, string name, string description, string hint)
         {
             Id = id;
             Name = name;
             Description = description;
+            Hint = hint;
         }
 
-        public static Result<TaskCreator> Create(Guid id, string name, string description)
+        public static Result<TaskCreator> Create(Guid id, string name, string description, string hint)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -45,13 +53,17 @@ namespace Application.Domain.Models
             {
                 return Result.Failure<TaskCreator>($"Описание задачи не может быть пустым и превышать {MAX_LENHTH_DESCRIPTION} символов");
             }
+            if (string.IsNullOrEmpty(hint) || hint.Length > MAX_LENGTH_HINT)
+            {
+                return Result.Failure<TaskCreator>($"Подсказка не может быть пустым и превышать {MAX_LENGTH_HINT} символов");
+            }
 
-            TaskCreator taskCreator = new TaskCreator(id, name, description);
+            TaskCreator taskCreator = new TaskCreator(id, name, description, hint);
 
             return Result.Success(taskCreator);
         }
 
-        public static Result<TaskCreator> Create(string name, string description)
+        public static Result<TaskCreator> Create(string name, string description, string hint)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -61,8 +73,12 @@ namespace Application.Domain.Models
             {
                 return Result.Failure<TaskCreator>($"Описание задачи не может быть пустым и превышать {MAX_LENHTH_DESCRIPTION} символов");
             }
+            if (string.IsNullOrEmpty(hint) || hint.Length > MAX_LENGTH_HINT)
+            {
+                return Result.Failure<TaskCreator>($"Подсказка не может быть пустым и превышать {MAX_LENGTH_HINT} символов");
+            }
 
-            TaskCreator taskCreator = new TaskCreator(Guid.NewGuid(), name, description);
+            TaskCreator taskCreator = new TaskCreator(Guid.NewGuid(), name, description, hint);
 
             return Result.Success(taskCreator);
         }
