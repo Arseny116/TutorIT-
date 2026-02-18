@@ -25,6 +25,7 @@ namespace Application.API.Controllers
                 t.Id,
                 t.Name,
                 t.Description,
+                t.Hint,
                 t.Questions));
 
             return Ok(response);
@@ -36,7 +37,8 @@ namespace Application.API.Controllers
             var taskCreator = TaskCreator.Create
             (
                 request.Name,
-                request.Description);
+                request.Description,
+                request.Hint);
 
             if (!taskCreator.IsSuccess)
             {
@@ -51,9 +53,11 @@ namespace Application.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateTaskCreator(Guid id, [FromBody] TasksCreatorRequest request)
         {
-            var taskCreatorId = await _tasksCreatorService.UpdateTaskCreator(id,
+            var taskCreatorId = await _tasksCreatorService.UpdateTaskCreator(
+                id,
                 request.Name,
-                request.Description);
+                request.Description,
+                request.Hint);
 
             return Ok(taskCreatorId);
         }

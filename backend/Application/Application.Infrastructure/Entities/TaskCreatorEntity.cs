@@ -24,9 +24,14 @@ namespace Application.Infrastructure.Entities
         public string Description { get; set; }
 
         /// <summary>
+        /// Подсказка к вопросу
+        /// </summary>
+        public string Hint { get; set; } = string.Empty;
+
+        /// <summary>
         /// Список вопросов
         /// </summary>
-        public List<QuestionEntity> Questions { get; set; } 
+        public List<QuestionEntity> Questions { get; set; }
 
         public Guid ChapterID { get; set; }
 
