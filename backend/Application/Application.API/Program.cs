@@ -28,11 +28,11 @@ namespace Application.API
 
             builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-            
+
             builder.Services.AddControllers()
                 .ConfigureApiBehaviorOptions(options =>
                 {
-                    options.SuppressModelStateInvalidFilter = true; 
+                    options.SuppressModelStateInvalidFilter = true;
                 });
 
 
@@ -57,7 +57,7 @@ namespace Application.API
             builder.Services.AddScoped<ITasksCreatorRepository, TasksCreatorRepository>();
             builder.Services.AddScoped<IQuestionsRepository, QuestionsRepository>();
 
-       
+
             builder.Services.AddScoped<ICoursesService, CoursesService>();
             builder.Services.AddScoped<IChaptersService, ChaptersService>();
             builder.Services.AddScoped<ITheoriesService, TheoriesService>();
@@ -91,31 +91,31 @@ namespace Application.API
 
             var app = builder.Build();
 
-           
+
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 var logger = services.GetRequiredService<ILogger<Program>>();
-                
+
                 try
                 {
                     var context = services.GetRequiredService<TutorITDbContext>();
                     logger.LogInformation("Applying database migrations...");
-                 
+
                     await Task.Delay(10000);
-                    
-                   
+
+
                     await context.Database.MigrateAsync();
                     logger.LogInformation("Migrations applied successfully!");
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "An error occurred while applying migrations");
-                
+
                 }
             }
 
-            app.UseCors(builder => 
+            app.UseCors(builder =>
             builder
             .AllowAnyOrigin()
             .WithExposedHeaders("*"));
