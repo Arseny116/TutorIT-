@@ -27,8 +27,6 @@ namespace Application.Infrastructure
         //public DbSet<{сущность}> {Имя сущности};
     
 
-        public DbSet<UserEntity> Users { get; set; }
-
         public DbSet<CourseEntity> Courses { get; set; }
 
         public DbSet<ChapterEntity> Chapters { get; set; }

@@ -1,4 +1,5 @@
-﻿using ApplicationUsers.App.Command;
+﻿using ApplicationUsers.API.DTO;
+using ApplicationUsers.App.Command;
 using CSharpFunctionalExtensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ApplicationUsers.Controllers
 {
     [ApiController]
-    [Route("Authentication/")]
+    [Route("api/v1/Authentication/")]
     public class UserController : ControllerBase
     {
 
@@ -33,5 +34,29 @@ namespace ApplicationUsers.Controllers
             else
                 return BadRequest(Result.Value);
         }
+
+
+
+
+        [HttpPost("Login")]
+        public async Task<ActionResult> Register([FromBody] LoginUserRequest request)
+        {
+            var command = new RegisterUserCommand
+            (
+            request.Name,
+            request.Email,
+            request.Password
+            );
+
+            var Result = await _mediator.Send(command);
+            if (Result.IsSuccess)
+                return Ok(Result.Value);
+            else
+                return BadRequest(Result.Value);
+        }
+
+
+
+
     }
 }
