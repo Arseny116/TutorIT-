@@ -2,13 +2,14 @@ using System.Text;
 using ApplicationUsers.App.Handlers;
 using ApplicationUsers.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace ApplicationUsers
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,11 @@ namespace ApplicationUsers
 
             var app = builder.Build();
 
+            using (var scope= app.Services.CreateScope())
+            {
+                var context  = scope.ServiceProvider.GetRequiredService<ApplicationUserDB>();
+                await context.Database.MigrateAsync();
+            }
 
 
             app.UseSwagger();

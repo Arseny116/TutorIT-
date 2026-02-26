@@ -95,24 +95,8 @@ namespace Application.API
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
-                var logger = services.GetRequiredService<ILogger<Program>>();
-
-                try
-                {
-                    var context = services.GetRequiredService<TutorITDbContext>();
-                    logger.LogInformation("Applying database migrations...");
-
-                    await Task.Delay(10000);
-
-
-                    await context.Database.MigrateAsync();
-                    logger.LogInformation("Migrations applied successfully!");
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "An error occurred while applying migrations");
-
-                }
+                var context = services.GetRequiredService<TutorITDbContext>();
+                await context.Database.MigrateAsync();
             }
 
             app.UseCors(builder =>
