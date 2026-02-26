@@ -1,0 +1,132 @@
+.user-profile-page {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.personal-data {
+    margin-bottom: 3rem;
+    background: #fdfdfd;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+.personal-data h2, .my-courses h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    border-bottom: 2px solid #28a745;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.data-card {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.data-card p strong {
+    color: #555;
+    width: 80px;
+    display: inline-block;
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.course-card-mini {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.course-card-mini:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: #28a745;
+}
+
+.course-card-mini h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    color: #222;
+}
+
+.course-card-mini p {
+    color: #28a745;
+    font-weight: bold;
+    margin: 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+    .user-profile-page {
+        padding: 1rem;
+    }
+
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.btn-logout {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-logout:hover {
+    background: #c82333;
+}
+
+.enrolled-courses {
+    margin-top: 3rem;
+}
+
+.course-card-mini.enrolled {
+    border-left: 5px solid #007bff; /* Синий цвет для записанных курсов */
+}
+
+.course-card-mini.created {
+    border-left: 5px solid #28a745; /* Зеленый цвет для созданных */
+}
+
+.btn-continue {
+    margin-top: 15px;
+    width: 100%;
+    padding: 8px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-continue:hover {
+    background: #0056b3;
+}
+
+.empty-text {
+    color: #888;
+    font-style: italic;
+}
