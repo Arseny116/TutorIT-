@@ -1,6 +1,7 @@
 ﻿using Application.API.DTO.Questions;
 using Application.Domain.Interface.ITaskQuestion.IQuestion;
 using Application.Domain.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.API.Controllers
@@ -11,9 +12,12 @@ namespace Application.API.Controllers
     {
         private readonly IQuestionsService _questionsService;
 
-        public QuestionsController(IQuestionsService questionsService)
+        private readonly IValidator<(Guid TaskId, QuestionsRequest Request)> _validator;
+
+        public QuestionsController(IQuestionsService questionsService, IValidator<(Guid, QuestionsRequest)> validator)
         {
             _questionsService = questionsService;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -32,6 +36,13 @@ namespace Application.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateQuestion(Guid TaskCreatorId,[FromBody] QuestionsRequest request)
         {
+            var validationResult = await _validator.ValidateAsync((TaskCreatorId, request));
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+            }
+
             var question = Question.Create(
                 request.Name,
                 request.Answer);
