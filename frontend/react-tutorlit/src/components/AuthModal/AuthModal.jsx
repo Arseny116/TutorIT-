@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Импортируем navigate
+import { useNavigate } from 'react-router-dom';
 import './AuthModal.css';
 
 function AuthModal({ isOpen, onClose }) {
     const [isLogin, setIsLogin] = useState(true);
+    const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
     const navigate = useNavigate();
 
     if (!isOpen) return null;
 
     const handleAuthSubmit = (e) => {
         e.preventDefault();
-        onClose(); // Закрываем модалку
-        navigate('/profile'); // Перекидываем в профиль
+
+        // Сохраняем данные пользователя для профиля
+        const userData = {
+            name: isLogin ? 'Пользователь' : name,
+            email: email
+        };
+        localStorage.setItem('user-data', JSON.stringify(userData));
+
+        onClose();
+        navigate('/profile');
     };
 
     return (
@@ -24,8 +34,22 @@ function AuthModal({ isOpen, onClose }) {
                 </div>
 
                 <form className="auth-form" onSubmit={handleAuthSubmit}>
-                    {!isLogin && <input type="text" placeholder="Ваше имя" required />}
-                    <input type="email" placeholder="Email" required />
+                    {!isLogin && (
+                        <input
+                            type="text"
+                            placeholder="Ваше имя"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                    )}
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
                     <input type="password" placeholder="Пароль" required />
                     <button type="submit" className="auth-submit">
                         {isLogin ? 'Войти' : 'Зарегистрироваться'}
