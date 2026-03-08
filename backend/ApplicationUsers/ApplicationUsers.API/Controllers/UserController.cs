@@ -37,7 +37,7 @@ namespace ApplicationUsers.Controllers
 
 
 
-
+/*
         [HttpPost("Login")]
         public async Task<ActionResult> Register([FromBody] LoginUserRequest request)
         {
@@ -53,9 +53,7 @@ namespace ApplicationUsers.Controllers
                 return Ok(Result.Value);
             else
                 return BadRequest(Result.Value);
-        }
-
-
+        }*/
 
 
     }
