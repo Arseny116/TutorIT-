@@ -3,21 +3,39 @@ using ApplicationUsers.Infrastructure;
 using MediatR;
 using ApplicationUsers.Domain;
 using CSharpFunctionalExtensions;
+using ApplicationUsers.Domain.Interface;
+using Microsoft.Extensions.Logging;
 namespace ApplicationUsers.App.Handlers
 {
     public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Result<Guid>>
     {
         private readonly IPasswordHasher _hasher;
         private readonly IUserRepository _userRepository;
-        public RegisterUserHandler(IPasswordHasher hasher, IUserRepository userRepository)
+        private readonly IMailService _mailService;
+        private readonly ILogger _logger;
+        
+        public RegisterUserHandler(ILogger<RegisterUserHandler> logger,  IMailService mailService ,IPasswordHasher hasher, IUserRepository userRepository)
         {
+            _logger = logger;
+            _mailService = mailService;
             _hasher = hasher;
             _userRepository = userRepository;
         }
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
+
+            _logger.Log(LogLevel.Information, $"{request.Email}");
+
             //Добавить проверку на сущ email, имения и тд ...
             var user = User.CreateUser(Guid.NewGuid(), request.Name, request.Email, _hasher.Generate(request.Password));
+
+            MailData mailData = new MailData(request.Email, "Приветсвтуем на сайте TutorIT&");
+
+
+            await _mailService.SendHelloAsync( mailData);
+
+
+            _logger.Log(LogLevel.Information,"Письмо успешно отправили !");
 
             if (user.IsFailure)
             {

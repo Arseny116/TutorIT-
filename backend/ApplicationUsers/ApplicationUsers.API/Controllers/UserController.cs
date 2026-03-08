@@ -37,25 +37,23 @@ namespace ApplicationUsers.Controllers
 
 
 
+/*
+        [HttpPost("Login")]
+        public async Task<ActionResult> Register([FromBody] LoginUserRequest request)
+        {
+            var command = new RegisterUserCommand
+            (
+            request.Name,
+            request.Email,
+            request.Password
+            );
 
-        //[HttpPost("Login")]
-        //public async Task<ActionResult> Register([FromBody] LoginUserRequest request)
-        //{
-        //    var command = new RegisterUserCommand
-        //    (
-        //    request.Name,
-        //    request.Email,
-        //    request.Password
-        //    );
-
-        //    var Result = await _mediator.Send(command);
-        //    if (Result.IsSuccess)
-        //        return Ok(Result.Value);
-        //    else
-        //        return BadRequest(Result.Value);
-        //}
-
-
+            var Result = await _mediator.Send(command);
+            if (Result.IsSuccess)
+                return Ok(Result.Value);
+            else
+                return BadRequest(Result.Value);
+        }*/
 
 
     }

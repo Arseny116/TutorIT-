@@ -1,9 +1,15 @@
 using System.Text;
+
 using ApplicationUsers.App.Handlers;
+
+using ApplicationUsers.Domain.Interface;
 using ApplicationUsers.Infrastructure;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
+using Microsoft.EntityFrameworkCore;
+
 
 namespace ApplicationUsers
 {
@@ -22,8 +28,13 @@ namespace ApplicationUsers
                 cfg.RegisterServicesFromAssembly(typeof(RegisterUserHandler).Assembly);
             });
 
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));
+
 
             builder.Services.AddDbContext<ApplicationUserDB>();
+
+
+            builder.Services.AddScoped<IMailService,  MailService>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -53,6 +64,9 @@ namespace ApplicationUsers
                          }
                      };
                  });
+
+
+
             builder.Services.AddAuthorization();
 
             var app = builder.Build();
@@ -67,9 +81,6 @@ namespace ApplicationUsers
             app.UseSwagger();
             app.UseSwaggerUI();
             app.MapOpenApi();
-
-
-
 
             app.UseAuthentication();
 
