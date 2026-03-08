@@ -4,16 +4,18 @@ import './UserProfilePage.css';
 
 function UserProfilePage() {
     const [myCourses, setMyCourses] = useState([]);
-    const [enrolledCourses, setEnrolledCourses] = useState([]); // Теперь массив изначально пуст
+    const [user, setUser] = useState({ name: 'Гость', email: '-' });
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Получаем созданные курсы из localStorage
         const savedCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
         setMyCourses(savedCourses);
 
-        // Список курсов, на которые записан, пока оставляем пустым
-        setEnrolledCourses([]);
+        // Загружаем данные пользователя, введенные при регистрации
+        const savedUser = JSON.parse(localStorage.getItem('user-data'));
+        if (savedUser) {
+            setUser(savedUser);
+        }
     }, []);
 
     const handleLogout = () => {
@@ -30,8 +32,8 @@ function UserProfilePage() {
             <section className="personal-data">
                 <h2>Персональные данные</h2>
                 <div className="data-card">
-                    <p><strong>Имя:</strong> Пользователь</p>
-                    <p><strong>Email:</strong> user@example.com</p>
+                    <p><strong>Имя:</strong> {user.name}</p>
+                    <p><strong>Email:</strong> {user.email}</p>
                 </div>
             </section>
 
@@ -53,21 +55,7 @@ function UserProfilePage() {
 
             <section className="enrolled-courses">
                 <h2>Курсы, на которые я записан</h2>
-                {enrolledCourses.length > 0 ? (
-                    <div className="courses-grid">
-                        {enrolledCourses.map(course => (
-                            <div key={course.id} className="course-card-mini enrolled">
-                                <h3>{course.title}</h3>
-                                <p>{course.pl}</p>
-                                <button className="btn-continue" onClick={() => navigate(`/learn/${course.id}`)}>
-                                    Продолжить обучение
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="empty-text">Вы еще не записаны на курсы.</p>
-                )}
+                <p className="empty-text">Вы еще не записаны на курсы.</p>
             </section>
         </div>
     );
