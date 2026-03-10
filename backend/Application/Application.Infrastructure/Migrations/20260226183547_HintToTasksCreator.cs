@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Application.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class PLCOLUM : Migration
+    public partial class HintToTasksCreator : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,20 +29,6 @@ namespace Application.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Courses", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserName = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -74,6 +60,7 @@ namespace Application.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    Hint = table.Column<string>(type: "text", nullable: false),
                     ChapterID = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -156,9 +143,6 @@ namespace Application.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Theories");
-
-            migrationBuilder.DropTable(
-                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "TasksCreator");
