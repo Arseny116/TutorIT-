@@ -1,14 +1,12 @@
 using System.Text;
-
 using ApplicationUsers.App.Handlers;
-
 using ApplicationUsers.Domain.Interface;
 using ApplicationUsers.Infrastructure;
-
+using ApplicationUsers.Infrastructure.Authentication;
+using ApplicationUsers.Infrastructure.Mapping;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace ApplicationUsers
@@ -33,6 +31,8 @@ namespace ApplicationUsers
 
             builder.Services.AddDbContext<ApplicationUserDB>();
 
+
+            builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
 
             builder.Services.AddScoped<IMailService,  MailService>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();

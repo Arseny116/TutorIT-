@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql.Replication;
 
-namespace ApplicationUsers.Infrastructure
+namespace ApplicationUsers.Infrastructure.Authentication
 {
     public class JwtProvider(IOptions<JwtOptions> Options) : IJwtProvider
     {

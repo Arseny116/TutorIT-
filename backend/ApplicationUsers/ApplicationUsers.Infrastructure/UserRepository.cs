@@ -1,4 +1,5 @@
 ﻿using ApplicationUsers.Domain;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApplicationUsers.Infrastructure
@@ -6,15 +7,28 @@ namespace ApplicationUsers.Infrastructure
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationUserDB _context;
-        public UserRepository(ApplicationUserDB applicationUser)
+        private readonly IMapper _mapper;
+        public UserRepository(IMapper mapper,ApplicationUserDB applicationUser)
         {
             _context = applicationUser;
+            _mapper = mapper;
+        }
+
+        public async Task<User> GetUserByEmail(string email)
+        {
+            var userEntity = await _context.Users.FindAsync(email);
+            if (userEntity == null)
+            {
+                return null;
+            }
+            return  _mapper.Map<User>(userEntity);
         }
 
         public async Task<List<User>> GetAllUser()
         {
-            return await _context.Users.Select(x => User.CreateUser(x.Id, x.Name, x.Email, x.Password).Value).ToListAsync();
+            return await _context.Users.Select(x => _mapper.Map<User>(x) ).ToListAsync();
         }
+
 
         public async Task<Guid> CreateUser(User user)
         {
