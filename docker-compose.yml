@@ -60,6 +60,8 @@ services:
     depends_on:
       dbcourses:
         condition: service_healthy
+    volumes:
+      - ./backend/Application/Application.API/StaticFiles/Images:/Images
     networks:
       - app-network
 
