@@ -7,11 +7,23 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Application.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class HintToTasksCreator : Migration
+    public partial class ImageTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Image",
+                columns: table => new
+                {
+                    ModelId = table.Column<Guid>(type: "uuid", nullable: false),
+                    FileName = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Image", x => x.ModelId);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Courses",
                 columns: table => new
@@ -22,6 +34,7 @@ namespace Application.Infrastructure.Migrations
                     Description = table.Column<string>(type: "text", nullable: false),
                     Chapters = table.Column<int>(type: "integer", nullable: false),
                     Complexity = table.Column<int>(type: "integer", nullable: false),
+                    TitleImageModelId = table.Column<Guid>(type: "uuid", nullable: true),
                     Evaluation = table.Column<double>(type: "double precision", nullable: false),
                     Reviews = table.Column<List<string>>(type: "text[]", nullable: false),
                     Subscribe = table.Column<int>(type: "integer", nullable: false)
@@ -29,6 +42,11 @@ namespace Application.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Courses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Courses_Image_TitleImageModelId",
+                        column: x => x.TitleImageModelId,
+                        principalTable: "Image",
+                        principalColumn: "ModelId");
                 });
 
             migrationBuilder.CreateTable(
@@ -120,6 +138,11 @@ namespace Application.Infrastructure.Migrations
                 column: "CourseID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Courses_TitleImageModelId",
+                table: "Courses",
+                column: "TitleImageModelId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Questions_TaskCreatorId",
                 table: "Questions",
                 column: "TaskCreatorId");
@@ -152,6 +175,9 @@ namespace Application.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Courses");
+
+            migrationBuilder.DropTable(
+                name: "Image");
         }
     }
 }

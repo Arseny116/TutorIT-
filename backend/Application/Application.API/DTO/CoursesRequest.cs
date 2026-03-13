@@ -5,6 +5,7 @@
         string Title,
         string Description,
         int Chapters,
-        int Complexity
+        int Complexity,
+        IFormFile TitleImage
         );
 }
