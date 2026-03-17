@@ -37,7 +37,7 @@ namespace Application.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId, [FromBody] TasksCreatorRequest request)
+        public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId, [FromForm] TasksCreatorRequest request)
         {
             var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
 

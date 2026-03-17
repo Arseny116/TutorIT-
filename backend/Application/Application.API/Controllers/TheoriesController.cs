@@ -35,7 +35,7 @@ namespace Application.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId, [FromBody] TheoriesRequest request)
+        public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId, [FromForm] TheoriesRequest request)
         {
             var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
 
