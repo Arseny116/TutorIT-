@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var tasksCreator = new List<TaskCreator>();
             foreach (var entity in taskCreatorEntity)
             {
-                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description, entity.Hint);
+                var result = TaskCreator.Create(entity.Id, entity.Name, entity.Description, entity.Hint, entity.TitleImage);
 
                 if (result.IsSuccess)
                 {

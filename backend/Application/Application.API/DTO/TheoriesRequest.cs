@@ -2,5 +2,7 @@
 {
     public record class TheoriesRequest(
         string Name,
-        string Article);
+        string Article,
+        IFormFile TitleImage
+        );
 }

@@ -21,7 +21,7 @@ namespace Application.Infrastructure.Repositories
             var theories = new List<Theory>();
             foreach (var entity in theoryEntity)
             {
-                var result = Theory.Create(entity.Id, entity.Name, entity.Article);
+                var result = Theory.Create(entity.Id, entity.Name, entity.Article, entity.TitleImage);
 
                 if (result.IsSuccess)
                 {

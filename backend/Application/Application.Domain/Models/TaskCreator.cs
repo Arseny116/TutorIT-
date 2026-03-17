@@ -31,19 +31,25 @@ namespace Application.Domain.Models
         public string Hint { get; } = string.Empty;
 
         /// <summary>
+        /// Изображение
+        /// </summary>
+        public Image? TitleImage { get; }
+
+        /// <summary>
         /// Список вопросов
         /// </summary>
         public List<Question> Questions { get; } = new List<Question>();
 
-        private TaskCreator(Guid id, string name, string description, string hint)
+        private TaskCreator(Guid id, string name, string description, string hint, Image? titleImage)
         {
             Id = id;
             Name = name;
             Description = description;
             Hint = hint;
+            TitleImage = titleImage;
         }
 
-        public static Result<TaskCreator> Create(Guid id, string name, string description, string hint)
+        public static Result<TaskCreator> Create(Guid id, string name, string description, string hint, Image? titleImage)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -58,12 +64,12 @@ namespace Application.Domain.Models
                 return Result.Failure<TaskCreator>($"Подсказка не может быть пустым и превышать {MAX_LENGTH_HINT} символов");
             }
 
-            TaskCreator taskCreator = new TaskCreator(id, name, description, hint);
+            TaskCreator taskCreator = new TaskCreator(id, name, description, hint, titleImage);
 
             return Result.Success(taskCreator);
         }
 
-        public static Result<TaskCreator> Create(string name, string description, string hint)
+        public static Result<TaskCreator> Create(string name, string description, string hint, Image? titleImage)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -78,7 +84,7 @@ namespace Application.Domain.Models
                 return Result.Failure<TaskCreator>($"Подсказка не может быть пустым и превышать {MAX_LENGTH_HINT} символов");
             }
 
-            TaskCreator taskCreator = new TaskCreator(Guid.NewGuid(), name, description, hint);
+            TaskCreator taskCreator = new TaskCreator(Guid.NewGuid(), name, description, hint, titleImage);
 
             return Result.Success(taskCreator);
         }

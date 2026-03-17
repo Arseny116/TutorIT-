@@ -21,14 +21,20 @@ namespace Application.Domain.Models
         /// </summary>
         public string Article { get; } = string.Empty;
 
-        private Theory(Guid id, string name, string article)
+        /// <summary>
+        /// Изображение
+        /// </summary>
+        public Image? TitleImage { get; }
+
+        private Theory(Guid id, string name, string article, Image? titleImage)
         {
             Id = id;
             Name = name;
             Article = article;
+            TitleImage = titleImage;
         }
 
-        public static Result<Theory> Create(string name, string article)
+        public static Result<Theory> Create(string name, string article, Image? titleImage)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -40,12 +46,12 @@ namespace Application.Domain.Models
                 return Result.Failure<Theory>("Содержимое блока не может быть пустым");
             }
 
-            Theory theory = new Theory(Guid.NewGuid(), name, article);
+            Theory theory = new Theory(Guid.NewGuid(), name, article, titleImage);
 
             return Result.Success(theory);
         }
 
-        public static Result<Theory> Create(Guid id ,string name, string article)
+        public static Result<Theory> Create(Guid id, string name, string article, Image? titleImage)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -57,7 +63,7 @@ namespace Application.Domain.Models
                 return Result.Failure<Theory>("Содержимое блока не может быть пустым");
             }
 
-            Theory theory = new Theory(id, name, article);
+            Theory theory = new Theory(id, name, article, titleImage);
 
             return Result.Success(theory);
         }
