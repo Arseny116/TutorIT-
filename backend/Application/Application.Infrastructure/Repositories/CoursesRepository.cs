@@ -21,7 +21,14 @@ namespace Application.Infrastructure.Repositories
             var courses = new List<Course>();
             foreach (var entity in courseEntity)
             {
-                var result = Course.Create(entity.Id, entity.Pl, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
+                var result = Course.Create(
+                    entity.Id,
+                    entity.Pl,
+                    entity.Title,
+                    entity.Description,
+                    entity.Chapters,
+                    entity.Complexity,
+                    entity.TitleImage);
 
                 if (result.IsSuccess)
                 {
@@ -39,7 +46,14 @@ namespace Application.Infrastructure.Repositories
                 SingleAsync(x => x.Id == id);
 
 
-            var result = Course.Create(entity.Id, entity.Pl, entity.Title, entity.Description, entity.Chapters, entity.Complexity);
+            var result = Course.Create(
+                entity.Id,
+                entity.Pl,
+                entity.Title,
+                entity.Description,
+                entity.Chapters,
+                entity.Complexity,
+                entity.TitleImage);
 
             return result.Value;
 

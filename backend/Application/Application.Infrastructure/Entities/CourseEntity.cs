@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Application.Domain.Models;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Application.Infrastructure.Entities
 {
@@ -38,6 +39,8 @@ namespace Application.Infrastructure.Entities
         /// Сложность курса
         /// </summary>
         public int  Complexity{ get; set; }
+
+        public Image? TitleImage { get; set; }
 
         /// <summary>
         /// Оценка курса (по 5-ти бальной шкале)

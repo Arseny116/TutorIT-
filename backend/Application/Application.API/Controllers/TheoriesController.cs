@@ -1,4 +1,5 @@
 ﻿using Application.API.DTO.Theories;
+using Application.App.Services;
 using Application.Domain.Interface.ITheory;
 using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,16 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class TheoriesController : ControllerBase
     {
-        private readonly ITheoriesService _theoriesService;
+        private readonly string _staticFilePath = Path.Combine("StaticFiles", "Images");
 
-        public TheoriesController(ITheoriesService theoriesService)
+        private readonly ITheoriesService _theoriesService;
+        private readonly ImageService _imageService;
+
+
+        public TheoriesController(ITheoriesService theoriesService, ImageService imageService)
         {
             _theoriesService = theoriesService;
+            _imageService = imageService;
         }
 
         [HttpGet]
@@ -29,19 +35,26 @@ namespace Application.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId,[FromBody] TheoriesRequest request)
+        public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId, [FromForm] TheoriesRequest request)
         {
+            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
+
+            if (image.IsFailure)
+            {
+                return BadRequest(image.Error);
+            }
             var theory = Theory.Create(
                 Guid.NewGuid(),
                 request.Name,
-                request.Article);
+                request.Article,
+                image.Value);
 
             if (!theory.IsSuccess)
             {
                 return BadRequest(theory.Error);
             }
 
-            var theoryId = await _theoriesService.CreateTheory(ChapterId,theory.Value);
+            var theoryId = await _theoriesService.CreateTheory(ChapterId, theory.Value);
 
             return Ok(theoryId);
         }

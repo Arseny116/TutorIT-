@@ -1,4 +1,5 @@
 ﻿using Application.API.DTO.TasksCreator;
+using Application.App.Services;
 using Application.Domain.Interface.ITaskQuestion.ITask;
 using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,15 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class TasksCreatorsController : ControllerBase
     {
-        private readonly ITasksCreatorService _tasksCreatorService;
+        private readonly string _staticFilePath = Path.Combine("StaticFiles", "Images");
 
-        public TasksCreatorsController(ITasksCreatorService tasksCreatorService)
+        private readonly ITasksCreatorService _tasksCreatorService;
+        private readonly ImageService _imageService;
+
+        public TasksCreatorsController(ITasksCreatorService tasksCreatorService, ImageService imageService)
         {
             _tasksCreatorService = tasksCreatorService;
+            _imageService = imageService;
         }
 
         [HttpGet("{ChapterId:guid}")]
@@ -32,20 +37,28 @@ namespace Application.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId , [FromBody] TasksCreatorRequest request)
+        public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId, [FromForm] TasksCreatorRequest request)
         {
+            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
+
+            if (image.IsFailure)
+            {
+                return BadRequest(image.Error);
+            }
+
             var taskCreator = TaskCreator.Create
             (
                 request.Name,
                 request.Description,
-                request.Hint);
+                request.Hint,
+                image.Value);
 
             if (!taskCreator.IsSuccess)
             {
                 return BadRequest(taskCreator.Value);
             }
 
-            var taskCreatorId = await _tasksCreatorService.CreateTaskCreator(ChapterId ,taskCreator.Value);
+            var taskCreatorId = await _tasksCreatorService.CreateTaskCreator(ChapterId, taskCreator.Value);
 
             return Ok(taskCreatorId);
         }

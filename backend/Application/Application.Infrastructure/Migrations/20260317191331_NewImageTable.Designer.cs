@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Application.Infrastructure.Migrations
 {
     [DbContext(typeof(TutorITDbContext))]
-    [Migration("20260226185132_UpBase")]
-    partial class UpBase
+    [Migration("20260317191331_NewImageTable")]
+    partial class NewImageTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,21 @@ namespace Application.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Application.Domain.Models.Image", b =>
+                {
+                    b.Property<Guid>("ModelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ModelId");
+
+                    b.ToTable("Image");
+                });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>
                 {
@@ -90,7 +105,12 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("Courses");
                 });
@@ -139,9 +159,14 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterID");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("TasksCreator");
                 });
@@ -163,9 +188,14 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterID");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("Theories");
                 });
@@ -179,6 +209,15 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.CourseEntity", b =>
+                {
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.QuestionEntity", b =>
@@ -200,7 +239,13 @@ namespace Application.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
                     b.Navigation("Chapter");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.TheoryEntity", b =>
@@ -211,7 +256,13 @@ namespace Application.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
                     b.Navigation("Chapter");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>

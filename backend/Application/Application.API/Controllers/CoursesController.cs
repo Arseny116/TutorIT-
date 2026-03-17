@@ -1,4 +1,5 @@
 ﻿using Application.API.DTO.Courses;
+using Application.App.Services;
 using Application.Domain.Interface.ICourse;
 using Application.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,15 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class CoursesController : ControllerBase
     {
-        private readonly ICoursesService _coursesService;
+        private readonly string _staticFilePath = Path.Combine("StaticFiles", "Images");
 
-        public CoursesController(ICoursesService coursesService)
+        private readonly ICoursesService _coursesService;
+        private readonly ImageService _imageService;
+
+        public CoursesController(ICoursesService coursesService, ImageService imageService)
         {
             _coursesService = coursesService;
+            _imageService = imageService;
         }
         [HttpGet]
         public async Task<ActionResult<List<CoursesResponse>>> GetCoursesFilters([FromQuery] string title, [FromQuery] string pl, [FromQuery] int complexity)
@@ -78,15 +83,23 @@ namespace Application.API.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateCourse([FromBody] CoursesRequest request)
+        public async Task<ActionResult<Guid>> CreateCourse([FromForm] CoursesRequest request)
         {
+            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
+
+            if (image.IsFailure)
+            {
+                return BadRequest(image.Error);
+            }
+
             var course = Course.Create(
                 Guid.NewGuid(),
                 request.PL,
                 request.Title,
                 request.Description,
                 request.Chapters,
-                request.Complexity);
+                request.Complexity,
+                image.Value);
 
             if (!course.IsSuccess)
             {

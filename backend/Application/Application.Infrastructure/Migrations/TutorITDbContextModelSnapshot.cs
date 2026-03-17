@@ -23,6 +23,21 @@ namespace Application.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Application.Domain.Models.Image", b =>
+                {
+                    b.Property<Guid>("ModelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ModelId");
+
+                    b.ToTable("Image");
+                });
+
             modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -87,7 +102,12 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("Courses");
                 });
@@ -136,9 +156,14 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterID");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("TasksCreator");
                 });
@@ -160,9 +185,14 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterID");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("Theories");
                 });
@@ -176,6 +206,15 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("Application.Infrastructure.Entities.CourseEntity", b =>
+                {
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.QuestionEntity", b =>
@@ -197,7 +236,13 @@ namespace Application.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
                     b.Navigation("Chapter");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.TheoryEntity", b =>
@@ -208,7 +253,13 @@ namespace Application.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
                     b.Navigation("Chapter");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>

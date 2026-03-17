@@ -55,6 +55,8 @@ namespace Application.API
           
             builder.Services.AddAuthorization();
 
+            builder.Services.AddScoped<ImageService>();
+
             var app = builder.Build();
 
 

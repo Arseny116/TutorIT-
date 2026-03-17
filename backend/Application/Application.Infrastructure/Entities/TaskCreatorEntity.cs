@@ -28,6 +28,8 @@ namespace Application.Infrastructure.Entities
         /// </summary>
         public string Hint { get; set; } = string.Empty;
 
+        public Image? TitleImage { get; set; }
+
         /// <summary>
         /// Список вопросов
         /// </summary>

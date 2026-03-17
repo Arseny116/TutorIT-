@@ -23,6 +23,8 @@ namespace Application.Infrastructure.Entities
         /// </summary>
         public string Article { get; set; }
 
+        public Image? TitleImage { get; set; }
+
         public Guid ChapterID { get; set; }
 
         public ChapterEntity? Chapter { get; set; }
