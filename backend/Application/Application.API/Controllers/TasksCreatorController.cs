@@ -1,6 +1,7 @@
 ﻿using Application.API.DTO.TasksCreator;
 using Application.Domain.Interface.ITaskQuestion.ITask;
 using Application.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.API.Controllers
@@ -16,6 +17,9 @@ namespace Application.API.Controllers
             _tasksCreatorService = tasksCreatorService;
         }
 
+
+
+        [Authorize]
         [HttpGet("{ChapterId:guid}")]
         public async Task<ActionResult<List<TasksCreatorResponse>>> GetTasksCreator(Guid ChapterId)
         {
@@ -31,6 +35,8 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
+
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId , [FromBody] TasksCreatorRequest request)
         {
@@ -50,6 +56,9 @@ namespace Application.API.Controllers
             return Ok(taskCreatorId);
         }
 
+
+
+        [Authorize]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateTaskCreator(Guid id, [FromBody] TasksCreatorRequest request)
         {
@@ -62,6 +71,9 @@ namespace Application.API.Controllers
             return Ok(taskCreatorId);
         }
 
+
+
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<Guid>> DeleteTaskCreator(Guid id)
         {

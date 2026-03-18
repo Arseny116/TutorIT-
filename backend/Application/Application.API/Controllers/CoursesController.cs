@@ -1,7 +1,10 @@
-﻿using Application.API.DTO.Courses;
+﻿using System.Net.Http;
+using Application.API.DTO.Courses;
 using Application.Domain.Interface.ICourse;
 using Application.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Application.API.Controllers
 {
@@ -9,39 +12,47 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class CoursesController : ControllerBase
     {
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ICoursesService _coursesService;
 
-        public CoursesController(ICoursesService coursesService)
+        public CoursesController(ICoursesService coursesService, IHttpClientFactory httpClientFactory)
         {
+            _httpClientFactory = httpClientFactory;
             _coursesService = coursesService;
         }
-        [HttpGet]
-        public async Task<ActionResult<List<CoursesResponse>>> GetCoursesFilters([FromQuery] string title, [FromQuery] string pl, [FromQuery] int complexity)
-        {
-            var courses = await _coursesService.GetCourses();
-            var response = courses.Where(
-      c => c.Title.ToLower().Contains(title.ToLower())
-      && c.Pl.ToLower() == pl.ToLower()
-            && c.Сomplexity == complexity)
-                .Select(c => new CoursesResponse(
-                c.Id,
-                c.Pl,
-                c.Title,
-                c.Description,
-                c.Chapters,
-                c.Сomplexity,
-                c.Evaluation,
-                c.Reviews,
-                c.Subscribe,
-                c.NumberChapters));
 
-            return Ok(response);
-        }
 
+        /*  [Authorize]
+          [HttpGet]
+          public async Task<ActionResult<List<CoursesResponse>>> GetCoursesFilters([FromQuery] string title, [FromQuery] string pl, [FromQuery] int complexity)
+          {
+              var courses = await _coursesService.GetCourses();
+              var response = courses.Where(
+        c => c.Title.ToLower().Contains(title.ToLower())
+        && c.Pl.ToLower() == pl.ToLower()
+              && c.Сomplexity == complexity)
+                  .Select(c => new CoursesResponse(
+                  c.Id,
+                  c.Pl,
+                  c.Title,
+                  c.Description,
+                  c.Chapters,
+                  c.Сomplexity,
+                  c.Evaluation,
+                  c.Reviews,
+                  c.Subscribe,
+                  c.NumberChapters));
+
+              return Ok(response);
+          }*/
+
+
+        [Authorize]
         [HttpGet("GetAllCourses")]
         public async Task<ActionResult<List<CoursesResponse>>> GetCourses()
         {
-            var courses = await _coursesService.GetCourses();
+            var userId = Guid.Parse(User.Claims.ToList()[0].Value);
+            var courses = await _coursesService.GetCourses(userId);
             var response = courses.Select(c => new CoursesResponse(
                 c.Id,
                 c.Pl,
@@ -57,11 +68,16 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
+
+
+        [Authorize]
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<List<CoursesResponse>>> GetCoursesById(Guid id)
         {
-            var c = await _coursesService.GetCoursesById(id);
-            var response = new CoursesResponse(
+            var userId = Guid.Parse(User.Claims.ToList()[0].Value);
+            var c = await _coursesService.GetCoursesById(id, userId);
+            var response = new CoursesResponse
+                (
                 c.Id,
                 c.Pl,
                 c.Title,
@@ -77,11 +93,15 @@ namespace Application.API.Controllers
         }
 
 
+
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateCourse([FromBody] CoursesRequest request)
         {
+            var userId = Guid.Parse(User.Claims.ToList()[0].Value);
             var course = Course.Create(
                 Guid.NewGuid(),
+                userId,
                 request.PL,
                 request.Title,
                 request.Description,
@@ -93,11 +113,18 @@ namespace Application.API.Controllers
                 return BadRequest(course.Error);
             }
 
+
+
             var courseId = await _coursesService.CreateCourse(course.Value);
+
+            var client = _httpClientFactory.CreateClient("UserService"); 
+            await client.PostAsync($"api/users/{userId}/created-courses/{courseId}", null);
 
             return Ok(courseId);
         }
 
+
+        [Authorize]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] CoursesRequest request)
         {

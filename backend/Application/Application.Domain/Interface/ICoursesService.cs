@@ -4,9 +4,9 @@ namespace Application.Domain.Interface.ICourse
 {
     public interface ICoursesService
     {
-        Task<List<Course>> GetCourses();
+        Task<List<Course>> GetCourses(Guid userId);
 
-        Task<Course> GetCoursesById(Guid id);
+        Task<Course> GetCoursesById(Guid id, Guid userId);
 
         Task<Guid> CreateCourse(Course course);
 

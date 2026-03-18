@@ -8,6 +8,7 @@ namespace ApplicationUsers.Infrastructure.Mapping
         public MapperProfile()
         {
             CreateMap<UserEntity, User>();
+
             CreateMap<User, UserEntity>();
         }
     }

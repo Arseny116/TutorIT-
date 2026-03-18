@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace ApplicationUsers.Infrastructure.Authentication
 {
-    public class JwtOptions 
+    public class JwtOptions
     {
-        public string SecretKey { get; set; } = string.Empty;
+        public string ValidIssuer { get; set; }
+
+        public string SecretKey { get; set; } 
 
         public int ExpitesHours { get; set; }
     }

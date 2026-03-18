@@ -22,44 +22,24 @@ namespace Application.Domain.Models
 
         public string  Pl { get; }
 
-        /// <summary>
-        /// Заголовок курса
-        /// </summary>
+        public Guid AuthorId { get;  }
+
         public string Title { get; } = string.Empty;
 
-        /// <summary>
-        /// Описание курса
-        /// </summary>
         public string Description { get; } = string.Empty;
 
-        /// <summary>
-        /// Кол-во глав в курсе
-        /// </summary>
         public int Chapters { get; }
 
-        /// <summary>
-        /// Сложность курса
-        /// </summary>
         public int Сomplexity { get; }
 
-        /// <summary>
-        /// Оценка курса (по 5-ти бальной шкале)
-        /// </summary>
         public double Evaluation { get; } = 0.0;
 
-        /// <summary>
-        /// Отзывы о курсе
-        /// </summary>
         public List<string> Reviews { get; } = [];
-
-        /// <summary>
-        /// Кол-во людей записанных на курс
-        /// </summary>
         public int Subscribe { get; private set; } = 0;
 
         public List<Chapter> NumberChapters { get; } = new List<Chapter>();
 
-        private Course(Guid id, string pl, string title, string description, int chapters, int complexity)
+        private Course(Guid id, Guid AuthorId , string pl, string title, string description, int chapters, int complexity)
         {
             Id = id;
             Pl = pl;
@@ -69,7 +49,7 @@ namespace Application.Domain.Models
             Сomplexity = complexity;
         }
 
-        public static Result<Course> Create(Guid id, string pl, string title, string description, int chapters, int complexity)
+        public static Result<Course> Create(Guid id, Guid AuthorId , string pl, string title, string description, int chapters, int complexity)
         {
             if (string.IsNullOrEmpty(pl) || pl.Length > MAX_LENGTH_PL)
             {
@@ -96,9 +76,13 @@ namespace Application.Domain.Models
                 return Result.Failure<Course>($"Сложность курса выходит за диапозон от {MIN_COMPLEXITY_AND_CHAPTERS} по {MAX_COMPLEXITY}");
             }
 
-            Course course = new Course(id, pl, title, description, chapters, complexity);
+            Course course = new Course(id, AuthorId , pl, title, description, chapters, complexity);
 
             return Result.Success(course);
         }
+
+
+
+
     }
 }

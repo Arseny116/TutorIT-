@@ -24,7 +24,7 @@ namespace ApplicationUsers.App.Handlers
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
            
-            var user = User.CreateUser(Guid.NewGuid(), request.Name, request.Email, _hasher.Generate(request.Password));
+            var user = User.CreateUser(request.Name, request.Email, _hasher.Generate(request.Password));
 
             MailData mailData = new MailData(request.Email, "Приветсвтуем на сайте TutorIT&");
 

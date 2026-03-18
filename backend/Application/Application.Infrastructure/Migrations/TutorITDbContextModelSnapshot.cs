@@ -59,6 +59,9 @@ namespace Application.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Chapters")
                         .HasColumnType("integer");
 

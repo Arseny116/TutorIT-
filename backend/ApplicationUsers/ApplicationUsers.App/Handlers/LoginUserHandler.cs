@@ -1,26 +1,29 @@
-﻿
-using ApplicationUsers.App.Commands;
+﻿using ApplicationUsers.App.Commands;
 using ApplicationUsers.Domain;
 using ApplicationUsers.Infrastructure;
 using MediatR;
 
 namespace ApplicationUsers.App.Handlers
 {
-    public class LoginUserHandler : IRequestHandler<LoginUserCommand>
+    public class LoginUserHandler : IRequestHandler<LoginUserCommand, string>
     {
         private readonly IJwtProvider _jwtProvider;
         private readonly IUserRepository _userRepository;
-        public LoginUserHandler(IUserRepository userRepository ,IJwtProvider  jwtProvider)
+        public LoginUserHandler(IUserRepository userRepository, IJwtProvider jwtProvider)
         {
             _jwtProvider = jwtProvider;
-            _userRepository =  userRepository;
+            _userRepository = userRepository;
         }
 
 
-        public Task Handle(LoginUserCommand request, CancellationToken cancellationToken)
+        public async Task<string> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
-            User user = _userRepository.;
-            _jwtProvider.GenerateToken(User);
+            User user =  await _userRepository.GetUserByEmail(request.email);
+
+        
+            var token = _jwtProvider.GenerateToken(user);
+
+            return token;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Application.API.DTO.Theories;
 using Application.Domain.Interface.ITheory;
 using Application.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.API.Controllers
@@ -16,6 +17,8 @@ namespace Application.API.Controllers
             _theoriesService = theoriesService;
         }
 
+
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<List<TheoriesResponse>>> GetTheories(Guid CharterId)
         {
@@ -28,6 +31,9 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
+
+
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId,[FromBody] TheoriesRequest request)
         {
@@ -46,6 +52,9 @@ namespace Application.API.Controllers
             return Ok(theoryId);
         }
 
+
+
+        [Authorize]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateTheory(Guid id, [FromBody] TheoriesRequest request)
         {
@@ -57,6 +66,9 @@ namespace Application.API.Controllers
             return Ok(theoryId);
         }
 
+
+
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<Guid>> DeleteTheory(Guid id)
         {

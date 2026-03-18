@@ -2,6 +2,7 @@
 using Application.Domain.Interface.ITaskQuestion.IQuestion;
 using Application.Domain.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.API.Controllers
@@ -14,12 +15,16 @@ namespace Application.API.Controllers
 
         private readonly IValidator<(Guid TaskId, QuestionsRequest Request)> _validator;
 
+        
+
         public QuestionsController(IQuestionsService questionsService, IValidator<(Guid, QuestionsRequest)> validator)
         {
             _questionsService = questionsService;
             _validator = validator;
         }
 
+
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<List<QuestionsResponse>>> GetQuestions(Guid TaskCreater)
         {
@@ -33,6 +38,9 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
+
+
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateQuestion(Guid TaskCreatorId,[FromBody] QuestionsRequest request)
         {
@@ -57,6 +65,8 @@ namespace Application.API.Controllers
             return Ok(questionId);
         }
 
+
+        [Authorize]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateQuestion(Guid id, [FromBody] QuestionsRequest request)
         {
@@ -65,6 +75,8 @@ namespace Application.API.Controllers
             return Ok(questionId);
         }
 
+
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<Guid>> DeleteQuestion(Guid id)
         {

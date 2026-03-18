@@ -11,6 +11,10 @@ namespace ApplicationUsers.Domain
 
         public string PasswordHash { get; private set; }
 
+        public List<Guid> CreatedCourseIds { get; set; }
+
+        public List<Guid> EnrolledCourseIds { get; set; }
+
 
         private User(string name, string email, string password)
         {
