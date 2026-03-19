@@ -22,24 +22,14 @@ namespace Application.Domain.Models
 
         public string  Pl { get; }
 
-        /// <summary>
-        /// Заголовок курса
-        /// </summary>
+        public Guid AuthorId { get;  }
+
         public string Title { get; } = string.Empty;
 
-        /// <summary>
-        /// Описание курса
-        /// </summary>
         public string Description { get; } = string.Empty;
 
-        /// <summary>
-        /// Кол-во глав в курсе
-        /// </summary>
         public int Chapters { get; }
 
-        /// <summary>
-        /// Сложность курса
-        /// </summary>
         public int Сomplexity { get; }
 
         /// <summary>
@@ -52,14 +42,7 @@ namespace Application.Domain.Models
         /// </summary>
         public double Evaluation { get; } = 0.0;
 
-        /// <summary>
-        /// Отзывы о курсе
-        /// </summary>
         public List<string> Reviews { get; } = [];
-
-        /// <summary>
-        /// Кол-во людей записанных на курс
-        /// </summary>
         public int Subscribe { get; private set; } = 0;
 
         public List<Chapter> NumberChapters { get; } = new List<Chapter>();
@@ -113,5 +96,9 @@ namespace Application.Domain.Models
 
             return Result.Success(course);
         }
+
+
+
+
     }
 }

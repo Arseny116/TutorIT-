@@ -12,14 +12,14 @@ namespace Application.App.Services
             _coursesRepository = coursesRepository;
         }
 
-        public async Task<List<Course>> GetCourses()
+        public async Task<List<Course>> GetCourses(Guid userId)
         {
-            return await _coursesRepository.Get();
+            return await _coursesRepository.Get(userId);
         }
 
-        public async Task<Course> GetCoursesById(Guid id)
+        public async Task<Course> GetCoursesById(Guid id, Guid userId)
         {
-            return await _coursesRepository.GetById(id);
+            return await _coursesRepository.GetById(id, userId);
         }
 
         public async Task<Guid> CreateCourse(Course course)

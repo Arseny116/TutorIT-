@@ -1,4 +1,6 @@
 ﻿using ApplicationUsers.Domain;
+using AutoMapper;
+using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApplicationUsers.Infrastructure
@@ -6,15 +8,16 @@ namespace ApplicationUsers.Infrastructure
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationUserDB _context;
-        public UserRepository(ApplicationUserDB applicationUser)
+        private readonly IMapper _mapper;
+
+        public UserRepository(IMapper mapper, ApplicationUserDB applicationUser)
         {
             _context = applicationUser;
+            _mapper = mapper;
         }
 
-        public async Task<List<User>> GetAllUser()
-        {
-            return await _context.Users.Select(x => User.CreateUser(x.Id, x.Name, x.Email, x.Password).Value).ToListAsync();
-        }
+
+
 
         public async Task<Guid> CreateUser(User user)
         {
@@ -35,6 +38,45 @@ namespace ApplicationUsers.Infrastructure
             await _context.SaveChangesAsync();
 
             return userEntity.Id;
+        }
+
+
+
+        public async Task UpdateMyCourse(Guid user_res, Guid myCourse)
+        {
+            var User = GetUserById(user_res).Result;
+            User.CreatedCourseIds.Add(myCourse);
+            _context.Users.Update(_mapper.Map<UserEntity>(User));
+            await _context.SaveChangesAsync();
+
+        }
+
+
+        public async Task UpdateForeginCourse(Guid user_res, Guid foreginCourse)
+        {
+            var User = GetUserById(user_res).Result;
+            User.EnrolledCourseIds.Add(foreginCourse);
+            _context.Users.Update(_mapper.Map<UserEntity>(User));
+            await _context.SaveChangesAsync();
+
+        }
+
+
+        public async Task<User> GetUserByEmail(string email)
+        {
+            var userEntity = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+            var user = _mapper.Map<User>(userEntity);
+            return _mapper.Map<User>(userEntity);
+        }
+
+        public async Task<User> GetUserById(Guid id)
+        {
+            return _mapper.Map<User>(await _context.Users.FindAsync(id));
+        }
+
+        public async Task<List<User>> GetAllUser()
+        {
+            return await _context.Users.Select(x => _mapper.Map<User>(x)).ToListAsync();
         }
 
     }

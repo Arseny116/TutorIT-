@@ -10,6 +10,10 @@
 
         public string Password { get; set; }
 
+        public List<Guid> CreatedCourseIds { get; set; } = new List<Guid>();
+
+        public List<Guid> EnrolledCourseIds { get; set; } = new List<Guid>();
+
         public UserEntity() { }
     }
 }

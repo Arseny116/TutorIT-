@@ -14,7 +14,7 @@ namespace Application.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Course>> Get()
+        public async Task<List<Course>> Get(Guid userId)
         {
             var courseEntity = await _context.Courses.AsNoTracking().ToListAsync();
 
@@ -39,7 +39,7 @@ namespace Application.Infrastructure.Repositories
             return courses;
         }
 
-        public async Task<Course> GetById(Guid id)
+        public async Task<Course> GetById(Guid id, Guid userId)
         {
             var entity = await _context.Courses.
                 AsNoTracking().

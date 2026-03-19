@@ -1,14 +1,12 @@
 using System.Text;
-
 using ApplicationUsers.App.Handlers;
-
 using ApplicationUsers.Domain.Interface;
 using ApplicationUsers.Infrastructure;
-
+using ApplicationUsers.Infrastructure.Authentication;
+using ApplicationUsers.Infrastructure.Mapping;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace ApplicationUsers
@@ -34,36 +32,48 @@ namespace ApplicationUsers
             builder.Services.AddDbContext<ApplicationUserDB>();
 
 
-            builder.Services.AddScoped<IMailService,  MailService>();
+            builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
+
+            builder.Services.AddScoped<IMailService, MailService>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+
+            // Регистрируем для DI
             builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(nameof(JwtOptions)));
 
+
+
+            // Получаем для немедленного использования
             var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                 .AddJwtBearer(options =>
-                 {
-                     options.TokenValidationParameters = new TokenValidationParameters
-                     {
-                         ValidateIssuer = false,
-                         ValidateAudience = false,
-                         ValidateLifetime = true,
-                         ValidateIssuerSigningKey = true,
-                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
-                     };
 
-                     options.Events = new JwtBearerEvents
-                     {
-                         OnMessageReceived = context =>
-                         {
-                             context.Token = context.Request.Cookies["LikesCookies"];
-                             return Task.CompletedTask;
-                         }
-                     };
-                 });
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+      .AddJwtBearer(options =>
+      {
+          options.TokenValidationParameters = new TokenValidationParameters
+          {
+              ValidateIssuer = false,
+             // ValidIssuer = jwtOptions.ValidIssuer,
+              ValidateAudience = false,
+     
+              ValidateLifetime = true,
+              IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+              ValidateIssuerSigningKey = true,
+          };
+
+    
+          options.Events = new JwtBearerEvents
+          {
+              OnMessageReceived = context =>
+              {
+                  context.Token = context.Request.Cookies["jwtE"];
+                  return Task.CompletedTask;
+              }
+          };
+      });
 
 
 
@@ -71,9 +81,9 @@ namespace ApplicationUsers
 
             var app = builder.Build();
 
-            using (var scope= app.Services.CreateScope())
+            using (var scope = app.Services.CreateScope())
             {
-                var context  = scope.ServiceProvider.GetRequiredService<ApplicationUserDB>();
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationUserDB>();
                 await context.Database.MigrateAsync();
             }
 

@@ -11,18 +11,23 @@ namespace ApplicationUsers.Domain
 
         public string PasswordHash { get; private set; }
 
-        private User(Guid id, string name, string email, string password)
+        public List<Guid> CreatedCourseIds { get; set; }
+
+        public List<Guid> EnrolledCourseIds { get; set; }
+
+
+        private User(string name, string email, string password)
         {
-            Id = id;
+            Id = Guid.NewGuid();
             Name = name;
             Email = email;
             PasswordHash = password;
         }
 
 
-        public static Result<User> CreateUser(Guid id, string name, string email, string password)
+        public static Result<User> CreateUser(string name, string email, string password)
         {
-            User user = new User(id, name, email, password);
+            User user = new User(name, email, password);
             return Result.Success(user);
         }
 

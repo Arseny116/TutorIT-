@@ -14,21 +14,22 @@ namespace Application.Infrastructure.Entities
         /// </summary>
         public Guid Id { get; set; }
 
-        
+
         /// <summary>
         /// Язык программирования
         /// </summary>
         public string Pl { get; set; }
+        public Guid AuthorId { get; set; }
 
         /// <summary>
         /// Заголовок курса
         /// </summary>
-        public string Title { get; set; } 
+        public string Title { get; set; }
 
         /// <summary>
         /// Описание курса
         /// </summary>
-        public string Description { get; set; } 
+        public string Description { get; set; }
 
         /// <summary>
         /// Кол-во глав в курсе
@@ -38,7 +39,7 @@ namespace Application.Infrastructure.Entities
         /// <summary>
         /// Сложность курса
         /// </summary>
-        public int  Complexity{ get; set; }
+        public int Complexity { get; set; }
 
         public Image? TitleImage { get; set; }
 
@@ -50,7 +51,7 @@ namespace Application.Infrastructure.Entities
         /// <summary>
         /// Отзывы о курсе
         /// </summary>
-        public List<string> Reviews { get; set; } 
+        public List<string> Reviews { get; set; }
 
         /// <summary>
         /// Кол-во людей записанных на курс

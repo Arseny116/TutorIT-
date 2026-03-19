@@ -1,6 +1,7 @@
 ﻿using Application.API.DTO.Chapters;
 using Application.Domain.Interface;
 using Application.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.API.Controllers
@@ -16,6 +17,8 @@ namespace Application.API.Controllers
             _chaptersService = chaptersService;
         }
 
+
+        [Authorize]
         [HttpGet("{CourseId:guid}")]
         public async Task<ActionResult<List<ChaptersResponse>>> GetChapters(Guid CourseId)
         {
@@ -34,7 +37,9 @@ namespace Application.API.Controllers
             return Ok(response);
         }
 
-       
+
+
+        [Authorize]
         [HttpPost("{CourseId:guid}")]
         public async Task<ActionResult<Guid>> CreateChapter(Guid CourseId,[FromBody] ChaptersRequest request)
         {
@@ -49,6 +54,9 @@ namespace Application.API.Controllers
             return Ok(CourseId);//Заменить на DTO 
         }
 
+
+
+        [Authorize]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateChapter(Guid id, [FromBody] ChaptersRequest request)
         {
@@ -62,6 +70,8 @@ namespace Application.API.Controllers
             return Ok(chapterId);
         }
 
+
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<Guid>> DeleteChapter(Guid id)
         {

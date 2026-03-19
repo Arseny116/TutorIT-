@@ -23,11 +23,8 @@ namespace ApplicationUsers.App.Handlers
         }
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-
-            _logger.Log(LogLevel.Information, $"{request.Email}");
-
-            //Добавить проверку на сущ email, имения и тд ...
-            var user = User.CreateUser(Guid.NewGuid(), request.Name, request.Email, _hasher.Generate(request.Password));
+           
+            var user = User.CreateUser(request.Name, request.Email, _hasher.Generate(request.Password));
 
             MailData mailData = new MailData(request.Email, "Приветсвтуем на сайте TutorIT&");
 
@@ -35,7 +32,7 @@ namespace ApplicationUsers.App.Handlers
             await _mailService.SendHelloAsync( mailData);
 
 
-            _logger.Log(LogLevel.Information,"Письмо успешно отправили !");
+         
 
             if (user.IsFailure)
             {
