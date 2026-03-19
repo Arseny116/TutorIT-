@@ -16,8 +16,9 @@ namespace Application.API.Controllers
 
         private readonly ICoursesService _coursesService;
         private readonly ImageService _imageService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public CoursesController(ICoursesService coursesService, ImageService imageService)
+        public CoursesController(IHttpClientFactory httpClientFactory, ICoursesService coursesService, ImageService imageService)
         {
             _httpClientFactory = httpClientFactory;
             _coursesService = coursesService;
@@ -103,13 +104,17 @@ namespace Application.API.Controllers
         {
             var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
 
+            var userId = Guid.Parse(User.Claims.ToList()[0].Value);
+
+
             if (image.IsFailure)
             {
                 return BadRequest(image.Error);
             }
 
-            var course = Course.Create(
-                Guid.NewGuid(),
+            var course = Course.Create
+                (
+    
                 userId,
                 request.PL,
                 request.Title,
@@ -127,7 +132,7 @@ namespace Application.API.Controllers
 
             var courseId = await _coursesService.CreateCourse(course.Value);
 
-            var client = _httpClientFactory.CreateClient("UserService"); 
+            var client = _httpClientFactory.CreateClient("UserService");
             await client.PostAsync($"api/users/{userId}/created-courses/{courseId}", null);
 
             return Ok(courseId);

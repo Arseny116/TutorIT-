@@ -7,11 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Application.Infrastructure.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:backend/Application/Application.Infrastructure/Migrations/20260313162826_ImageTable.cs
-    public partial class ImageTable : Migration
-========
-    public partial class Init : Migration
->>>>>>>> feature/login:backend/Application/Application.Infrastructure/Migrations/20260315131823_Init.cs
+    public partial class version : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -84,6 +80,7 @@ namespace Application.Infrastructure.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     Hint = table.Column<string>(type: "text", nullable: false),
+                    TitleImageModelId = table.Column<Guid>(type: "uuid", nullable: true),
                     ChapterID = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -95,6 +92,11 @@ namespace Application.Infrastructure.Migrations
                         principalTable: "Chapters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TasksCreator_Image_TitleImageModelId",
+                        column: x => x.TitleImageModelId,
+                        principalTable: "Image",
+                        principalColumn: "ModelId");
                 });
 
             migrationBuilder.CreateTable(
@@ -104,6 +106,7 @@ namespace Application.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Article = table.Column<string>(type: "text", nullable: false),
+                    TitleImageModelId = table.Column<Guid>(type: "uuid", nullable: true),
                     ChapterID = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -115,6 +118,11 @@ namespace Application.Infrastructure.Migrations
                         principalTable: "Chapters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Theories_Image_TitleImageModelId",
+                        column: x => x.TitleImageModelId,
+                        principalTable: "Image",
+                        principalColumn: "ModelId");
                 });
 
             migrationBuilder.CreateTable(
@@ -158,9 +166,19 @@ namespace Application.Infrastructure.Migrations
                 column: "ChapterID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TasksCreator_TitleImageModelId",
+                table: "TasksCreator",
+                column: "TitleImageModelId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Theories_ChapterID",
                 table: "Theories",
                 column: "ChapterID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Theories_TitleImageModelId",
+                table: "Theories",
+                column: "TitleImageModelId");
         }
 
         /// <inheritdoc />

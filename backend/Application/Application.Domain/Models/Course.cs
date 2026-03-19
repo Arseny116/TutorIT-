@@ -20,9 +20,9 @@ namespace Application.Domain.Models
         /// </summary>
         public Guid Id { get; }
 
-        public string  Pl { get; }
+        public string Pl { get; }
 
-        public Guid AuthorId { get;  }
+        public Guid AuthorId { get; }
 
         public string Title { get; } = string.Empty;
 
@@ -32,9 +32,7 @@ namespace Application.Domain.Models
 
         public int Сomplexity { get; }
 
-        /// <summary>
-        /// Изображение
-        /// </summary>
+    
         public Image? TitleImage { get; }
 
         /// <summary>
@@ -47,9 +45,9 @@ namespace Application.Domain.Models
 
         public List<Chapter> NumberChapters { get; } = new List<Chapter>();
 
-        private Course(Guid id, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
+        private Course(Guid author, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
         {
-            Id = id;
+            Id = Guid.NewGuid();
             Pl = pl;
             Title = title;
             Description = description;
@@ -59,7 +57,7 @@ namespace Application.Domain.Models
         }
 
         public static Result<Course> Create(
-            Guid id,
+            Guid author,
             string pl,
             string title,
             string description,
@@ -92,7 +90,7 @@ namespace Application.Domain.Models
                 return Result.Failure<Course>($"Сложность курса выходит за диапозон от {MIN_COMPLEXITY_AND_CHAPTERS} по {MAX_COMPLEXITY}");
             }
 
-            Course course = new Course(id, pl, title, description, chapters, complexity, titleImage);
+            Course course = new Course(author, pl, title, description, chapters, complexity, titleImage);
 
             return Result.Success(course);
         }
