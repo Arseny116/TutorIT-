@@ -13,13 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Application.Infrastructure.Migrations
 {
     [DbContext(typeof(TutorITDbContext))]
-<<<<<<<< HEAD:backend/Application/Application.Infrastructure/Migrations/20260313162826_ImageTable.Designer.cs
-    [Migration("20260313162826_ImageTable")]
-    partial class ImageTable
-========
-    [Migration("20260315131823_Init")]
-    partial class Init
->>>>>>>> feature/login:backend/Application/Application.Infrastructure/Migrations/20260315131823_Init.Designer.cs
+    [Migration("20260319082934_version")]
+    partial class version
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -167,9 +162,14 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterID");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("TasksCreator");
                 });
@@ -191,9 +191,14 @@ namespace Application.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TitleImageModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterID");
+
+                    b.HasIndex("TitleImageModelId");
 
                     b.ToTable("Theories");
                 });
@@ -237,7 +242,13 @@ namespace Application.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
                     b.Navigation("Chapter");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.TheoryEntity", b =>
@@ -248,7 +259,13 @@ namespace Application.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Application.Domain.Models.Image", "TitleImage")
+                        .WithMany()
+                        .HasForeignKey("TitleImageModelId");
+
                     b.Navigation("Chapter");
+
+                    b.Navigation("TitleImage");
                 });
 
             modelBuilder.Entity("Application.Infrastructure.Entities.ChapterEntity", b =>

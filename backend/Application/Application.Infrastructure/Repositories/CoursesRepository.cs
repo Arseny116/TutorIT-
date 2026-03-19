@@ -46,7 +46,8 @@ namespace Application.Infrastructure.Repositories
                 SingleAsync(x => x.Id == id);
 
 
-            var result = Course.Create(
+            var result = Course.Create
+             (
                 entity.Id,
                 entity.Pl,
                 entity.Title,
