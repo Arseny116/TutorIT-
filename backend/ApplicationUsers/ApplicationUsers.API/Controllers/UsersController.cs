@@ -36,9 +36,12 @@ namespace ApplicationUsers.API.Controllers
 
         [Authorize]
         [HttpPost("{userId}/created-courses/{courseId}")]
-        public async Task UpdateMyCourse(Guid userId , Guid courseId)
+        public async Task UpdateMyCourse(Guid userId, Guid courseId)
         {
-            await  _mediator.Send(new UpdateUserMyCourseCommand(userId, courseId) );
+            _logger.LogInformation("UpdateMyCourse called with userId: {UserId}, courseId: {CourseId}",
+        userId, courseId);
+    
+            await _mediator.Send(new UpdateUserMyCourseCommand(userId, courseId));
         }
 
 
@@ -46,7 +49,7 @@ namespace ApplicationUsers.API.Controllers
         [HttpPost("{userId}/subscribe/{courseId}")]
         public async Task UpdateSub(Guid user, Guid courseId)
         {
-           await _mediator.Send(new UpdateUserForeginCourseCommand(user, courseId));
+            await _mediator.Send(new UpdateUserForeginCourseCommand(user, courseId));
         }
     }
 }
