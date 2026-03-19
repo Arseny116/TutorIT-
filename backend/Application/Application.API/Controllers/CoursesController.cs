@@ -17,9 +17,10 @@ namespace Application.API.Controllers
         private readonly ICoursesService _coursesService;
         private readonly ImageService _imageService;
         private readonly IHttpClientFactory _httpClientFactory;
-
-        public CoursesController(IHttpClientFactory httpClientFactory, ICoursesService coursesService, ImageService imageService)
+        private readonly ILogger<CoursesController> _logger;
+        public CoursesController(ILogger<CoursesController> logger, IHttpClientFactory httpClientFactory, ICoursesService coursesService, ImageService imageService)
         {
+            _logger = logger;
             _httpClientFactory = httpClientFactory;
             _coursesService = coursesService;
             _imageService = imageService;
@@ -114,7 +115,7 @@ namespace Application.API.Controllers
 
             var course = Course.Create
                 (
-    
+
                 userId,
                 request.PL,
                 request.Title,
@@ -135,6 +136,7 @@ namespace Application.API.Controllers
             var client = _httpClientFactory.CreateClient("UserService");
             await client.PostAsync($"api/users/{userId}/created-courses/{courseId}", null);
 
+            _logger.Log(LogLevel.Information, "Запрос ушел :");
             return Ok(courseId);
         }
 

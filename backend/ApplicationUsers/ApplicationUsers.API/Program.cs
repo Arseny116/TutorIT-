@@ -75,6 +75,15 @@ namespace ApplicationUsers
           };
       });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()      
+                          .AllowAnyMethod()     
+                          .AllowAnyHeader();     
+                });
+            });
 
 
             builder.Services.AddAuthorization();
@@ -86,7 +95,10 @@ namespace ApplicationUsers
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationUserDB>();
                 await context.Database.MigrateAsync();
             }
+   
 
+
+            app.UseCors("AllowAll");
 
             app.UseSwagger();
             app.UseSwaggerUI();
