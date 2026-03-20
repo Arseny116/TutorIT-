@@ -1,4 +1,4 @@
 ﻿namespace ApplicationUsers.API
 {
-    public record RegisterUserRequest(string Name, string Email, string Password);
+    public record RegisterUserRequest(string name, string email, string password);
 }

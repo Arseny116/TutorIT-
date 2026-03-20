@@ -1,4 +1,5 @@
 ﻿using ApplicationUsers.Domain;
+using CSharpFunctionalExtensions;
 
 namespace ApplicationUsers.Infrastructure
 {
@@ -11,7 +12,7 @@ namespace ApplicationUsers.Infrastructure
 
         Task<User> GetUserById(Guid id);
         Task<User> GetUserByEmail(string email);
-        Task<Guid> CreateUser(User user);
+        Task<Result<Guid>> CreateUser(User user, CancellationToken cancellationToken);
         Task<List<User>> GetAllUser();
     }
 }

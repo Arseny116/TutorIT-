@@ -5,6 +5,7 @@ namespace ApplicationUsers.Domain
     {
         public Guid Id { get; private set; }
 
+
         public string Name { get; private set; }
 
         public string Email { get; private set; }
@@ -13,27 +14,22 @@ namespace ApplicationUsers.Domain
 
         public List<Guid> CreatedCourseIds { get; set; }
 
-        public List<Guid> EnrolledCourseIds { get; set; }
+        public List<Guid> EnrolledCourseIds { get; set;}
 
 
-        private User(string name, string email, string password)
+        private User(string name ,string email, string password)
         {
-            Id = Guid.NewGuid();
             Name = name;
+            Id = Guid.NewGuid();
             Email = email;
             PasswordHash = password;
         }
 
 
-        public static Result<User> CreateUser(string name, string email, string password)
+        public static Result<User> CreateUser(string name ,string email, string password)
         {
-            User user = new User(name, email, password);
+            User user = new User(name ,email, password);
             return Result.Success(user);
-        }
-
-        public void Rename(string NewName)
-        {
-            Name = NewName;
         }
 
         public void ChangePassword(string Newpassword)
