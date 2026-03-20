@@ -52,11 +52,15 @@ services:
     container_name: dotnet_api_courses
     restart: unless-stopped
     ports:
-      - "8080:8080"  # Courses API на порту 8080
+      - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=dbcourses;Port=5432;Database=${DB_NAME_COURSES};Username=${DB_USER_COURSES};Password=${DB_PASSWORD_COURSES}
+  
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
+
     depends_on:
       dbcourses:
         condition: service_healthy
@@ -72,11 +76,22 @@ services:
     container_name: dotnet_api_users
     restart: unless-stopped
     ports:
-      - "8081:8081"  # Users API на порту 8081
+      - "8081:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8081
       - ConnectionStrings__DefaultConnection=Host=dbusers;Port=5432;Database=${DB_NAME_USERS};Username=${DB_USER_USERS};Password=${DB_PASSWORD_USERS}
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
+      - MailSettings__DisplayName=${MAIL_DISPLAY_NAME}
+      - MailSettings__From=${MAIL_FROM}
+      - MailSettings__UserName=${MAIL_USERNAME}
+      - MailSettings__Password=${MAIL_PASSWORD}
+      - MailSettings__Host=${MAIL_HOST}
+      - MailSettings__Port=${MAIL_PORT}
+      - MailSettings__UseSSL=${MAIL_USE_SSL}
+      - MailSettings__UseStartTls=${MAIL_USE_STARTTLS}
+      - MailSettings__UseOAuth=${MAIL_USE_OAUTH}
     depends_on:
       dbusers:
         condition: service_healthy
@@ -94,7 +109,7 @@ services:
     environment:
       - REACT_APP_API_URL=http://localhost:8080
       - REACT_APP_USERS_API_URL=http://localhost:8081
-      - WDS_SOCKET_PORT=0  # Для корректной работы hot-reload в React
+      - WDS_SOCKET_PORT=0
     depends_on:
       servercourses:
         condition: service_started
