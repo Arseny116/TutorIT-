@@ -14,10 +14,10 @@ namespace ApplicationUsers.Domain
 
         public List<Guid> CreatedCourseIds { get; set; }
 
-        public List<Guid> EnrolledCourseIds { get; set;}
+        public List<Guid> EnrolledCourseIds { get; set; }
 
-
-        private User(string name ,string email, string password)
+        public User() { }
+        private User(string name, string email, string password)
         {
             Name = name;
             Id = Guid.NewGuid();
@@ -26,15 +26,15 @@ namespace ApplicationUsers.Domain
         }
 
 
-        public static Result<User> CreateUser(string name ,string email, string password)
+        public static Result<User> CreateUser(string name, string email, string password)
         {
-            User user = new User(name ,email, password);
+            User user = new User(name, email, password);
             return Result.Success(user);
         }
 
         public void ChangePassword(string Newpassword)
         {
-            PasswordHash = Newpassword; 
+            PasswordHash = Newpassword;
         }
 
     }
