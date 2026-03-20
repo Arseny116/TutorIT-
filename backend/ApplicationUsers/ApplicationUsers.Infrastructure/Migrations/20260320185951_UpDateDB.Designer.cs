@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ApplicationUsers.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApplicationUsers.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationUserDB))]
-    partial class ApplicationUserDBModelSnapshot : ModelSnapshot
+    [Migration("20260320185951_UpDateDB")]
+    partial class UpDateDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

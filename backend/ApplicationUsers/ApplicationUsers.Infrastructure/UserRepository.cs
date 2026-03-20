@@ -9,35 +9,42 @@ namespace ApplicationUsers.Infrastructure
     {
         private readonly ApplicationUserDB _context;
         private readonly IMapper _mapper;
+        private readonly IPasswordHasher _hasher;
 
-        public UserRepository(IMapper mapper, ApplicationUserDB applicationUser)
+        public UserRepository(IPasswordHasher passwordHasher, IMapper mapper, ApplicationUserDB applicationUser)
         {
             _context = applicationUser;
+            _hasher = passwordHasher;
             _mapper = mapper;
         }
 
 
 
 
-        public async Task<Guid> CreateUser(User user)
+        public async Task<Result<Guid>> CreateUser(User user, CancellationToken cancellationToken)
         {
-            var userEntity = new UserEntity()
+            ArgumentNullException.ThrowIfNull(user);
+
+            var normalizedEmail = user.Email.ToLowerInvariant().Trim();
+
+            var exists = await _context.Users
+                .AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
+
+            if (exists)
+                return Result.Failure<Guid>($"Email {normalizedEmail} already exists");
+
+            var userEntity = new UserEntity
             {
                 Id = user.Id,
-
+                Email = normalizedEmail,
                 Name = user.Name,
-
-                Password = user.PasswordHash,
-
-                Email = user.Email,
-
+                PasswordHash = user.PasswordHash,
             };
 
-            await _context.Users.AddAsync(userEntity);
+            await _context.Users.AddAsync(userEntity, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
-            await _context.SaveChangesAsync();
-
-            return userEntity.Id;
+            return Result.Success(userEntity.Id);
         }
 
 
