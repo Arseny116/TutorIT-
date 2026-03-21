@@ -16,7 +16,11 @@ namespace Application.Infrastructure.Repositories
 
         public async Task<List<TaskCreator>> Get(Guid ChapterId)
         {
-            var taskCreatorEntity = await _context.TasksCreator.Where(tc => tc.ChapterID == ChapterId).AsNoTracking().ToListAsync();
+            var taskCreatorEntity = await _context.TasksCreator
+                .Where(tc => tc.ChapterID == ChapterId)
+                .Include(t => t.TitleImage)
+                .AsNoTracking()
+                .ToListAsync();
 
             var tasksCreator = new List<TaskCreator>();
             foreach (var entity in taskCreatorEntity)
@@ -40,6 +44,7 @@ namespace Application.Infrastructure.Repositories
                 Name = taskCreator.Name,
                 Description = taskCreator.Description,
                 Hint = taskCreator.Hint,
+                TitleImage = taskCreator.TitleImage,
                 ChapterID = chapterId
             };
         

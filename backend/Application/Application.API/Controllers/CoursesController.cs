@@ -12,7 +12,7 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class CoursesController : ControllerBase
     {
-        private readonly string _staticFilePath = Path.Combine("StaticFiles", "Images");
+        private readonly string _staticFilePath = Path.Combine("StaticFiles");
 
         private readonly ICoursesService _coursesService;
         private readonly ImageService _imageService;
@@ -65,10 +65,12 @@ namespace Application.API.Controllers
                 c.Description,
                 c.Chapters,
                 c.Сomplexity,
+                c.TitleImage?.FileName,
                 c.Evaluation,
                 c.Reviews,
                 c.Subscribe,
-                c.NumberChapters));
+                c.NumberChapters
+            ));
 
             return Ok(response);
         }
@@ -81,18 +83,19 @@ namespace Application.API.Controllers
         {
             var userId = Guid.Parse(User.Claims.ToList()[0].Value);
             var c = await _coursesService.GetCoursesById(id, userId);
-            var response = new CoursesResponse
-                (
+            var response = new CoursesResponse(
                 c.Id,
                 c.Pl,
                 c.Title,
                 c.Description,
                 c.Chapters,
                 c.Сomplexity,
+                c.TitleImage?.FileName,
                 c.Evaluation,
                 c.Reviews,
                 c.Subscribe,
-                c.NumberChapters);
+                c.NumberChapters
+            );
 
             return Ok(response);
         }
@@ -103,7 +106,7 @@ namespace Application.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateCourse([FromForm] CoursesRequest request)
         {
-            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
+            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Course");
 
             var userId = Guid.Parse(User.Claims.ToList()[0].Value);
 

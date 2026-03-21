@@ -7,5 +7,6 @@ namespace Application.API.DTO.TasksCreator
         string? Name,
         string? Description,
         string? Hint,
+        string? TitleImage,
         List<Question> Questions);
 }

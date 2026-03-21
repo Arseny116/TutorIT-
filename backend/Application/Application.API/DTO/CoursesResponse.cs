@@ -9,8 +9,10 @@ namespace Application.API.DTO.Courses
         string? Description,
         int Chapters,
         int Complexity,
+        string? TitleImage,
         double? Evaluation,
         List<string> Reviews,
         int Subscribe,
-        List<Chapter> NumberChapters);
+        List<Chapter> NumberChapters
+    );
 }
