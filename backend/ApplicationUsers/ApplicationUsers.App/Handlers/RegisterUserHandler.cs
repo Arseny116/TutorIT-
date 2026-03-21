@@ -3,7 +3,6 @@ using ApplicationUsers.Infrastructure;
 using MediatR;
 using ApplicationUsers.Domain;
 using CSharpFunctionalExtensions;
-using ApplicationUsers.Domain.Interface;
 using Microsoft.Extensions.Logging;
 namespace ApplicationUsers.App.Handlers
 {
