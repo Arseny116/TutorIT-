@@ -11,6 +11,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 
 
 namespace Application.API
@@ -119,6 +120,21 @@ namespace Application.API
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            var rootPath = builder.Environment.ContentRootPath;
+            var staticFilesPath = Path.Combine(rootPath, "StaticFiles");
+
+            if (!Directory.Exists(staticFilesPath))
+            {
+                Directory.CreateDirectory(staticFilesPath);
+            }
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(staticFilesPath),
+                RequestPath = ""
+            });
+
             app.MapControllers();
 
             app.Run();

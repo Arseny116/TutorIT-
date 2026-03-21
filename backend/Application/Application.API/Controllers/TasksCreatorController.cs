@@ -11,7 +11,7 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class TasksCreatorsController : ControllerBase
     {
-        private readonly string _staticFilePath = Path.Combine("StaticFiles", "Images");
+        private readonly string _staticFilePath = Path.Combine("StaticFiles");
 
         private readonly ITasksCreatorService _tasksCreatorService;
         private readonly ImageService _imageService;
@@ -35,6 +35,7 @@ namespace Application.API.Controllers
                 t.Name,
                 t.Description,
                 t.Hint,
+                t.TitleImage?.FileName,
                 t.Questions));
 
             return Ok(response);
@@ -45,7 +46,7 @@ namespace Application.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId, [FromForm] TasksCreatorRequest request)
         {
-            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
+            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Task");
 
             if (image.IsFailure)
             {

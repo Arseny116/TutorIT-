@@ -11,7 +11,7 @@ namespace Application.API.Controllers
     [Route("api/v1/[controller]")]
     public class TheoriesController : ControllerBase
     {
-        private readonly string _staticFilePath = Path.Combine("StaticFiles", "Images");
+        private readonly string _staticFilePath = Path.Combine("StaticFiles");
 
         private readonly ITheoriesService _theoriesService;
         private readonly ImageService _imageService;
@@ -32,7 +32,8 @@ namespace Application.API.Controllers
             var response = theories.Select(theory => new TheoriesResponse(
                 theory.Id,
                 theory.Name,
-                theory.Article));
+                theory.Article,
+                theory.TitleImage?.FileName));
 
             return Ok(response);
         }
@@ -43,7 +44,7 @@ namespace Application.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId, [FromForm] TheoriesRequest request)
         {
-            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath);
+            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Theory");
 
             if (image.IsFailure)
             {

@@ -16,7 +16,10 @@ namespace Application.Infrastructure.Repositories
 
         public async Task<List<Course>> Get(Guid userId)
         {
-            var courseEntity = await _context.Courses.AsNoTracking().ToListAsync();
+            var courseEntity = await _context.Courses
+                .Include(c => c.TitleImage)
+                .AsNoTracking()
+                .ToListAsync();
 
             var courses = new List<Course>();
             foreach (var entity in courseEntity)
@@ -41,9 +44,10 @@ namespace Application.Infrastructure.Repositories
 
         public async Task<Course> GetById(Guid id, Guid userId)
         {
-            var entity = await _context.Courses.
-                AsNoTracking().
-                SingleAsync(x => x.Id == id);
+            var entity = await _context.Courses
+                .Include(c => c.TitleImage)
+                .AsNoTracking()
+                .SingleAsync(x => x.Id == id);
 
 
             var result = Course.Create
@@ -69,6 +73,7 @@ namespace Application.Infrastructure.Repositories
                 Pl = course.Pl,
                 Title = course.Title,
                 Description = course.Description,
+                TitleImage = course.TitleImage,
                 Evaluation = course.Evaluation,
                 Reviews = course.Reviews,
                 Subscribe = course.Subscribe,

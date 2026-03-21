@@ -16,7 +16,11 @@ namespace Application.Infrastructure.Repositories
 
         public async Task<List<Theory>> Get(Guid ChapterId)
         {
-            var theoryEntity = await _context.Theories.Where(te => te.ChapterID==ChapterId) .AsNoTracking().ToListAsync();
+            var theoryEntity = await _context.Theories
+                .Where(te => te.ChapterID==ChapterId)
+                .Include(t => t.TitleImage)
+                .AsNoTracking()
+                .ToListAsync();
 
             var theories = new List<Theory>();
             foreach (var entity in theoryEntity)
@@ -39,6 +43,7 @@ namespace Application.Infrastructure.Repositories
                 Id = theory.Id,
                 Name = theory.Name,
                 Article = theory.Article,
+                TitleImage = theory.TitleImage,
                 ChapterID = chapterId
             };
        
