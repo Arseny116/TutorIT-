@@ -2,7 +2,7 @@
 using AutoMapper;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
-
+using ApplicationUsers.Domain.Interface;
 namespace ApplicationUsers.Infrastructure
 {
     public class UserRepository : IUserRepository
@@ -10,9 +10,10 @@ namespace ApplicationUsers.Infrastructure
         private readonly ApplicationUserDB _context;
         private readonly IMapper _mapper;
         private readonly IPasswordHasher _hasher;
-
-        public UserRepository(IPasswordHasher passwordHasher, IMapper mapper, ApplicationUserDB applicationUser)
+        private readonly IMailService _mailService;
+        public UserRepository(IMailService mailService, IPasswordHasher passwordHasher, IMapper mapper, ApplicationUserDB applicationUser)
         {
+            _mailService = mailService;
             _context = applicationUser;
             _hasher = passwordHasher;
             _mapper = mapper;
@@ -31,7 +32,18 @@ namespace ApplicationUsers.Infrastructure
                 .AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
 
             if (exists)
-                return Result.Failure<Guid>($"Email {normalizedEmail} already exists");
+                return Result.Failure<Guid>($"Почта {normalizedEmail} уже  существует ");
+
+            //Ниже код - ужас это надо передалть иначе GG
+            MailData mailData = new MailData(user.Email, "Приветсвтуем на сайте TutorIT&");
+
+            var result = await _mailService.SendHelloAsync(mailData);
+
+            if (!result)
+            {
+                return Result.Failure<Guid>("Введина не существующая почта ");
+            }
+
 
             var userEntity = new UserEntity
             {

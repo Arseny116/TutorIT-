@@ -11,17 +11,15 @@ namespace ApplicationUsers.App.Handlers
     {
         private readonly IPasswordHasher _hasher;
         private readonly IUserRepository _userRepository;
-        private readonly IMailService _mailService;
         private readonly ILogger _logger;
 
-        public RegisterUserHandler(ILogger<RegisterUserHandler> logger, IMailService mailService, IPasswordHasher hasher, IUserRepository userRepository)
+        public RegisterUserHandler(ILogger<RegisterUserHandler> logger,  IPasswordHasher hasher, IUserRepository userRepository)
         {
             _logger = logger;
-            _mailService = mailService;
             _hasher = hasher;
             _userRepository = userRepository;
         }
-
+    
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
 
@@ -34,9 +32,7 @@ namespace ApplicationUsers.App.Handlers
 
             var user_guid = await _userRepository.CreateUser(user.Value, cancellationToken);
 
-            MailData mailData = new MailData(request.Email, "Приветсвтуем на сайте TutorIT&");
-
-            await _mailService.SendHelloAsync(mailData);
+           
 
             return user_guid;
         }
