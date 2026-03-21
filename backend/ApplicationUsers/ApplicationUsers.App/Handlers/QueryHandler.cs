@@ -1,6 +1,7 @@
 ﻿using ApplicationUsers.App.Queries;
 using ApplicationUsers.Domain;
 using ApplicationUsers.Infrastructure;
+using CSharpFunctionalExtensions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +23,7 @@ namespace ApplicationUsers.App.Handlers
         {
             var user = await _userRepository.GetUserByEmail(request.email);
             _logger.Log(LogLevel.Debug, $"Получен   user ->  {user}");
-            return user;
+            return user.Value;
         }
     }
 

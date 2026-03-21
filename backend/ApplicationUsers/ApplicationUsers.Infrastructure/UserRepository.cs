@@ -81,11 +81,16 @@ namespace ApplicationUsers.Infrastructure
         }
 
 
-        public async Task<User> GetUserByEmail(string email)
+        public async Task<Result<User>> GetUserByEmail(string email)
         {
             var userEntity = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+
+            if (userEntity == null)
+                return Result.Failure<User>($"Пользователь с почтой {email} не найден ");
+
             var user = _mapper.Map<User>(userEntity);
-            return _mapper.Map<User>(userEntity);
+            return user;
+
         }
 
         public async Task<User> GetUserById(Guid id)

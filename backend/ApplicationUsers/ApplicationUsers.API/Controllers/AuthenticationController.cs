@@ -41,7 +41,7 @@ namespace ApplicationUsers.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task Login([FromBody] LoginUserRequest request)
+        public async Task<ActionResult> Login([FromBody] LoginUserRequest request)
         {
             var command = new LoginUserCommand
             (
@@ -51,8 +51,13 @@ namespace ApplicationUsers.Controllers
 
             var Result = await _mediator.Send(command);
 
-            Response.Cookies.Append("jwtE", Result);
-
+            if (Result.IsSuccess)
+            {
+                Response.Cookies.Append("jwtE", Result.Value);
+                return Ok();
+            }
+            else
+                return BadRequest(Result.Error);
         }
 
 
