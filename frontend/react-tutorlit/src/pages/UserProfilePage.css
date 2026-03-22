@@ -1,132 +1,506 @@
 .user-profile-page {
     padding: 2rem;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
     text-align: left;
 }
 
-.personal-data {
-    margin-bottom: 3rem;
-    background: #fdfdfd;
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid #eee;
+/* Секция аватара - делаем слева */
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.personal-data h2, .my-courses h2 {
+.avatar-container {
+    position: relative;
+    cursor: pointer;
+}
+
+.avatar-wrapper {
+    position: relative;
+}
+
+/* Квадратный аватар */
+.avatar-image {
+    width: 180px;
+    height: 180px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.avatar-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Квадратный плейсхолдер */
+.avatar-placeholder {
+    width: 180px;
+    height: 180px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    cursor: pointer;
+}
+
+.avatar-placeholder:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-initials {
+    font-size: 72px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Оверлей с иконкой камеры */
+.avatar-overlay {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    backdrop-filter: blur(2px);
+    color: white;
+}
+
+.avatar-placeholder:hover .avatar-overlay {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.05);
+}
+
+.avatar-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.avatar-change-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-change-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.uploading-text {
+    color: #28a745;
+    font-size: 14px;
+    font-weight: 500;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.avatar-hint {
+    margin-top: 0.75rem;
+    font-size: 13px;
+    color: #6c757d;
+    text-align: left;
+    font-style: italic;
+}
+
+/* Персональные данные */
+.personal-data {
+    margin-bottom: 2rem;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.personal-data h2, .my-courses h2, .enrolled-courses h2 {
     margin-bottom: 1.5rem;
     color: #333;
-    border-bottom: 2px solid #28a745;
+    border-bottom: 3px solid #28a745;
     padding-bottom: 0.5rem;
     display: inline-block;
+    font-size: 1.6rem;
 }
 
 .data-card {
     font-size: 1.1rem;
-    line-height: 1.8;
+    line-height: 2;
 }
 
 .data-card p strong {
     color: #555;
-    width: 80px;
+    width: 100px;
     display: inline-block;
+    font-weight: 600;
 }
 
+/* Сетка курсов */
 .courses-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
 }
 
 .course-card-mini {
     background: white;
     padding: 1.5rem;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .course-card-mini:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     border-color: #28a745;
 }
 
 .course-card-mini h3 {
-    margin: 0 0 0.5rem 0;
+    margin: 0;
     font-size: 1.2rem;
     color: #222;
+    font-weight: 600;
 }
 
 .course-card-mini p {
     color: #28a745;
-    font-weight: bold;
+    font-weight: 600;
     margin: 0;
     font-size: 0.9rem;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-@media (max-width: 600px) {
-    .user-profile-page {
-        padding: 1rem;
-    }
-
-    .courses-grid {
-        grid-template-columns: 1fr;
-    }
+.course-card-mini.enrolled {
+    border-left: 5px solid #007bff;
 }
+
+.course-card-mini.created {
+    border-left: 5px solid #28a745;
+}
+
+.btn-continue {
+    margin-top: 0.75rem;
+    width: 100%;
+    padding: 10px 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-continue:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* Хедер профиля */
 .profile-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.profile-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #333;
 }
 
 .btn-logout {
     background: #dc3545;
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 12px 28px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
-    transition: background 0.2s;
+    font-size: 15px;
+    transition: all 0.2s;
 }
 
 .btn-logout:hover {
     background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .enrolled-courses {
-    margin-top: 3rem;
-}
-
-.course-card-mini.enrolled {
-    border-left: 5px solid #007bff; /* Синий цвет для записанных курсов */
-}
-
-.course-card-mini.created {
-    border-left: 5px solid #28a745; /* Зеленый цвет для созданных */
-}
-
-.btn-continue {
-    margin-top: 15px;
-    width: 100%;
-    padding: 8px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-continue:hover {
-    background: #0056b3;
+    margin-top: 2rem;
 }
 
 .empty-text {
     color: #888;
     font-style: italic;
+    text-align: center;
+    padding: 2.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    font-size: 1rem;
+}
+
+/* Модальное окно для аватара */
+.avatar-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.avatar-modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    background: transparent;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.avatar-modal-close {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.avatar-modal-close:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
+}
+
+.avatar-modal-image {
+    max-width: 80vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: white;
+}
+
+.avatar-modal-name {
+    margin-top: 20px;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .user-profile-page {
+        padding: 1rem;
+    }
+
+    .avatar-section {
+        align-items: center;
+        padding: 1.5rem;
+    }
+
+    .avatar-actions {
+        justify-content: center;
+    }
+
+    .avatar-hint {
+        text-align: center;
+    }
+
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .avatar-image,
+    .avatar-placeholder {
+        width: 140px;
+        height: 140px;
+    }
+
+    .avatar-initials {
+        font-size: 56px;
+    }
+
+    .avatar-overlay {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+        border-radius: 10px;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .personal-data h2,
+    .my-courses h2,
+    .enrolled-courses h2 {
+        font-size: 1.3rem;
+    }
+
+    .avatar-modal-close {
+        top: -35px;
+        right: -35px;
+        width: 35px;
+        height: 35px;
+        font-size: 24px;
+    }
+
+    .avatar-modal-image {
+        max-width: 85vw;
+        max-height: 70vh;
+    }
+
+    .avatar-modal-name {
+        font-size: 1rem;
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar-image,
+    .avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+    }
+
+    .avatar-initials {
+        font-size: 48px;
+    }
+
+    .avatar-overlay {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+        border-radius: 8px;
+        bottom: 8px;
+        right: 8px;
+    }
+
+    .avatar-change-btn {
+        padding: 8px 20px;
+        font-size: 14px;
+    }
+
+    .data-card p strong {
+        width: 80px;
+        font-size: 14px;
+    }
+
+    .data-card p {
+        font-size: 14px;
+    }
+
+    .avatar-modal-close {
+        top: -30px;
+        right: -30px;
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
+    }
+
+    .avatar-modal-image {
+        max-width: 90vw;
+        max-height: 60vh;
+    }
 }
