@@ -32,7 +32,7 @@ namespace Application.Domain.Models
 
         public int Сomplexity { get; }
 
-    
+
         public Image? TitleImage { get; }
 
         /// <summary>
@@ -47,6 +47,18 @@ namespace Application.Domain.Models
 
         private Course(Guid author, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
         {
+            Id = author;
+            Pl = pl;
+            Title = title;
+            Description = description;
+            Chapters = chapters;
+            Сomplexity = complexity;
+            TitleImage = titleImage;
+        }
+
+
+        public Course(string pl, string title, string description, int chapters, int complexity, Image? titleImage)
+        {
             Id = Guid.NewGuid();
             Pl = pl;
             Title = title;
@@ -56,7 +68,9 @@ namespace Application.Domain.Models
             TitleImage = titleImage;
         }
 
-        public static Result<Course> Create(
+
+        public static Result<Course> Create
+        (
             Guid author,
             string pl,
             string title,
