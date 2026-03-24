@@ -32,9 +32,9 @@ namespace Application.App.Services
             return await _coursesRepository.Update(id, pl, title, description, chapters, complexity);
         }
 
-        public async Task<Guid> DeleteCourse(Guid id)
+        public async Task<Guid> DeleteCourse(Guid id , Guid user_id)
         {
-            return await _coursesRepository.Delete(id);
+            return await _coursesRepository.Delete(id , user_id);
         }
     }
 }

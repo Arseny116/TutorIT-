@@ -11,6 +11,6 @@ namespace Application.Domain.Interface.ICourse
 
         Task<Guid> Update(Guid id, string pl, string title, string description, int chapters, int complexity);
 
-        Task<Guid> Delete(Guid id);
+        Task<Guid> Delete(Guid id, Guid user_id);
     }
 }

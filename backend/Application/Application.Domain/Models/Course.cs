@@ -45,9 +45,10 @@ namespace Application.Domain.Models
 
         public List<Chapter> NumberChapters { get; } = new List<Chapter>();
 
-        private Course(Guid author, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
+        public Course(Guid author, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
         {
-            Id = author;
+            Id = Guid.NewGuid();
+            AuthorId = author;
             Pl = pl;
             Title = title;
             Description = description;
@@ -57,9 +58,9 @@ namespace Application.Domain.Models
         }
 
 
-        public Course(string pl, string title, string description, int chapters, int complexity, Image? titleImage)
+        public Course(Guid author, Guid id, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
         {
-            Id = Guid.NewGuid();
+            Id = id;
             Pl = pl;
             Title = title;
             Description = description;
@@ -109,6 +110,47 @@ namespace Application.Domain.Models
             return Result.Success(course);
         }
 
+
+        public static Result<Course> Create
+
+          (Guid author,
+            Guid id,
+           string pl,
+           string title,
+           string description,
+           int chapters,
+           int complexity,
+           Image? titleImage)
+        {
+            if (string.IsNullOrEmpty(pl) || pl.Length > MAX_LENGTH_PL)
+            {
+                return Result.Failure<Course>($"Язык программирования курса не может быть пустым и превышать {MAX_LENGTH_PL} символов");
+            }
+
+            if (string.IsNullOrEmpty(title) || title.Length > MAX_LENGTH_TITLE)
+            {
+                return Result.Failure<Course>($"Заголовок курса не может быть пустым и превышать {MAX_LENGTH_TITLE} символов");
+            }
+
+            if (string.IsNullOrEmpty(description) || description.Length > MAX_LENGTH_DESCRIPTION)
+            {
+                return Result.Failure<Course>($"Описание курса не может быть пустым и превышать {MAX_LENGTH_DESCRIPTION} символов");
+            }
+
+            if (chapters < MIN_COMPLEXITY_AND_CHAPTERS)
+            {
+                return Result.Failure<Course>($"Кол-во заданий в курсе должно быть больше 0");
+            }
+
+            if (complexity < MIN_COMPLEXITY_AND_CHAPTERS || complexity > MAX_COMPLEXITY)
+            {
+                return Result.Failure<Course>($"Сложность курса выходит за диапозон от {MIN_COMPLEXITY_AND_CHAPTERS} по {MAX_COMPLEXITY}");
+            }
+
+            Course course = new Course(author, id, pl, title, description, chapters, complexity, titleImage);
+
+            return Result.Success(course);
+        }
 
 
 

@@ -1,5 +1,4 @@
 ﻿using ApplicationUsers.Domain.Interface;
-using ApplicationUsers.Infrastructure;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,7 +12,7 @@ namespace ApplicationUsers.Infrastructure
         private readonly MailSettings _settings;
         private readonly ILogger _logger;
 
-        public MailService(ILogger<MailSettings> logger,IOptions<MailSettings> settings)
+        public MailService(ILogger<MailSettings> logger, IOptions<MailSettings> settings)
         {
             _logger = logger;
             _settings = settings.Value;
@@ -28,7 +27,7 @@ namespace ApplicationUsers.Infrastructure
 
                 #region Sender / Receiver
 
-                mail.From.Add(new MailboxAddress(_settings.DisplayName,  _settings.From)); // от кого
+                mail.From.Add(new MailboxAddress(_settings.DisplayName, _settings.From)); // от кого
                 mail.To.Add(MailboxAddress.Parse(mailData.To)); // кому 
 
                 #endregion
@@ -163,7 +162,7 @@ namespace ApplicationUsers.Infrastructure
 </body>
 </html>
 ";
-               
+
                 mail.Body = body.ToMessageBody(); //конвертирует BodyBuilder в MimeEntity, который может быть присвоен свойству Body объекта MimeMessage
 
                 #endregion
@@ -179,7 +178,7 @@ namespace ApplicationUsers.Infrastructure
                         client.Authenticate(_settings.UserName, _settings.Password);
 
                         await client.SendAsync(mail);
-                        _logger.Log(LogLevel.Information,"ГЫЫЫЫЫЫЫЫЫЫЫЫЫ");
+                        _logger.Log(LogLevel.Information, "ГЫЫЫЫЫЫЫЫЫЫЫЫЫ");
                     }
                     catch (Exception e)
                     {
@@ -203,6 +202,6 @@ namespace ApplicationUsers.Infrastructure
             }
         }
 
-     
+
     }
 }

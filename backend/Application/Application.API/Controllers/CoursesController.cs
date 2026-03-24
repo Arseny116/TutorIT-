@@ -153,10 +153,13 @@ namespace Application.API.Controllers
             return Ok(courseId);
         }
 
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<Guid>> DeleteCourse(Guid id)
         {
-            return Ok(await _coursesService.DeleteCourse(id));
+            var userId = Guid.Parse(User.Claims.ToList()[0].Value);
+
+            return Ok(await _coursesService.DeleteCourse(id,userId));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Application.Domain.Interface.ICourse;
 using Application.Domain.Models;
 using Application.Infrastructure.Entities;
+using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Infrastructure.Repositories
@@ -25,6 +26,7 @@ namespace Application.Infrastructure.Repositories
             foreach (var entity in courseEntity)
             {
                 var result = Course.Create(
+                    userId,
                     entity.Id,
                     entity.Pl,
                     entity.Title,
@@ -52,6 +54,7 @@ namespace Application.Infrastructure.Repositories
 
             var result = Course.Create
              (
+                userId,
                 entity.Id,
                 entity.Pl,
                 entity.Title,
@@ -71,6 +74,7 @@ namespace Application.Infrastructure.Repositories
             {
                 Id = course.Id,
                 Pl = course.Pl,
+                AuthorId = course.AuthorId,
                 Title = course.Title,
                 Description = course.Description,
                 TitleImage = course.TitleImage,
@@ -100,9 +104,10 @@ namespace Application.Infrastructure.Repositories
             return id;
         }
 
-        public async Task<Guid> Delete(Guid id)
+        public async Task<Guid> Delete(Guid id, Guid user_id)
         {
-            await _context.Courses.Where(c => c.Id == id).ExecuteDeleteAsync();
+
+            await _context.Courses.Where(c => c.Id == id && c.AuthorId == user_id).ExecuteDeleteAsync();
 
             return id;
         }
