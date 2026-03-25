@@ -9,14 +9,6 @@ namespace Application.Infrastructure.Entities
         {
 
         }
-        public ChapterEntity(string name, string description, int numberTheoryBloks, int numberTasks)
-        {
-            Id = Guid.NewGuid();
-            Name = name;
-            Description = description;
-            NumberTheoryBloks = numberTheoryBloks;
-            NumberTasks = numberTasks;
-        }
 
         /// <summary>
         /// Id раздела

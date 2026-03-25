@@ -16,12 +16,13 @@ namespace Application.Infrastructure.Repositories
 
         public async Task<List<Chapter>> Get(Guid CourseId)
         {
-            var chaptersEntity = await _context.Chapters.Where(x=> x.CourseID ==CourseId).AsNoTracking().ToListAsync();
+            var chaptersEntity = await _context.Chapters.Where(x => x.CourseID == CourseId).AsNoTracking().ToListAsync();
 
             var chapters = new List<Chapter>();
+
             foreach (var entity in chaptersEntity)
             {
-                var result = Chapter.Create(entity.Id ,entity.Name, entity.Description, entity.NumberTheoryBloks, entity.NumberTasks);
+                var result = Chapter.Create(entity.Id, entity.Name, entity.Description, entity.NumberTheoryBloks, entity.NumberTasks);
 
                 if (result.IsSuccess)
                 {
@@ -36,11 +37,12 @@ namespace Application.Infrastructure.Repositories
         {
             var chapterEntity = new ChapterEntity
             {
+                Id = chapter.Id,
                 Name = chapter.Name,
                 Description = chapter.Description,
                 NumberTheoryBloks = chapter.NumberTheoryBloks,
                 NumberTasks = chapter.NumberTasks,
-                CourseID=Coursesid 
+                CourseID = Coursesid
             };
 
             await _context.Chapters.AddAsync(chapterEntity);

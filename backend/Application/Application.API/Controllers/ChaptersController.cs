@@ -41,7 +41,7 @@ namespace Application.API.Controllers
 
         [Authorize]
         [HttpPost("{CourseId:guid}")]
-        public async Task<ActionResult<Guid>> CreateChapter(Guid CourseId,[FromBody] ChaptersRequest request)
+        public async Task<ActionResult<Guid>> CreateChapter(Guid CourseId, [FromBody] ChaptersRequest request)
         {
             var chapterDomain = Chapter.Create(
                 request.Name,
@@ -49,9 +49,7 @@ namespace Application.API.Controllers
                 request.NumberTheoryBloks,
                 request.NumberTasks);
 
-            await _chaptersService.CreateChapter(CourseId, chapterDomain.Value);
-
-            return Ok(CourseId);//Заменить на DTO 
+           return  Ok( await _chaptersService.CreateChapter(CourseId, chapterDomain.Value));
         }
 
 
@@ -60,7 +58,8 @@ namespace Application.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Guid>> UpdateChapter(Guid id, [FromBody] ChaptersRequest request)
         {
-            var chapterId = await _chaptersService.UpdateChapter(
+            var chapterId = await _chaptersService.UpdateChapter
+                (
                 id,
                 request.Name,
                 request.Description,
