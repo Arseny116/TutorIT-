@@ -12,7 +12,7 @@ namespace ApplicationUsers.Infrastructure
         private readonly MailSettings _settings;
         private readonly ILogger _logger;
 
-        public MailService(ILogger<MailSettings> logger, IOptions<MailSettings> settings)
+        public MailService(ILogger<MailService> logger, IOptions<MailSettings> settings)
         {
             _logger = logger;
             _settings = settings.Value;
@@ -22,21 +22,18 @@ namespace ApplicationUsers.Infrastructure
         {
             try
             {
-                // Initialize a new instance of the MimeKit.MimeMessage class
                 var mail = new MimeMessage();
 
                 #region Sender / Receiver
-
-                mail.From.Add(new MailboxAddress(_settings.DisplayName, _settings.From)); // от кого
-                mail.To.Add(MailboxAddress.Parse(mailData.To)); // кому 
-
+                mail.From.Add(new MailboxAddress(_settings.DisplayName, _settings.From));
+                mail.To.Add(MailboxAddress.Parse(mailData.To));
                 #endregion
 
                 #region Content
+                mail.Subject = mailData.Subject;
 
                 var body = new BodyBuilder();
-                mail.Subject = mailData.Subject; // заголовок
-                body.TextBody = $"Здравствуйте!\n\nБлагодарим вас за регистрацию на платформе TutorIt. Мы очень рады приветствовать вас в нашем сообществе!\n";
+                body.TextBody = "Здравствуйте!\n\nБлагодарим вас за регистрацию на платформе TutorIt. Мы очень рады приветствовать вас в нашем сообществе!\n";
                 body.HtmlBody = @"
 <!DOCTYPE html>
 <html>
@@ -142,14 +139,6 @@ namespace ApplicationUsers.Infrastructure
             <p>Благодарим вас за регистрацию на платформе <strong>TutorIt</strong>. Мы очень рады приветствовать вас в нашем сообществе!</p>
             
             <p>TutorIt — это пространство, где обучение становится доступным, увлекательным и результативным. Здесь вы найдете лучших преподавателей и удобные инструменты для занятий.</p>
-                       
-            <table cellpadding=""0"" cellspacing=""0"" align=""center"" width=""100%"">
-                <tr>
-                    <td align=""center"">
-             
-                    </td>
-                </tr>
-            </table>
             
             <p style=""font-size:14px; color:#999999; margin-top:25px;"">Если у вас есть вопросы, просто ответьте на это письмо — мы всегда на связи!</p>
         </div>
@@ -163,45 +152,46 @@ namespace ApplicationUsers.Infrastructure
 </html>
 ";
 
-                mail.Body = body.ToMessageBody(); //конвертирует BodyBuilder в MimeEntity, который может быть присвоен свойству Body объекта MimeMessage
-
+                mail.Body = body.ToMessageBody();
                 #endregion
 
                 #region Send Mail
-
                 using (var client = new SmtpClient())
                 {
                     try
                     {
-                        await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.SslOnConnect);
-                        client.AuthenticationMechanisms.Remove("XOAUTH2");
-                        client.Authenticate(_settings.UserName, _settings.Password);
+                        client.Timeout = 10000;
+
+                        // Для порта 2525 используем обычное подключение без SSL/TLS
+                        // или с STARTTLS если сервер поддерживает
+                        await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.None);
+
+                        // Аутентификация
+                        await client.AuthenticateAsync(_settings.UserName, _settings.Password);
 
                         await client.SendAsync(mail);
-                        _logger.Log(LogLevel.Information, "ГЫЫЫЫЫЫЫЫЫЫЫЫЫ");
+
+                        _logger.LogInformation("Письмо успешно отправлено на {Email}", mailData.To);
+                        return true;
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine(e);
-                        throw;
+                        _logger.LogError(ex, "Ошибка при отправке письма на {Email}", mailData.To);
+                        return false;
                     }
                     finally
                     {
-                        await client.DisconnectAsync(true);
-                        client.Dispose();
+                        if (client.IsConnected)
+                            await client.DisconnectAsync(true);
                     }
                 }
-
                 #endregion
-
-                return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Ошибка при формировании письма");
                 return false;
             }
         }
-
-
     }
 }
