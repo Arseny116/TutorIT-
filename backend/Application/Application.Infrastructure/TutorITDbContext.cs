@@ -1,18 +1,19 @@
-﻿using System.Collections.Concurrent;
+﻿using Application.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Application.Infrastructure
 {
     public class TutorITDbContext : DbContext
     {
         private readonly IConfiguration _configuration;
+
         public TutorITDbContext(IConfiguration configuration)
         {
             _configuration = configuration;
         }
+
+
 
         //Скрываем логику создания DB контекста
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -23,6 +24,17 @@ namespace Application.Infrastructure
 
 
 
-        //public DbSet<{сущность}> {Имя сужности};
+        //public DbSet<{сущность}> {Имя сущности};
+    
+
+        public DbSet<CourseEntity> Courses { get; set; }
+
+        public DbSet<ChapterEntity> Chapters { get; set; }
+
+        public DbSet<TheoryEntity> Theories { get; set; }
+
+        public DbSet<TaskCreatorEntity> TasksCreator { get; set; }
+
+        public DbSet<QuestionEntity> Questions { get; set; }
     }
 }

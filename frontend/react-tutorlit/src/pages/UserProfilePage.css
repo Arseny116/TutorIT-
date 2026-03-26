@@ -361,11 +361,11 @@
         align-items: center;
         padding: 1.5rem;
     }
-
+    
     .avatar-actions {
         justify-content: center;
     }
-
+    
     .avatar-hint {
         text-align: center;
     }
@@ -373,39 +373,39 @@
     .courses-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .avatar-image,
     .avatar-placeholder {
         width: 140px;
         height: 140px;
     }
-
+    
     .avatar-initials {
         font-size: 56px;
     }
-
+    
     .avatar-overlay {
         width: 36px;
         height: 36px;
         font-size: 20px;
         border-radius: 10px;
     }
-
+    
     .profile-header {
         flex-direction: column;
         text-align: center;
     }
-
+    
     .profile-header h1 {
         font-size: 1.8rem;
     }
-
-    .personal-data h2,
-    .my-courses h2,
+    
+    .personal-data h2, 
+    .my-courses h2, 
     .enrolled-courses h2 {
         font-size: 1.3rem;
     }
-
+    
     .avatar-modal-close {
         top: -35px;
         right: -35px;
@@ -413,12 +413,12 @@
         height: 35px;
         font-size: 24px;
     }
-
+    
     .avatar-modal-image {
         max-width: 85vw;
         max-height: 70vh;
     }
-
+    
     .avatar-modal-name {
         font-size: 1rem;
         margin-top: 15px;
@@ -432,11 +432,11 @@
         height: 120px;
         border-radius: 12px;
     }
-
+    
     .avatar-initials {
         font-size: 48px;
     }
-
+    
     .avatar-overlay {
         width: 32px;
         height: 32px;
@@ -445,21 +445,21 @@
         bottom: 8px;
         right: 8px;
     }
-
+    
     .avatar-change-btn {
         padding: 8px 20px;
         font-size: 14px;
     }
-
+    
     .data-card p strong {
         width: 80px;
         font-size: 14px;
     }
-
+    
     .data-card p {
         font-size: 14px;
     }
-
+    
     .avatar-modal-close {
         top: -30px;
         right: -30px;
@@ -467,7 +467,7 @@
         height: 30px;
         font-size: 20px;
     }
-
+    
     .avatar-modal-image {
         max-width: 90vw;
         max-height: 60vh;

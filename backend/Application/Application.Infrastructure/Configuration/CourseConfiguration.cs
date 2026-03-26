@@ -10,11 +10,15 @@ namespace Application.Infrastructure.Configuration
         {
             builder.HasKey(x => x.Id);
 
+            builder.Property(pl => pl.Pl).IsRequired();
+
             builder.Property(t => t.Title).IsRequired();
 
             builder.Property(d => d.Description).IsRequired();
 
-            builder.Property(t => t.Tasks).IsRequired();
+            builder.Property(t => t.Chapters).IsRequired();
+
+            builder.Property(c => c.Complexity).IsRequired();
         }
     }
 }

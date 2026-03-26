@@ -1,28 +1,39 @@
-﻿using Application.Domain.Interface;
+﻿using Application.Domain.Interface.ICourse;
 using Application.Domain.Models;
-using Application.Infrastructure.DataBase;
 using Application.Infrastructure.Entities;
+using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Infrastructure.Repositories
 {
     public class CoursesRepository : ICoursesRepository
     {
-        private readonly CourseDbContext _context;
+        private readonly TutorITDbContext _context;
 
-        public CoursesRepository(CourseDbContext context)
+        public CoursesRepository(TutorITDbContext context)
         {
             _context = context;
         }
 
-        public async Task<List<Course>> Get()
+        public async Task<List<Course>> Get(Guid userId)
         {
-            var courseEntity = await _context.Courses.AsNoTracking().ToListAsync();
+            var courseEntity = await _context.Courses
+                .Include(c => c.TitleImage)
+                .AsNoTracking()
+                .ToListAsync();
 
             var courses = new List<Course>();
             foreach (var entity in courseEntity)
             {
-                var result = Course.Create(entity.Id, entity.Title, entity.Description, entity.Tasks);
+                var result = Course.Create(
+                    userId,
+                    entity.Id,
+                    entity.Pl,
+                    entity.Title,
+                    entity.Description,
+                    entity.Chapters,
+                    entity.Complexity,
+                    entity.TitleImage);
 
                 if (result.IsSuccess)
                 {
@@ -33,17 +44,45 @@ namespace Application.Infrastructure.Repositories
             return courses;
         }
 
+        public async Task<Course> GetById(Guid id, Guid userId)
+        {
+            var entity = await _context.Courses
+                .Include(c => c.TitleImage)
+                .AsNoTracking()
+                .SingleAsync(x => x.Id == id);
+
+
+            var result = Course.Create
+             (
+                userId,
+                entity.Id,
+                entity.Pl,
+                entity.Title,
+                entity.Description,
+                entity.Chapters,
+                entity.Complexity,
+                entity.TitleImage);
+
+            return result.Value;
+
+        }
+
+
         public async Task<Guid> Create(Course course)
         {
             var courseEntity = new CourseEntity
             {
                 Id = course.Id,
+                Pl = course.Pl,
+                AuthorId = course.AuthorId,
                 Title = course.Title,
                 Description = course.Description,
+                TitleImage = course.TitleImage,
                 Evaluation = course.Evaluation,
                 Reviews = course.Reviews,
                 Subscribe = course.Subscribe,
-                Tasks = course.Tasks
+                Chapters = course.Chapters,
+                Complexity = course.Сomplexity
             };
 
             await _context.Courses.AddAsync(courseEntity);
@@ -52,20 +91,23 @@ namespace Application.Infrastructure.Repositories
             return courseEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string title, string description, int tasks)
+        public async Task<Guid> Update(Guid id, string pl, string title, string description, int chapters, int complexity)
         {
             await _context.Courses.Where(c => c.Id == id)
                 .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.Pl, p => pl)
                 .SetProperty(t => t.Title, t => title)
                 .SetProperty(d => d.Description, d => description)
-                .SetProperty(t => t.Tasks, t => tasks));
+                .SetProperty(t => t.Chapters, t => chapters)
+                .SetProperty(c => c.Complexity, c => complexity));
 
             return id;
         }
 
-        public async Task<Guid> Delete(Guid id)
+        public async Task<Guid> Delete(Guid id, Guid user_id)
         {
-            await _context.Courses.Where(c => c.Id == id).ExecuteDeleteAsync();
+
+            await _context.Courses.Where(c => c.Id == id && c.AuthorId == user_id).ExecuteDeleteAsync();
 
             return id;
         }

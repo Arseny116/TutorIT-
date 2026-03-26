@@ -144,9 +144,9 @@ function UserProfilePage() {
                 <div className="avatar-container">
                     {avatarPreview ? (
                         <div className="avatar-wrapper">
-                            <img
-                                src={avatarPreview}
-                                alt="Аватар"
+                            <img 
+                                src={avatarPreview} 
+                                alt="Аватар" 
                                 className="avatar-image"
                                 onClick={handleAvatarImageClick}
                                 style={{ cursor: 'pointer' }}
@@ -198,7 +198,7 @@ function UserProfilePage() {
                             <div key={course.id} className="course-card-mini created">
                                 <h3>{course.title}</h3>
                                 <p>{course.pl}</p>
-                                <button
+                                <button 
                                     className="btn-continue"
                                     onClick={() => handleContinueCourse(course.id)}
                                 >
@@ -220,7 +220,7 @@ function UserProfilePage() {
                             <div key={course.id} className="course-card-mini enrolled">
                                 <h3>{course.title}</h3>
                                 <p>{course.pl}</p>
-                                <button
+                                <button 
                                     className="btn-continue"
                                     onClick={() => handleContinueCourse(course.id)}
                                 >
@@ -238,10 +238,10 @@ function UserProfilePage() {
                 <div className="avatar-modal" onClick={closeModal}>
                     <div className="avatar-modal-content" onClick={(e) => e.stopPropagation()}>
                         <button className="avatar-modal-close" onClick={closeModal}>×</button>
-                        <img
-                            src={avatarPreview}
-                            alt="Увеличенный аватар"
-                            className="avatar-modal-image"
+                        <img 
+                            src={avatarPreview} 
+                            alt="Увеличенный аватар" 
+                            className="avatar-modal-image" 
                         />
                         <p className="avatar-modal-name">{user.name}</p>
                     </div>
