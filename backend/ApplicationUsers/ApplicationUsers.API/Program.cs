@@ -39,7 +39,11 @@ namespace ApplicationUsers
             builder.Services.AddScoped<IJwtProvider, JwtProvider>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Увеличить время
+                options.SlidingExpiration = true; // Продлевать при активности
+            });
             // Регистрируем для DI
             builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(nameof(JwtOptions)));
 
@@ -56,15 +60,15 @@ namespace ApplicationUsers
           options.TokenValidationParameters = new TokenValidationParameters
           {
               ValidateIssuer = false,
-             // ValidIssuer = jwtOptions.ValidIssuer,
+              // ValidIssuer = jwtOptions.ValidIssuer,
               ValidateAudience = false,
-     
+
               ValidateLifetime = true,
               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
               ValidateIssuerSigningKey = true,
           };
 
-    
+
           options.Events = new JwtBearerEvents
           {
               OnMessageReceived = context =>
@@ -79,9 +83,9 @@ namespace ApplicationUsers
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.AllowAnyOrigin()      
-                          .AllowAnyMethod()     
-                          .AllowAnyHeader();     
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
                 });
             });
 
@@ -90,18 +94,26 @@ namespace ApplicationUsers
 
             var app = builder.Build();
 
+
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationUserDB>();
                 await context.Database.MigrateAsync();
             }
-   
+
 
 
             app.UseCors("AllowAll");
 
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Your API V1");
+
+
+                c.ConfigObject.AdditionalItems["withCredentials"] = true;
+
+            });
             app.MapOpenApi();
 
             app.UseAuthentication();

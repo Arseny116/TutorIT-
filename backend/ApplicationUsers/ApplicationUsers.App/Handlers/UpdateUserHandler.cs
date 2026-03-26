@@ -27,7 +27,7 @@ namespace ApplicationUsers.App.Handlers
         }
         public async Task Handle(UpdateUserForeginCourseCommand request, CancellationToken cancellationToken)
         {
-            await _userRepository.UpdateMyCourse(request.guid_user, request.guid_foregin_course);
+            await _userRepository.UpdateForeginCourse(request.guid_user, request.guid_foregin_course);
         }
     }
 
