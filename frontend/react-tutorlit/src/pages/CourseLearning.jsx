@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import './CourseLearning.css';
 
+const API_BASE_URL = 'http://94.103.85.168:8080';
+
 function CourseLearning() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -21,6 +23,30 @@ function CourseLearning() {
   const [currentTheoryIndex, setCurrentTheoryIndex] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [cleanedCourseId, setCleanedCourseId] = useState('');
+  const [error, setError] = useState('');
+
+  const [modalImage, setModalImage] = useState(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    return `${API_BASE_URL}/${imagePath}`;
+  };
+
+  const openImageModal = (imageUrl) => {
+    setModalImage(imageUrl);
+    setIsImageModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeImageModal = () => {
+    setIsImageModalOpen(false);
+    setModalImage(null);
+    document.body.style.overflow = 'unset';
+  };
 
   useEffect(() => {
     if (courseId) {
@@ -32,11 +58,54 @@ function CourseLearning() {
   useEffect(() => {
     if (cleanedCourseId) {
       loadCourseData();
+      loadProgress();
     }
   }, [cleanedCourseId]);
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        closeImageModal();
+      }
+    };
+    if (isImageModalOpen) {
+      document.addEventListener('keydown', handleEsc);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [isImageModalOpen]);
+
+  const loadProgress = () => {
+    try {
+      const savedProgress = localStorage.getItem(`course-progress-${cleanedCourseId}`);
+      if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        setCompletedSections(progress.completedSections || []);
+        setTotalScore(progress.totalScore || 0);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки прогресса:', error);
+    }
+  };
+
+  const saveProgress = () => {
+    try {
+      const progressData = {
+        courseId: cleanedCourseId,
+        completedSections: completedSections,
+        totalScore: totalScore,
+        lastAccessed: new Date().toISOString()
+      };
+      localStorage.setItem(`course-progress-${cleanedCourseId}`, JSON.stringify(progressData));
+    } catch (error) {
+      console.error('Ошибка сохранения прогресса:', error);
+    }
+  };
+
   const loadCourseData = async () => {
     setIsLoading(true);
+    setError('');
 
     try {
       const token = authService.getToken();
@@ -45,24 +114,24 @@ function CourseLearning() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`/api/v1/Courses/${cleanedCourseId}`, {
+      const courseResponse = await fetch(`/api/v1/Courses/${cleanedCourseId}`, {
         method: 'GET',
         headers: headers,
         credentials: 'include'
       });
 
-      if (response.status === 401) {
+      if (courseResponse.status === 401) {
         authService.logout();
         alert('Сессия истекла. Пожалуйста, войдите заново.');
         navigate('/');
         return;
       }
 
-      if (!response.ok) {
+      if (!courseResponse.ok) {
         throw new Error('Курс не найден');
       }
 
-      const courseData = await response.json();
+      const courseData = await courseResponse.json();
       console.log('Загружен курс:', courseData);
 
       setCourse({
@@ -72,84 +141,186 @@ function CourseLearning() {
         sections: courseData.chapters || 0,
         difficulty: courseData.complexity || 1,
         language: courseData.pl || 'Не указан',
-        titleImage: courseData.titleImage || null
+        titleImage: getImageUrl(courseData.titleImage)
       });
 
-      // Загружаем разделы
       const chaptersResponse = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
         method: 'GET',
         headers: headers,
         credentials: 'include'
       });
 
-      if (chaptersResponse.ok) {
-        const chaptersData = await chaptersResponse.json();
-        console.log('Загружены разделы:', chaptersData);
+      if (!chaptersResponse.ok) {
+        throw new Error('Не удалось загрузить разделы');
+      }
 
-        const loadedSections = chaptersData.map((chapter, index) => {
-          // Обрабатываем теории
-          let theoriesArray = [];
-          if (chapter.theories && Array.isArray(chapter.theories)) {
-            theoriesArray = chapter.theories.map((theory, theoryIndex) => ({
-              id: theory.id,
-              name: theory.name || `Теория ${theoryIndex + 1}`,
-              article: theory.article || 'Теоретический материал',
-              imagePreview: theory.titleImage?.fileName ? `/images/${theory.titleImage.fileName}` : null,
-              index: theoryIndex
-            }));
-          }
+      let chaptersData = await chaptersResponse.json();
+      console.log('Загружены разделы (chaptersData):', chaptersData);
 
-          // Обрабатываем задания
-          let tasksArray = [];
-          if (chapter.tasks && Array.isArray(chapter.tasks)) {
-            tasksArray = chapter.tasks.map((task, taskIndex) => {
-              let correctAnswerIndex = 0;
-              let answers = [];
+      let chapters = Array.isArray(chaptersData) ? chaptersData : (chaptersData.$values || chaptersData);
+      console.log('Разделы после обработки:', chapters);
 
-              if (task.questions && Array.isArray(task.questions)) {
-                answers = task.questions.map(q => q.name);
-                const correctIndex = task.questions.findIndex(q => q.answer === true);
-                if (correctIndex !== -1) correctAnswerIndex = correctIndex;
+      const loadedSections = [];
+
+      for (const chapter of chapters) {
+        const chapterId = chapter.id || chapter.$id;
+        console.log('Обработка раздела:', chapterId);
+
+        let theoriesArray = [];
+        console.log(`Загружаем теории для раздела ${chapterId}...`);
+
+        try {
+          const theoriesResponse = await fetch(`/api/v1/Theories?CharterId=${chapterId}`, {
+            method: 'GET',
+            headers: headers,
+            credentials: 'include'
+          });
+
+          console.log(`Теории ответ: ${theoriesResponse.status}`);
+
+          if (theoriesResponse.ok) {
+            let theoriesData = await theoriesResponse.json();
+            console.log('Теории данные (сырые):', theoriesData);
+
+            let theories = Array.isArray(theoriesData) ? theoriesData : (theoriesData.$values || []);
+            console.log('Теории после обработки:', theories);
+
+            theoriesArray = theories.map((theory, index) => {
+              let imageUrl = null;
+              if (theory.titleImage) {
+                if (typeof theory.titleImage === 'string') {
+                  imageUrl = getImageUrl(theory.titleImage);
+                } else if (theory.titleImage.fileName) {
+                  imageUrl = getImageUrl(theory.titleImage.fileName);
+                }
               }
 
               return {
-                id: task.id,
-                name: task.name || `Задание ${taskIndex + 1}`,
-                description: task.description || 'Описание задания',
-                hint: task.hint || '',
-                imagePreview: task.titleImage?.fileName ? `/images/${task.titleImage.fileName}` : null,
-                answers: answers.length > 0 ? answers : ['Вариант 1', 'Вариант 2', 'Вариант 3', 'Вариант 4'],
-                correctAnswerIndex: correctAnswerIndex
+                id: theory.id || theory.$id,
+                name: theory.name || `Теория ${index + 1}`,
+                article: theory.article || 'Теоретический материал',
+                imagePreview: imageUrl,
+                index: index
               };
             });
+            console.log(`Загружено теорий: ${theoriesArray.length}`);
           }
-
-          return {
-            id: chapter.id,
-            name: chapter.name || `Раздел ${index + 1}`,
-            description: chapter.description || 'Описание раздела',
-            sectionNumber: index + 1,
-            theoryCount: chapter.numberTheoryBloks || 0,
-            theories: theoriesArray,
-            tasks: tasksArray,
-            completed: false,
-            progress: 0
-          };
-        });
-
-        setSections(loadedSections);
-
-        // Загружаем сохраненный прогресс
-        const savedProgress = localStorage.getItem(`course-progress-${cleanedCourseId}`);
-        if (savedProgress) {
-          const progress = JSON.parse(savedProgress);
-          setCompletedSections(progress.completedSections || []);
-          setTotalScore(progress.totalScore || 0);
+        } catch (err) {
+          console.error('Ошибка загрузки теорий:', err);
         }
+
+        let tasksArray = [];
+        console.log(`Загружаем задания для раздела ${chapterId}...`);
+
+        try {
+          const tasksResponse = await fetch(`/api/v1/TasksCreators/${chapterId}`, {
+            method: 'GET',
+            headers: headers,
+            credentials: 'include'
+          });
+
+          console.log(`Задания ответ: ${tasksResponse.status}`);
+
+          if (tasksResponse.ok) {
+            let tasksData = await tasksResponse.json();
+            console.log('Задания данные (сырые):', tasksData);
+
+            let tasks = Array.isArray(tasksData) ? tasksData : (tasksData.$values || []);
+            console.log('Задания после обработки:', tasks);
+
+            for (const task of tasks) {
+              let answers = [];
+              let correctAnswerIndex = 0;
+
+              let imageUrl = null;
+              if (task.titleImage) {
+                if (typeof task.titleImage === 'string') {
+                  imageUrl = getImageUrl(task.titleImage);
+                } else if (task.titleImage.fileName) {
+                  imageUrl = getImageUrl(task.titleImage.fileName);
+                }
+              }
+
+              if (task.questions && Array.isArray(task.questions) && task.questions.length > 0) {
+                answers = task.questions.map(q => q.name);
+                const correctIndex = task.questions.findIndex(q => q.answer === true);
+                if (correctIndex !== -1) correctAnswerIndex = correctIndex;
+                console.log(`Вопросы из задания:`, answers);
+
+                tasksArray.push({
+                  id: task.id || task.$id,
+                  name: task.name || `Задание ${tasksArray.length + 1}`,
+                  description: task.description || 'Описание задания',
+                  hint: task.hint || '',
+                  imagePreview: imageUrl,
+                  answers: answers,
+                  correctAnswerIndex: correctAnswerIndex
+                });
+              } else {
+                console.log(`Загружаем вопросы для задания ${task.id}...`);
+                try {
+                  const questionsResponse = await fetch(`/api/v1/Questions?TaskCreater=${task.id}`, {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'include'
+                  });
+
+                  console.log(`Вопросы ответ: ${questionsResponse.status}`);
+
+                  if (questionsResponse.ok) {
+                    let questionsData = await questionsResponse.json();
+                    console.log('Вопросы данные:', questionsData);
+                    let questions = Array.isArray(questionsData) ? questionsData : (questionsData.$values || []);
+                    answers = questions.map(q => q.name);
+                    const correctIndex = questions.findIndex(q => q.answer === true);
+                    if (correctIndex !== -1) correctAnswerIndex = correctIndex;
+                    console.log(`Загружено вопросов: ${answers.length}`);
+                  }
+                } catch (err) {
+                  console.error('Ошибка загрузки вопросов:', err);
+                }
+
+                tasksArray.push({
+                  id: task.id || task.$id,
+                  name: task.name || `Задание ${tasksArray.length + 1}`,
+                  description: task.description || 'Описание задания',
+                  hint: task.hint || '',
+                  imagePreview: imageUrl,
+                  answers: answers.length > 0 ? answers : ['Вариант 1', 'Вариант 2', 'Вариант 3', 'Вариант 4'],
+                  correctAnswerIndex: correctAnswerIndex
+                });
+              }
+            }
+
+            console.log(`Загружено заданий: ${tasksArray.length}`);
+            if (tasksArray.length > 0) {
+              console.log('Первое задание:', tasksArray[0]);
+            }
+          }
+        } catch (err) {
+          console.error('Ошибка загрузки заданий:', err);
+        }
+
+        console.log(`Раздел "${chapter.name}": теории=${theoriesArray.length}, задания=${tasksArray.length}`);
+
+        loadedSections.push({
+          id: chapterId,
+          name: chapter.name || `Раздел ${loadedSections.length + 1}`,
+          description: chapter.description || 'Описание раздела',
+          sectionNumber: loadedSections.length + 1,
+          theoryCount: theoriesArray.length,
+          theories: theoriesArray,
+          tasks: tasksArray,
+          completed: false
+        });
       }
+
+      setSections(loadedSections);
+      console.log('Загружено разделов:', loadedSections.length);
 
     } catch (error) {
       console.error('Ошибка загрузки курса:', error);
+      setError(error.message);
       setCourse(null);
     } finally {
       setIsLoading(false);
@@ -168,10 +339,12 @@ function CourseLearning() {
   };
 
   const handleNextTheory = () => {
-    if (currentSection && currentTheoryIndex < currentSection.theoryCount - 1) {
+    if (currentSection && currentTheoryIndex < (currentSection.theories?.length || 0) - 1) {
       setCurrentTheoryIndex(prev => prev + 1);
-    } else {
+    } else if (currentSection?.tasks?.length > 0) {
       handleStartTasks();
+    } else {
+      handleCompleteSection();
     }
   };
 
@@ -184,12 +357,29 @@ function CourseLearning() {
   };
 
   const handleStartTasks = () => {
-    if (currentSection) {
+    if (currentSection && currentSection.tasks.length > 0) {
       setCurrentStep('task');
       setCurrentTaskIndex(0);
       setSelectedAnswer(null);
       setShowAnswerResult(false);
       setShowHint(false);
+    } else {
+      handleCompleteSection();
+    }
+  };
+
+  const handleCompleteSection = () => {
+    if (!completedSections.includes(currentSection.id)) {
+      const newCompleted = [...completedSections, currentSection.id];
+      setCompletedSections(newCompleted);
+      saveProgress();
+    }
+
+    const currentIndex = sections.findIndex(s => s.id === currentSection.id);
+    if (currentIndex < sections.length - 1) {
+      handleSelectSection(sections[currentIndex + 1]);
+    } else {
+      setCurrentStep('courseComplete');
     }
   };
 
@@ -218,31 +408,18 @@ function CourseLearning() {
         setShowAnswerResult(false);
         setShowHint(false);
       } else {
-        setCurrentStep('results');
+        const newTotalScore = totalScore + score + (isCorrect ? 1 : 0);
+        setTotalScore(newTotalScore);
 
         if (!completedSections.includes(currentSection.id)) {
-          setCompletedSections(prev => [...prev, currentSection.id]);
-          setTotalScore(prev => prev + score);
-
-          // Сохраняем прогресс локально (только для удобства, можно и без этого)
+          const newCompleted = [...completedSections, currentSection.id];
+          setCompletedSections(newCompleted);
           saveProgress();
         }
+
+        setCurrentStep('sectionComplete');
       }
     }, 1500);
-  };
-
-  const saveProgress = () => {
-    try {
-      const progressData = {
-        courseId: cleanedCourseId,
-        completedSections: [...completedSections, currentSection.id],
-        totalScore: totalScore + score,
-        lastAccessed: new Date().toISOString()
-      };
-      localStorage.setItem(`course-progress-${cleanedCourseId}`, JSON.stringify(progressData));
-    } catch (error) {
-      console.error('Ошибка сохранения прогресса:', error);
-    }
   };
 
   const handleNextTask = () => {
@@ -252,7 +429,7 @@ function CourseLearning() {
       setShowAnswerResult(false);
       setShowHint(false);
     } else {
-      setCurrentStep('results');
+      handleCompleteSection();
     }
   };
 
@@ -314,13 +491,13 @@ function CourseLearning() {
     );
   }
 
-  if (!course) {
+  if (error || !course) {
     return (
         <div className="course-learning">
           <div className="learning-container">
             <div className="learning-content">
               <h2>Курс не найден</h2>
-              <p>Курс с ID {cleanedCourseId} не существует.</p>
+              <p>{error || `Курс с ID ${cleanedCourseId} не существует.`}</p>
               <button
                   className="nav-btn back"
                   onClick={() => navigate('/courses')}
@@ -335,6 +512,7 @@ function CourseLearning() {
   }
 
   const currentTheory = currentSection?.theories?.[currentTheoryIndex];
+  const currentTask = currentSection?.tasks?.[currentTaskIndex];
 
   return (
       <div className="course-learning">
@@ -348,9 +526,10 @@ function CourseLearning() {
             </div>
             <div className="learning-progress">
               {currentStep === 'sections' && 'Выбор раздела'}
-              {currentStep === 'theory' && `Теория ${currentTheoryIndex + 1} из ${currentSection?.theoryCount || 1}`}
+              {currentStep === 'theory' && `Теория ${currentTheoryIndex + 1} из ${currentSection?.theories?.length || 0}`}
               {currentStep === 'task' && `Задание ${currentTaskIndex + 1} из ${currentSection?.tasks?.length || 0}`}
-              {currentStep === 'results' && 'Результаты'}
+              {currentStep === 'sectionComplete' && 'Раздел завершен'}
+              {currentStep === 'courseComplete' && 'Курс завершен'}
             </div>
           </header>
 
@@ -368,43 +547,35 @@ function CourseLearning() {
                                 maxHeight: '200px',
                                 borderRadius: '12px',
                                 objectFit: 'cover',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                cursor: 'pointer'
                               }}
+                              onClick={() => openImageModal(course.titleImage)}
                           />
                         </div>
                     )}
                     <h2>Выберите раздел для изучения</h2>
                     <p>{sections.length} разделов доступно</p>
-                    {completedSections.length > 0 && (
-                        <p className="progress-info">
-                          Завершено: {completedSections.length}/{sections.length} разделов
-                        </p>
-                    )}
                   </div>
 
                   <div className="sections-grid">
-                    {sections.map((section, index) => (
+                    {sections.map((section) => (
                         <div
                             key={section.id}
-                            className={`section-card ${completedSections.includes(section.id) ? 'completed' : ''}`}
+                            className="section-card"
                             onClick={() => handleSelectSection(section)}
                         >
-                          <h3>
-                            {section.name}
-                            {completedSections.includes(section.id) && (
-                                <span className="completed-badge">✓</span>
-                            )}
-                          </h3>
+                          <h3>{section.name}</h3>
                           <p className="section-description">{section.description}</p>
                           <div className="section-meta">
                       <span className="meta-item">
-                        {section.theoryCount} теорий
+                        {section.theories?.length || 0} теорий
                       </span>
                             <span className="meta-item">
                         {section.tasks?.length || 0} заданий
                       </span>
                             <span className="meta-item">
-                        Раздел {index + 1}
+                        Раздел {section.sectionNumber}
                       </span>
                           </div>
                         </div>
@@ -427,7 +598,7 @@ function CourseLearning() {
                     <h2>{currentSection.name}</h2>
                     <p className="theory-description">{currentSection.description}</p>
                     <div className="theory-progress">
-                      Теория {currentTheoryIndex + 1} из {currentSection.theoryCount}
+                      Теория {currentTheoryIndex + 1} из {currentSection.theories?.length || 0}
                     </div>
                   </div>
 
@@ -440,7 +611,14 @@ function CourseLearning() {
                                 <img
                                     src={currentTheory.imagePreview}
                                     alt={currentTheory.name}
-                                    style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', margin: '15px 0' }}
+                                    style={{
+                                      maxWidth: '100%',
+                                      maxHeight: '300px',
+                                      borderRadius: '8px',
+                                      margin: '15px 0',
+                                      cursor: 'pointer'
+                                    }}
+                                    onClick={() => openImageModal(currentTheory.imagePreview)}
                                 />
                               </div>
                           )}
@@ -458,13 +636,13 @@ function CourseLearning() {
                       {currentTheoryIndex === 0 ? '← Назад к разделам' : '← Предыдущая теория'}
                     </button>
                     <button className="nav-btn next" onClick={handleNextTheory}>
-                      {currentTheoryIndex < currentSection.theoryCount - 1 ? 'Следующая теория →' : 'К заданиям →'}
+                      {currentTheoryIndex < (currentSection.theories?.length || 0) - 1 ? 'Следующая теория →' : 'К заданиям →'}
                     </button>
                   </div>
                 </div>
             )}
 
-            {currentStep === 'task' && currentSection && currentSection.tasks && currentSection.tasks[currentTaskIndex] && (
+            {currentStep === 'task' && currentTask && (
                 <div className="tasks-screen">
                   <div className="task-navigation">
                     <button className="nav-btn back" onClick={handleBackToTheory}>
@@ -476,20 +654,27 @@ function CourseLearning() {
                   </div>
 
                   <div className="task-content">
-                    <h3>{currentSection.tasks[currentTaskIndex].name}</h3>
-                    <p className="task-question">{currentSection.tasks[currentTaskIndex].description}</p>
+                    <h3>{currentTask.name}</h3>
+                    <p className="task-question">{currentTask.description}</p>
 
-                    {currentSection.tasks[currentTaskIndex].imagePreview && (
+                    {currentTask.imagePreview && (
                         <div className="task-image" style={{ textAlign: 'center', margin: '15px 0' }}>
                           <img
-                              src={currentSection.tasks[currentTaskIndex].imagePreview}
+                              src={currentTask.imagePreview}
                               alt="Изображение задания"
-                              style={{ maxWidth: '100%', maxHeight: '250px', borderRadius: '8px', border: '1px solid #ddd' }}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '250px',
+                                borderRadius: '8px',
+                                border: '1px solid #ddd',
+                                cursor: 'pointer'
+                              }}
+                              onClick={() => openImageModal(currentTask.imagePreview)}
                           />
                         </div>
                     )}
 
-                    {currentSection.tasks[currentTaskIndex].hint && (
+                    {currentTask.hint && (
                         <div className="task-hint">
                           <button
                               onClick={toggleHint}
@@ -515,18 +700,18 @@ function CourseLearning() {
                                 borderLeft: '4px solid #ffc107',
                                 fontSize: '14px'
                               }}>
-                                {currentSection.tasks[currentTaskIndex].hint}
+                                {currentTask.hint}
                               </div>
                           )}
                         </div>
                     )}
 
                     <div className="answers-list">
-                      {currentSection.tasks[currentTaskIndex].answers?.map((answer, index) => {
+                      {currentTask.answers?.map((answer, index) => {
                         let answerClass = 'answer-item';
                         if (selectedAnswer === index) answerClass += ' selected';
                         if (showAnswerResult) {
-                          if (index === currentSection.tasks[currentTaskIndex].correctAnswerIndex) {
+                          if (index === currentTask.correctAnswerIndex) {
                             answerClass += ' correct';
                           } else if (selectedAnswer === index) {
                             answerClass += ' incorrect';
@@ -535,7 +720,7 @@ function CourseLearning() {
 
                         return (
                             <div
-                                key={`answer-${currentSection.tasks[currentTaskIndex].id}-${index}`}
+                                key={`answer-${currentTask.id}-${index}`}
                                 className={answerClass}
                                 onClick={() => handleSelectAnswer(index)}
                             >
@@ -567,14 +752,14 @@ function CourseLearning() {
                               className="nav-btn next"
                               onClick={handleNextTask}
                           >
-                            {currentTaskIndex < currentSection.tasks.length - 1 ? 'Далее →' : 'Результаты →'}
+                            {currentTaskIndex < currentSection.tasks.length - 1 ? 'Далее →' : 'Завершить раздел →'}
                           </button>
                       )}
                     </div>
 
                     {showAnswerResult && (
                         <div className="answer-feedback">
-                          {selectedAnswer === currentSection.tasks[currentTaskIndex].correctAnswerIndex
+                          {selectedAnswer === currentTask.correctAnswerIndex
                               ? '✅ Правильно!'
                               : '❌ Неправильно!'}
                         </div>
@@ -583,7 +768,7 @@ function CourseLearning() {
                 </div>
             )}
 
-            {currentStep === 'results' && currentSection && (
+            {currentStep === 'sectionComplete' && currentSection && (
                 <div className="results-screen">
                   <div className="results-content">
                     <h2>Раздел завершен!</h2>
@@ -595,7 +780,7 @@ function CourseLearning() {
                     </p>
 
                     <div className="section-stats">
-                      <p>Пройдено: {currentSection.theoryCount} теорий</p>
+                      <p>Пройдено: {currentSection.theories?.length || 0} теорий</p>
                     </div>
 
                     <div className="navigation-buttons">
@@ -617,8 +802,39 @@ function CourseLearning() {
                   </div>
                 </div>
             )}
+
+            {currentStep === 'courseComplete' && (
+                <div className="results-screen">
+                  <div className="results-content">
+                    <h2>Поздравляем! Курс пройден!</h2>
+                    <div className="results-score">
+                      {Math.round((totalScore / sections.reduce((sum, s) => sum + s.tasks.length, 0)) * 100)}%
+                    </div>
+                    <p className="results-message">
+                      Вы завершили курс!
+                    </p>
+
+                    <button
+                        className="nav-btn next"
+                        onClick={handleExitCourse}
+                        style={{ marginTop: '20px', width: '100%' }}
+                    >
+                      ← Вернуться к курсам
+                    </button>
+                  </div>
+                </div>
+            )}
           </div>
         </div>
+
+        {isImageModalOpen && modalImage && (
+            <div className="image-modal" onClick={closeImageModal}>
+              <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+                <button className="image-modal-close" onClick={closeImageModal}>×</button>
+                <img src={modalImage} alt="Увеличенное изображение" className="image-modal-img" />
+              </div>
+            </div>
+        )}
       </div>
   );
 }
