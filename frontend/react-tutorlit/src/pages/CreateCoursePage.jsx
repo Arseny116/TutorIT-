@@ -110,15 +110,7 @@ function CreateCoursePage() {
       const courseId = responseText.replace(/["'\s]/g, '').trim();
       console.log('Курс создан на сервере, ID курса:', courseId);
 
-      // Привязываем курс к пользователю
-      const userId = authService.getUserId();
-      if (userId && token) {
-        try {
-          await authService.addCreatedCourse(userId, courseId);
-        } catch (bindError) {
-          console.warn('Ошибка привязки курса:', bindError);
-        }
-      }
+
 
       navigate(`/course/${courseId}`);
 

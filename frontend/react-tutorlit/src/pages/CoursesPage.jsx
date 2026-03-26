@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 import './CoursesPage.css';
+
+const API_BASE_URL = 'http://94.103.85.168:8080';
 
 function CoursesPage() {
   const [selectedLanguages, setSelectedLanguages] = useState([]);
@@ -15,6 +18,14 @@ function CoursesPage() {
     'Go', 'Swift', 'Kotlin', 'TypeScript', 'Rust', 'Scala'
   ];
 
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    return `${API_BASE_URL}/${imagePath}`;
+  };
+
   useEffect(() => {
     loadCourses();
   }, []);
@@ -26,76 +37,89 @@ function CoursesPage() {
 
       console.log('Загружаем курсы с API...');
 
-      let apiCourses = [];
-
-      try {
-        const response = await fetch('/api/v1/Courses/GetAllCourses', {
-          method: 'GET',
-          headers: {
-            'accept': 'text/plain'
-          }
-        });
-
-        if (response.ok) {
-          const coursesData = await response.json();
-          if (Array.isArray(coursesData)) {
-            apiCourses = coursesData;
-            console.log(`✅ Успешно загружено ${apiCourses.length} курсов`);
-          } else {
-            throw new Error('API вернул некорректный формат данных');
-          }
-        } else {
-          throw new Error(`API вернул ${response.status}`);
-        }
-      } catch (error) {
-        console.log('Ошибка загрузки с API:', error.message);
-        setApiError({
-          message: 'Не удалось загрузить курсы с сервера',
-          details: error.message
-        });
+      const token = authService.getToken();
+      const headers = { 'accept': 'text/plain' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const formattedCourses = apiCourses
-          .filter(course => course && course.id)
-          .map(course => ({
-            id: course.id,
-            title: course.title || 'Без названия',
-            description: course.description || 'Описание отсутствует',
-            sections: course.chapters || 0,
-            difficulty: course.complexity || 1,
-            language: course.pl || 'Не указан',
-            pl: course.pl,
-            isFromAPI: true,
-            titleImage: course.titleImage || null,
-            evaluation: course.evaluation || 0,
-            subscribe: course.subscribe || 0,
-            reviews: course.reviews || []
-          }));
+      const response = await fetch('/api/v1/Courses/GetAllCourses', {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include'
+      });
 
-      const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
-          .filter(course => !course.isFromAPI)
-          .map(course => ({
-            ...course,
-            isFromAPI: false
-          }));
+      if (response.status === 401) {
+        authService.logout();
+        alert('Сессия истекла. Пожалуйста, войдите заново.');
+        navigate('/');
+        return;
+      }
 
-      const allCourses = [...formattedCourses, ...localCourses];
+      if (response.ok) {
+        let coursesData = await response.json();
+        console.log('Загружены курсы (сырые):', coursesData);
 
-      setCourses(allCourses);
+        let coursesList = Array.isArray(coursesData) ? coursesData : (coursesData.$values || []);
+
+        // Фильтруем тестовые курсы
+        const filteredCourses = coursesList.filter(course => {
+          if (!course || !course.id) return false;
+          if (!course.title) return false;
+          // Убираем тестовые курсы с названием "string"
+          if (course.title === 'string') return false;
+          if (course.pl === 'string') return false;
+          return true;
+        });
+
+        console.log(`Курсы после фильтрации: ${filteredCourses.length}`);
+
+        const formattedCourses = filteredCourses.map(course => ({
+          id: course.id,
+          title: course.title,
+          description: course.description || 'Описание отсутствует',
+          sections: course.chapters || 0,
+          difficulty: course.complexity || 1,
+          language: course.pl,
+          isFromAPI: true,
+          titleImage: getImageUrl(course.titleImage)
+        }));
+
+        // Загружаем локальные курсы (только реальные, не тестовые)
+        const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
+            .filter(course => {
+              if (!course || !course.id) return false;
+              if (!course.title) return false;
+              if (course.title === 'string') return false;
+              return true;
+            })
+            .map(course => ({
+              ...course,
+              isFromAPI: false,
+              titleImage: course.titleImage || null
+            }));
+
+        // Объединяем и убираем дубликаты по id
+        const allCourses = [...formattedCourses, ...localCourses];
+        const uniqueCourses = allCourses.filter((course, index, self) =>
+            index === self.findIndex(c => c.id === course.id)
+        );
+
+        setCourses(uniqueCourses);
+        console.log(`✅ Отображается ${uniqueCourses.length} курсов`);
+      } else {
+        throw new Error(`API вернул ${response.status}`);
+      }
 
     } catch (error) {
       console.error('❌ Ошибка загрузки курсов:', error);
-
-      const savedCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
-          .filter(course => !course.isFromAPI);
-
-      setCourses(savedCourses);
-
       setApiError({
         message: 'Не удалось загрузить курсы с сервера',
-        details: 'Используются локальные курсы'
+        details: error.message
       });
-
+      const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
+          .filter(course => course && course.title && course.title !== 'string');
+      setCourses(localCourses);
     } finally {
       setIsLoading(false);
     }
@@ -104,11 +128,16 @@ function CoursesPage() {
   const handleDeleteCourse = async (courseId, isFromAPI = false) => {
     if (isFromAPI) {
       try {
+        const token = authService.getToken();
+        const headers = { 'accept': 'text/plain' };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`/api/v1/Courses/${courseId}`, {
           method: 'DELETE',
-          headers: {
-            'accept': 'text/plain'
-          }
+          headers: headers,
+          credentials: 'include'
         });
 
         if (!response.ok) {
@@ -121,12 +150,6 @@ function CoursesPage() {
         alert('Ошибка при удалении курса с сервера');
         return;
       }
-    }
-
-    if (!isFromAPI) {
-      const existingCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-      const updatedCourses = existingCourses.filter(course => course.id !== courseId);
-      localStorage.setItem('tutorit-courses', JSON.stringify(updatedCourses));
     }
 
     setCourses(prev => prev.filter(course => course.id !== courseId));
@@ -267,11 +290,8 @@ function CoursesPage() {
                           <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
                       Сложность: {course.difficulty || 1}
                     </span>
-
-                          {course.isFromAPI ? (
+                          {course.isFromAPI && (
                               <span className="api-tag">Серверный</span>
-                          ) : (
-                              <span className="user-tag">Ваш курс</span>
                           )}
                         </div>
 

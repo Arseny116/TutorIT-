@@ -19,34 +19,38 @@ function UserProfilePage() {
     }, []);
 
     const loadUserData = async () => {
-        const savedUser = JSON.parse(localStorage.getItem('user-data'));
-        if (savedUser) {
-            setUser(savedUser);
-        }
-
         const userId = authService.getUserId();
+
         if (userId) {
             const userName = authService.getUserName();
             const userEmail = authService.getUserEmail();
             setUser({ name: userName, email: userEmail, id: userId });
 
+            // Загружаем аватар по ID пользователя
+            const avatarKey = `user-avatar-${userId}`;
+            const savedAvatar = localStorage.getItem(avatarKey);
+            if (savedAvatar) {
+                setAvatarPreview(savedAvatar);
+            }
+
+            // Загружаем созданные курсы
             const createdIds = JSON.parse(localStorage.getItem(`createdCourseIds-${userId}`) || '[]');
             const allCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-
-            // Убираем дубликаты по id
             const uniqueCreatedIds = [...new Set(createdIds)];
             const userCreatedCourses = allCourses.filter(course => uniqueCreatedIds.includes(course.id));
             setMyCourses(userCreatedCourses);
 
+            // Загружаем записанные курсы
             const enrolledIds = JSON.parse(localStorage.getItem(`enrolledCourseIds-${userId}`) || '[]');
             const uniqueEnrolledIds = [...new Set(enrolledIds)];
             const enrolledUserCourses = allCourses.filter(course => uniqueEnrolledIds.includes(course.id));
             setEnrolledCourses(enrolledUserCourses);
-        }
-
-        const savedAvatar = localStorage.getItem('user-avatar');
-        if (savedAvatar) {
-            setAvatarPreview(savedAvatar);
+        } else {
+            // Если нет пользователя, показываем гостя
+            const savedUser = JSON.parse(localStorage.getItem('user-data'));
+            if (savedUser) {
+                setUser(savedUser);
+            }
         }
     };
 
@@ -144,9 +148,9 @@ function UserProfilePage() {
                 <div className="avatar-container">
                     {avatarPreview ? (
                         <div className="avatar-wrapper">
-                            <img 
-                                src={avatarPreview} 
-                                alt="Аватар" 
+                            <img
+                                src={avatarPreview}
+                                alt="Аватар"
                                 className="avatar-image"
                                 onClick={handleAvatarImageClick}
                                 style={{ cursor: 'pointer' }}
@@ -198,7 +202,7 @@ function UserProfilePage() {
                             <div key={course.id} className="course-card-mini created">
                                 <h3>{course.title}</h3>
                                 <p>{course.pl}</p>
-                                <button 
+                                <button
                                     className="btn-continue"
                                     onClick={() => handleContinueCourse(course.id)}
                                 >
@@ -220,7 +224,7 @@ function UserProfilePage() {
                             <div key={course.id} className="course-card-mini enrolled">
                                 <h3>{course.title}</h3>
                                 <p>{course.pl}</p>
-                                <button 
+                                <button
                                     className="btn-continue"
                                     onClick={() => handleContinueCourse(course.id)}
                                 >
@@ -238,10 +242,10 @@ function UserProfilePage() {
                 <div className="avatar-modal" onClick={closeModal}>
                     <div className="avatar-modal-content" onClick={(e) => e.stopPropagation()}>
                         <button className="avatar-modal-close" onClick={closeModal}>×</button>
-                        <img 
-                            src={avatarPreview} 
-                            alt="Увеличенный аватар" 
-                            className="avatar-modal-image" 
+                        <img
+                            src={avatarPreview}
+                            alt="Увеличенный аватар"
+                            className="avatar-modal-image"
                         />
                         <p className="avatar-modal-name">{user.name}</p>
                     </div>

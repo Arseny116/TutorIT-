@@ -520,7 +520,7 @@ function CourseBuilder() {
           </div>
 
           <div className="form-group">
-            <label>Изображение (по желанию)</label>
+            <label>Изображение</label>
             <input
                 type="file"
                 accept="image/*"
@@ -742,7 +742,7 @@ function CourseBuilder() {
             </div>
 
             <div className="form-group">
-              <label>Изображение (по желанию)</label>
+              <label>Изображение</label>
               <input
                   type="file"
                   accept="image/*"
@@ -778,7 +778,7 @@ function CourseBuilder() {
             </div>
 
             <div className="form-group">
-              <label>Подсказка (по желанию)</label>
+              <label>Подсказка</label>
               <textarea
                   value={taskData.hint}
                   onChange={(e) => setTaskData(prev => ({...prev, hint: e.target.value}))}
