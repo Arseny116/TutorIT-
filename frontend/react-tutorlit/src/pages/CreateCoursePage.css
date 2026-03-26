@@ -43,6 +43,7 @@
   transition: all 0.3s ease;
   background: white;
   color: #333;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -75,6 +76,15 @@
   background-position: right 16px center;
   background-size: 12px;
   padding-right: 40px;
+}
+
+.form-group input[type="file"] {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.form-group input[type="file"]:disabled {
+  cursor: not-allowed;
 }
 
 .form-actions {
@@ -150,36 +160,36 @@
   .create-course-page {
     padding: 20px 15px;
   }
-  
+
   .create-course-page h1 {
     font-size: 28px;
     margin-bottom: 30px;
   }
-  
+
   .course-form {
     padding: 25px;
   }
-  
+
   .form-group {
     margin-bottom: 25px;
   }
-  
+
   .form-group label {
     font-size: 15px;
   }
-  
+
   .form-group input,
   .form-group textarea,
   .form-group select {
     padding: 12px 14px;
     font-size: 15px;
   }
-  
+
   .form-actions {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .btn-cancel,
   .btn-submit {
     width: 100%;

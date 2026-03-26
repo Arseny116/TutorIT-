@@ -1,27 +1,68 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../../services/authService';
 import './AuthModal.css';
 
-function AuthModal({ isOpen, onClose }) {
+function AuthModal({ isOpen, onClose, onSuccess }) {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     if (!isOpen) return null;
 
-    const handleAuthSubmit = (e) => {
+    const handleAuthSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setIsLoading(true);
 
-        // Сохраняем данные пользователя для профиля
-        const userData = {
-            name: isLogin ? 'Пользователь' : name,
-            email: email
-        };
-        localStorage.setItem('user-data', JSON.stringify(userData));
+        if (isLogin) {
+            // Вход
+            const result = await authService.login(email, password);
+            if (result.success) {
+                const userData = {
+                    name: authService.getUserName(),
+                    email: authService.getUserEmail()
+                };
+                localStorage.setItem('user-data', JSON.stringify(userData));
 
-        onClose();
-        navigate('/profile');
+                if (onSuccess) onSuccess();
+                onClose();
+                navigate('/profile');
+            } else {
+                setError(result.error || 'Ошибка входа');
+            }
+        } else {
+            // Регистрация
+            if (!name.trim()) {
+                setError('Введите ваше имя');
+                setIsLoading(false);
+                return;
+            }
+
+            const result = await authService.register(name, email, password);
+            if (result.success) {
+                // После успешной регистрации автоматически входим
+                const loginResult = await authService.login(email, password);
+                if (loginResult.success) {
+                    const userData = { name, email };
+                    localStorage.setItem('user-data', JSON.stringify(userData));
+
+                    if (onSuccess) onSuccess();
+                    onClose();
+                    navigate('/profile');
+                } else {
+                    setError('Регистрация успешна, но не удалось войти. Пожалуйста, войдите вручную.');
+                }
+            } else {
+                setError(result.error || 'Ошибка регистрации');
+            }
+        }
+
+        setIsLoading(false);
     };
 
     return (
@@ -29,9 +70,15 @@ function AuthModal({ isOpen, onClose }) {
             <div className="modal-content">
                 <button className="close-modal" onClick={onClose}>×</button>
                 <div className="auth-tabs">
-                    <button className={`auth-tab ${isLogin ? 'active' : ''}`} onClick={() => setIsLogin(true)}>Вход</button>
-                    <button className={`auth-tab ${!isLogin ? 'active' : ''}`} onClick={() => setIsLogin(false)}>Регистрация</button>
+                    <button className={`auth-tab ${isLogin ? 'active' : ''}`} onClick={() => { setIsLogin(true); setError(''); }}>
+                        Вход
+                    </button>
+                    <button className={`auth-tab ${!isLogin ? 'active' : ''}`} onClick={() => { setIsLogin(false); setError(''); }}>
+                        Регистрация
+                    </button>
                 </div>
+
+                {error && <div className="auth-error">{error}</div>}
 
                 <form className="auth-form" onSubmit={handleAuthSubmit}>
                     {!isLogin && (
@@ -41,6 +88,7 @@ function AuthModal({ isOpen, onClose }) {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
+                            disabled={isLoading}
                         />
                     )}
                     <input
@@ -49,10 +97,18 @@ function AuthModal({ isOpen, onClose }) {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={isLoading}
                     />
-                    <input type="password" placeholder="Пароль" required />
-                    <button type="submit" className="auth-submit">
-                        {isLogin ? 'Войти' : 'Зарегистрироваться'}
+                    <input
+                        type="password"
+                        placeholder="Пароль"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                    />
+                    <button type="submit" className="auth-submit" disabled={isLoading}>
+                        {isLoading ? 'Загрузка...' : (isLogin ? 'Войти' : 'Зарегистрироваться')}
                     </button>
                 </form>
             </div>
