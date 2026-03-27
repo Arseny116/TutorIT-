@@ -22,6 +22,30 @@ function CourseBuilder() {
   const [currentTheoryIndex, setCurrentTheoryIndex] = useState(0);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
 
+  // Состояния для модального окна подтверждения
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState(null);
+
+  const showConfirm = (message, onConfirm) => {
+    setConfirmMessage(message);
+    setConfirmAction(() => onConfirm);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      confirmAction();
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
   useEffect(() => {
     if (courseId) {
       const cleanId = courseId.replace(/^["']+|["']+$/g, '').trim();
@@ -109,7 +133,9 @@ function CourseBuilder() {
         if (currentTheoryIndex > 0) {
           setCurrentTheoryIndex(currentTheoryIndex - 1);
         } else {
-          setCurrentStep('section-details');
+          showConfirm('Все несохраненные изменения в текущем разделе будут потеряны. Продолжить?', () => {
+            setCurrentStep('section-details');
+          });
         }
         break;
 
@@ -117,28 +143,25 @@ function CourseBuilder() {
         if (currentTaskIndex > 0) {
           setCurrentTaskIndex(currentTaskIndex - 1);
         } else if (currentSection?.theory?.length > 0) {
-          setCurrentStep('theory');
-          setCurrentTheoryIndex(currentSection.theory.length - 1);
+          showConfirm('Все несохраненные изменения в текущем задании будут потеряны. Продолжить?', () => {
+            setCurrentStep('theory');
+            setCurrentTheoryIndex(currentSection.theory.length - 1);
+          });
         } else {
-          setCurrentStep('section-details');
+          showConfirm('Все несохраненные изменения в текущем разделе будут потеряны. Продолжить?', () => {
+            setCurrentStep('section-details');
+          });
         }
         break;
 
       case 'answers':
-        setCurrentStep('assignment');
+        showConfirm('Все несохраненные изменения в ответах будут потеряны. Продолжить?', () => {
+          setCurrentStep('assignment');
+        });
         break;
 
       case 'section-details':
-        if (sectionData.currentSectionIndex > 0) {
-          setSectionData(prev => ({
-            ...prev,
-            currentSectionIndex: prev.currentSectionIndex - 1
-          }));
-        } else {
-          if (window.confirm('Вернуться на страницу курса? Все несохраненные изменения будут потеряны.')) {
-            navigate(`/course/${cleanedCourseId}`);
-          }
-        }
+        // Кнопка "Назад" в разделе удалена, этот код не используется
         break;
 
       default:
@@ -162,7 +185,7 @@ function CourseBuilder() {
     }
   };
 
-  // SectionDetailsBuilder
+  // SectionDetailsBuilder (без кнопки "Назад")
   const SectionDetailsBuilder = () => {
     const currentSection = sectionData.sections[sectionData.currentSectionIndex];
 
@@ -353,13 +376,6 @@ function CourseBuilder() {
           </div>
 
           <div className="navigation-buttons">
-            <button
-                className="btn-back"
-                onClick={handleGoBack}
-                disabled={isLoading}
-            >
-              ← Назад
-            </button>
             <button
                 className="next-btn green-btn"
                 onClick={handleSaveSectionDetails}
@@ -1046,6 +1062,20 @@ function CourseBuilder() {
           {currentStep === 'assignment' && <AssignmentBuilder />}
           {currentStep === 'answers' && <AnswersBuilder />}
         </div>
+
+        {/* Модальное окно подтверждения */}
+        {showConfirmModal && (
+            <div className="confirm-modal-overlay" onClick={handleCancelConfirm}>
+              <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="confirm-icon">⚠️</div>
+                <p className="confirm-message">{confirmMessage}</p>
+                <div className="confirm-buttons">
+                  <button className="confirm-cancel" onClick={handleCancelConfirm}>Отмена</button>
+                  <button className="confirm-ok" onClick={handleConfirm}>Да, продолжить</button>
+                </div>
+              </div>
+            </div>
+        )}
       </div>
   );
 }

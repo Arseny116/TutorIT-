@@ -110,9 +110,27 @@ function CreateCoursePage() {
       const courseId = responseText.replace(/["'\s]/g, '').trim();
       console.log('Курс создан на сервере, ID курса:', courseId);
 
+      // Сохраняем курс в localStorage
+      const newCourse = {
+        id: courseId,
+        pl: selectedLanguage,
+        title: courseName.trim(),
+        description: description.trim(),
+        sections: parseInt(sectionsCount),
+        difficulty: parseInt(difficulty),
+        language: selectedLanguage,
+        titleImage: titleImagePreview || null,
+        sectionsData: [],
+        createdAt: new Date().toISOString(),
+        isFromAPI: true
+      };
 
+      const existingCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
+      existingCourses.push(newCourse);
+      localStorage.setItem('tutorit-courses', JSON.stringify(existingCourses));
 
-      navigate(`/course/${courseId}`);
+      // Сразу переходим к конструктору раздела, минуя страницу курса
+      navigate(`/course/${courseId}/builder`);
 
     } catch (error) {
       console.error('Ошибка создания курса:', error);
