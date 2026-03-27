@@ -60,7 +60,7 @@ services:
       - TZ=Europe/Moscow
       - JwtOptions__SecretKey=${JWT_SECRET_KEY}
       - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
-
+      - UsersService__BaseUrl=http://serverusers:8081/
     depends_on:
       dbcourses:
         condition: service_healthy

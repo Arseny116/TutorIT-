@@ -63,25 +63,72 @@ namespace ApplicationUsers.Infrastructure
         }
 
 
-
-        public async Task UpdateMyCourse(Guid user_res, Guid myCourse)
+        public async Task UpdateMyCourse(Guid userId, Guid courseId)
         {
-            var User = GetUserById(user_res).Result;
-            User.CreatedCourseIds.Add(myCourse);
-            _context.Users.Update(_mapper.Map<UserEntity>(User));
-            await _context.SaveChangesAsync();
-
+            await UpdateUserCourse(userId, courseId, "created");
         }
 
-
-        public async Task UpdateForeginCourse(Guid user_res, Guid foreginCourse)
+        public async Task UpdateForeignCourse(Guid userId, Guid courseId)
         {
-            var User = GetUserById(user_res).Result;
-            User.EnrolledCourseIds.Add(foreginCourse);
-            _logger.Log(LogLevel.Information,$"{User.EnrolledCourseIds.Count}" );
-            _context.Users.Update(_mapper.Map<UserEntity>(User));
-            await _context.SaveChangesAsync();
+            await UpdateUserCourse(userId, courseId, "enrolled");
+        }
 
+        private async Task UpdateUserCourse(Guid userId, Guid courseId, string courseType)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Получаем пользователя с отслеживанием
+                var userEntity = await _context.Users.FindAsync(userId);
+
+                if (userEntity == null)
+                {
+                    _logger.LogWarning("User {UserId} not found", userId);
+                    throw new KeyNotFoundException($"User with id {userId} not found");
+                }
+
+                // Определяем, в какой список добавлять
+                var targetList = courseType == "created"
+                    ? userEntity.CreatedCourseIds
+                    : userEntity.EnrolledCourseIds;
+
+                if (targetList == null)
+                {
+                    if (courseType == "created")
+                        userEntity.CreatedCourseIds = new List<Guid>();
+                    else
+                        userEntity.EnrolledCourseIds = new List<Guid>();
+
+                    targetList = courseType == "created"
+                        ? userEntity.CreatedCourseIds
+                        : userEntity.EnrolledCourseIds;
+                }
+
+                // Проверяем, не добавлен ли уже курс
+                if (targetList.Contains(courseId))
+                {
+                    _logger.LogInformation("Course {CourseId} already {Type} for user {UserId}",
+                        courseId, courseType, userId);
+                    return;
+                }
+
+                // Добавляем курс
+                targetList.Add(courseId);
+
+                _logger.LogInformation("Added {Type} course {CourseId} to user {UserId}",
+                    courseType, courseId, userId);
+
+                // Сохраняем изменения
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error updating {Type} course for user {UserId}", courseType, userId);
+                throw;
+            }
         }
 
 

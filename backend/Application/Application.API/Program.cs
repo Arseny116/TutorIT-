@@ -61,12 +61,7 @@ namespace Application.API
             var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
 
 
-
-            builder.Services.AddHttpClient("UserService", client =>
-            {
-                client.BaseAddress = new Uri("http://94.103.85.168/");
-            });
-
+            builder.Services.AddHttpClient();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
       .AddJwtBearer(options =>
       {

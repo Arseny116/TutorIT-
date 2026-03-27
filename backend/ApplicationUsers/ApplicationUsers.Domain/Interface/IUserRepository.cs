@@ -6,13 +6,14 @@ namespace ApplicationUsers.Infrastructure
     public interface IUserRepository
     {
 
-        Task UpdateMyCourse(Guid user_res, Guid myCourse);
+        Task UpdateForeignCourse(Guid userId, Guid courseId);
 
-        Task UpdateForeginCourse(Guid user_res, Guid foreginCourse);
+        Task UpdateMyCourse(Guid userId, Guid courseId);
 
         Task<User> GetUserById(Guid id);
         Task<Result<User>> GetUserByEmail(string email);
         Task<Result<Guid>> CreateUser(User user, CancellationToken cancellationToken);
         Task<List<User>> GetAllUser();
+     
     }
 }
