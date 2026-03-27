@@ -11,6 +11,9 @@ function CoursesPage() {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
+  const [userCreatedCourseIds, setUserCreatedCourseIds] = useState([]);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
   const navigate = useNavigate();
 
   const programmingLanguages = [
@@ -26,9 +29,26 @@ function CoursesPage() {
     return `${API_BASE_URL}/${imagePath}`;
   };
 
+  const showNotificationMessage = (message, isError = true) => {
+    setNotificationMessage(message);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 3000);
+  };
+
   useEffect(() => {
     loadCourses();
+    loadUserCourses();
   }, []);
+
+  const loadUserCourses = async () => {
+    const userId = authService.getUserId();
+    if (userId) {
+      // Используем localStorage для хранения ID созданных курсов
+      const createdIds = JSON.parse(localStorage.getItem(`createdCourseIds-${userId}`) || '[]');
+      setUserCreatedCourseIds(createdIds);
+      console.log('Загружены ID созданных курсов:', createdIds);
+    }
+  };
 
   const loadCourses = async () => {
     try {
@@ -51,8 +71,8 @@ function CoursesPage() {
 
       if (response.status === 401) {
         authService.logout();
-        alert('Сессия истекла. Пожалуйста, войдите заново.');
-        navigate('/');
+        showNotificationMessage('Сессия истекла. Пожалуйста, войдите заново.');
+        setTimeout(() => navigate('/'), 2000);
         return;
       }
 
@@ -102,6 +122,14 @@ function CoursesPage() {
   };
 
   const handleDeleteCourse = async (courseId) => {
+    // Проверяем, является ли пользователь создателем курса
+    const isCreator = userCreatedCourseIds.includes(courseId);
+
+    if (!isCreator) {
+      showNotificationMessage('❌ Только создатель курса может его удалить');
+      return;
+    }
+
     try {
       const token = authService.getToken();
       const headers = { 'accept': 'text/plain' };
@@ -120,13 +148,15 @@ function CoursesPage() {
       }
 
       console.log('Курс удален с сервера');
+      showNotificationMessage('✅ Курс успешно удален', false);
 
       // После успешного удаления перезагружаем список курсов
       await loadCourses();
+      await loadUserCourses();
 
     } catch (error) {
       console.error('Ошибка удаления курса:', error);
-      alert('Ошибка при удалении курса с сервера');
+      showNotificationMessage('❌ Ошибка при удалении курса');
     }
   };
 
@@ -232,53 +262,60 @@ function CoursesPage() {
 
             <div className="courses-grid">
               {filteredCourses.length > 0 ? (
-                  filteredCourses.map(course => (
-                      <div key={course.id} className="course-card">
-                        <div className="course-card-row">
-                          {course.titleImage ? (
-                              <img
-                                  src={course.titleImage}
-                                  alt={course.title}
-                                  className="course-thumbnail"
-                              />
-                          ) : (
-                              <div className="course-thumbnail-placeholder">
-                                📚
-                              </div>
-                          )}
-                          <h3 className="course-title">{course.title}</h3>
-                          <button
-                              className="delete-course-btn"
-                              onClick={() => handleDeleteCourse(course.id)}
-                              title="Удалить курс"
-                          >
-                            ×
-                          </button>
-                        </div>
+                  filteredCourses.map(course => {
+                    const isCreator = userCreatedCourseIds.includes(course.id);
 
-                        <div className="course-meta">
-                          <span className="language-tag">{course.language}</span>
-                          <span className="sections-tag">{course.sections} разделов</span>
-                          <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
-                      Сложность: {course.difficulty || 1}
-                    </span>
-                          <span className="api-tag">Серверный</span>
-                        </div>
+                    return (
+                        <div key={course.id} className="course-card">
+                          <div className="course-card-row">
+                            {course.titleImage ? (
+                                <img
+                                    src={course.titleImage}
+                                    alt={course.title}
+                                    className="course-thumbnail"
+                                />
+                            ) : (
+                                <div className="course-thumbnail-placeholder">
+                                  📚
+                                </div>
+                            )}
+                            <h3 className="course-title">{course.title}</h3>
+                            <button
+                                className="delete-course-btn"
+                                onClick={() => handleDeleteCourse(course.id)}
+                                title="Удалить курс"
+                            >
+                              ×
+                            </button>
+                          </div>
 
-                        <p className="course-description-preview">
-                          {course.description || 'Описание курса будет добавлено позже...'}
-                        </p>
+                          <div className="course-meta">
+                            <span className="language-tag">{course.language}</span>
+                            <span className="sections-tag">{course.sections} разделов</span>
+                            <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
+                        Сложность: {course.difficulty || 1}
+                      </span>
+                            <span className="api-tag">Серверный</span>
+                            {isCreator && (
+                                <span className="creator-tag">Создатель</span>
+                            )}
+                          </div>
 
-                        <div className="course-actions">
-                          <button
-                              className="take-course-btn"
-                              onClick={() => handleTakeCourse(course.id)}
-                          >
-                            🚀 Пройти курс
-                          </button>
+                          <p className="course-description-preview">
+                            {course.description || 'Описание курса будет добавлено позже...'}
+                          </p>
+
+                          <div className="course-actions">
+                            <button
+                                className="take-course-btn"
+                                onClick={() => handleTakeCourse(course.id)}
+                            >
+                              🚀 Пройти курс
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                  ))
+                    );
+                  })
               ) : (
                   <div className="no-courses">
                     <h3>Курсы не найдены</h3>
@@ -291,6 +328,15 @@ function CoursesPage() {
             </div>
           </main>
         </div>
+
+        {showNotification && (
+            <div className="notification-toast">
+              <div className="notification-content">
+                <span className="notification-icon">ℹ️</span>
+                <span className="notification-text">{notificationMessage}</span>
+              </div>
+            </div>
+        )}
       </div>
   );
 }

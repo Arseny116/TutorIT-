@@ -22,10 +22,13 @@ function CourseBuilder() {
   const [currentTheoryIndex, setCurrentTheoryIndex] = useState(0);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
 
-  // Состояния для модального окна подтверждения
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
   const [confirmAction, setConfirmAction] = useState(null);
+
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('error');
 
   const showConfirm = (message, onConfirm) => {
     setConfirmMessage(message);
@@ -44,6 +47,13 @@ function CourseBuilder() {
   const handleCancelConfirm = () => {
     setShowConfirmModal(false);
     setConfirmAction(null);
+  };
+
+  const showNotificationMessage = (message, type = 'error') => {
+    setNotificationMessage(message);
+    setNotificationType(type);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 4000);
   };
 
   useEffect(() => {
@@ -161,7 +171,6 @@ function CourseBuilder() {
         break;
 
       case 'section-details':
-        // Кнопка "Назад" в разделе удалена, этот код не используется
         break;
 
       default:
@@ -185,7 +194,7 @@ function CourseBuilder() {
     }
   };
 
-  // SectionDetailsBuilder (без кнопки "Назад")
+  // SectionDetailsBuilder
   const SectionDetailsBuilder = () => {
     const currentSection = sectionData.sections[sectionData.currentSectionIndex];
 
@@ -868,9 +877,20 @@ function CourseBuilder() {
     };
 
     const handleSaveAnswers = async () => {
-      if (answers.some(answer => !answer.trim())) {
-        setStatusMessage('Заполните все варианты ответов');
-        setTimeout(() => setStatusMessage(''), 3000);
+      // Проверка на пустые ответы
+      const emptyIndex = answers.findIndex(answer => !answer.trim());
+      if (emptyIndex !== -1) {
+        showNotificationMessage(`Заполните вариант ответа ${emptyIndex + 1}`, 'warning');
+        return;
+      }
+
+      // Проверка на дубликаты ответов
+      const lowerAnswers = answers.map(a => a.trim().toLowerCase());
+      const duplicates = lowerAnswers.filter((item, index) => lowerAnswers.indexOf(item) !== index);
+
+      if (duplicates.length > 0) {
+        const duplicateValues = [...new Set(duplicates)];
+        showNotificationMessage(`Варианты ответов не должны повторяться! Найдены дубликаты: "${duplicateValues.join('", "')}"`, 'error');
         return;
       }
 
@@ -922,7 +942,7 @@ function CourseBuilder() {
           sections: updatedSections
         }));
 
-        setStatusMessage('Все ответы успешно сохранены на сервере!');
+        showNotificationMessage('Все ответы успешно сохранены!', 'success');
 
         if (currentTaskIndex < currentSection.tasks.length - 1) {
           setCurrentTaskIndex(currentTaskIndex + 1);
@@ -934,8 +954,7 @@ function CourseBuilder() {
 
       } catch (error) {
         console.error('Ошибка сохранения ответов:', error);
-        setStatusMessage(`Ошибка: ${error.message}`);
-        setTimeout(() => setStatusMessage(''), 5000);
+        showNotificationMessage(`Ошибка: ${error.message}`, 'error');
       } finally {
         setIsLoading(false);
       }
@@ -970,6 +989,10 @@ function CourseBuilder() {
           <div className="answers-container">
             <h3>Добавьте варианты ответов</h3>
             <p className="hint">Отметьте правильный ответ (может быть только один)</p>
+
+            <p style={{ color: '#ff9800', fontSize: '12px', marginBottom: '15px' }}>
+              ⚠️ Варианты ответов должны быть уникальными
+            </p>
 
             {answers.map((answer, index) => (
                 <div key={index} className="answer-item-vertical">
@@ -1063,7 +1086,6 @@ function CourseBuilder() {
           {currentStep === 'answers' && <AnswersBuilder />}
         </div>
 
-        {/* Модальное окно подтверждения */}
         {showConfirmModal && (
             <div className="confirm-modal-overlay" onClick={handleCancelConfirm}>
               <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -1073,6 +1095,17 @@ function CourseBuilder() {
                   <button className="confirm-cancel" onClick={handleCancelConfirm}>Отмена</button>
                   <button className="confirm-ok" onClick={handleConfirm}>Да, продолжить</button>
                 </div>
+              </div>
+            </div>
+        )}
+
+        {showNotification && (
+            <div className={`notification-toast ${notificationType}`}>
+              <div className="notification-content">
+              <span className="notification-icon">
+                {notificationType === 'error' ? '⚠️' : notificationType === 'warning' ? 'ℹ️' : '✅'}
+              </span>
+                <span className="notification-text">{notificationMessage}</span>
               </div>
             </div>
         )}
