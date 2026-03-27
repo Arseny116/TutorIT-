@@ -728,3 +728,73 @@
     transform: scale(1);
   }
 }
+/* Уведомления */
+.notification-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  animation: slideUp 0.3s ease;
+}
+
+.notification-content {
+  background: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  border-left: 4px solid;
+}
+
+.notification-toast.error .notification-content {
+  border-left-color: #dc3545;
+  background: #fff5f5;
+  color: #c82333;
+}
+
+.notification-toast.warning .notification-content {
+  border-left-color: #ff9800;
+  background: #fff8e7;
+  color: #e68a00;
+}
+
+.notification-toast.success .notification-content {
+  border-left-color: #28a745;
+  background: #f0f9f0;
+  color: #1e7e34;
+}
+
+.notification-icon {
+  font-size: 20px;
+}
+
+.notification-text {
+  font-size: 14px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .notification-content {
+    padding: 10px 20px;
+    max-width: 90vw;
+  }
+
+  .notification-text {
+    font-size: 13px;
+  }
+}

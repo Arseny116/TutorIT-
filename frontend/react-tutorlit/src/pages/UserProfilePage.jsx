@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import './UserProfilePage.css';
 
+const API_BASE_URL = 'http://94.103.85.168:8080';
+
 function UserProfilePage() {
     const [myCourses, setMyCourses] = useState([]);
     const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -10,54 +12,86 @@ function UserProfilePage() {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
     const fileInputRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         loadUserData();
-        loadCourses();
     }, []);
 
+    const showNotificationMessage = (message) => {
+        setNotificationMessage(message);
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+    };
+
     const loadUserData = async () => {
+        setIsLoading(true);
+
+        try {
+            const token = authService.getToken();
+            const headers = { 'accept': 'text/plain' };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const userResponse = await fetch('/api/user', {
+                method: 'GET',
+                headers: headers,
+                credentials: 'include'
+            });
+
+            if (userResponse.ok) {
+                const userData = await userResponse.json();
+                console.log('Данные пользователя:', userData);
+
+                setUser({
+                    id: userData.id,
+                    name: userData.name,
+                    email: userData.email
+                });
+
+                const coursesResponse = await fetch('/api/v1/Courses/GetAllCourses', {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'include'
+                });
+
+                if (coursesResponse.ok) {
+                    let coursesData = await coursesResponse.json();
+                    let coursesList = Array.isArray(coursesData) ? coursesData : (coursesData.$values || []);
+
+                    const createdIds = userData.createdCourseIds || [];
+                    const userCreatedCourses = coursesList.filter(course =>
+                        createdIds.includes(course.id)
+                    );
+                    setMyCourses(userCreatedCourses);
+
+                    const enrolledIds = userData.enrolledCourseIds || [];
+                    const userEnrolledCourses = coursesList.filter(course =>
+                        enrolledIds.includes(course.id)
+                    );
+                    setEnrolledCourses(userEnrolledCourses);
+                }
+            } else if (userResponse.status === 401) {
+                setUser({ name: 'Гость', email: '-', id: null });
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+        } finally {
+            setIsLoading(false);
+        }
+
         const userId = authService.getUserId();
-
         if (userId) {
-            const userName = authService.getUserName();
-            const userEmail = authService.getUserEmail();
-            setUser({ name: userName, email: userEmail, id: userId });
-
-            // Загружаем аватар по ID пользователя
             const avatarKey = `user-avatar-${userId}`;
             const savedAvatar = localStorage.getItem(avatarKey);
             if (savedAvatar) {
                 setAvatarPreview(savedAvatar);
             }
-
-            // Загружаем созданные курсы
-            const createdIds = JSON.parse(localStorage.getItem(`createdCourseIds-${userId}`) || '[]');
-            const allCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-            const uniqueCreatedIds = [...new Set(createdIds)];
-            const userCreatedCourses = allCourses.filter(course => uniqueCreatedIds.includes(course.id));
-            setMyCourses(userCreatedCourses);
-
-            // Загружаем записанные курсы
-            const enrolledIds = JSON.parse(localStorage.getItem(`enrolledCourseIds-${userId}`) || '[]');
-            const uniqueEnrolledIds = [...new Set(enrolledIds)];
-            const enrolledUserCourses = allCourses.filter(course => uniqueEnrolledIds.includes(course.id));
-            setEnrolledCourses(enrolledUserCourses);
-        } else {
-            // Если нет пользователя, показываем гостя
-            const savedUser = JSON.parse(localStorage.getItem('user-data'));
-            if (savedUser) {
-                setUser(savedUser);
-            }
-        }
-    };
-
-    const loadCourses = () => {
-        const savedCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-        if (!authService.getUserId()) {
-            setMyCourses(savedCourses);
         }
     };
 
@@ -134,9 +168,28 @@ function UserProfilePage() {
         return name ? name.charAt(0).toUpperCase() : '?';
     };
 
-    const handleContinueCourse = (courseId) => {
-        navigate(`/learn/${courseId}`);
+    const handleEditCourse = () => {
+        showNotificationMessage('Редактирование курса будет реализовано позже');
     };
+
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            return imagePath;
+        }
+        return `${API_BASE_URL}/${imagePath}`;
+    };
+
+    if (isLoading) {
+        return (
+            <div className="user-profile-page">
+                <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="user-profile-page">
@@ -199,15 +252,41 @@ function UserProfilePage() {
                 {myCourses.length > 0 ? (
                     <div className="courses-grid">
                         {myCourses.map(course => (
-                            <div key={course.id} className="course-card-mini created">
-                                <h3>{course.title}</h3>
-                                <p>{course.pl}</p>
-                                <button
-                                    className="btn-continue"
-                                    onClick={() => handleContinueCourse(course.id)}
-                                >
-                                    Продолжить
-                                </button>
+                            <div key={course.id} className="course-card">
+                                <div className="course-card-row">
+                                    {course.titleImage ? (
+                                        <img
+                                            src={getImageUrl(course.titleImage)}
+                                            alt={course.title}
+                                            className="course-thumbnail"
+                                        />
+                                    ) : (
+                                        <div className="course-thumbnail-placeholder">
+                                            📚
+                                        </div>
+                                    )}
+                                    <h3 className="course-title">{course.title}</h3>
+                                    <button
+                                        className="edit-course-btn"
+                                        onClick={handleEditCourse}
+                                        title="Редактировать курс"
+                                    >
+                                        🔧
+                                    </button>
+                                </div>
+
+                                <div className="course-meta">
+                                    <span className="language-tag">{course.pl}</span>
+                                    <span className="sections-tag">{course.chapters || course.sections || 0} разделов</span>
+                                    <span className={`difficulty-tag difficulty-${course.complexity || course.difficulty || 1}`}>
+                                        Сложность: {course.complexity || course.difficulty || 1}
+                                    </span>
+                                    <span className="creator-tag">Создатель</span>
+                                </div>
+
+                                <p className="course-description-preview">
+                                    {course.description || 'Описание курса будет добавлено позже...'}
+                                </p>
                             </div>
                         ))}
                     </div>
@@ -221,20 +300,48 @@ function UserProfilePage() {
                 {enrolledCourses.length > 0 ? (
                     <div className="courses-grid">
                         {enrolledCourses.map(course => (
-                            <div key={course.id} className="course-card-mini enrolled">
-                                <h3>{course.title}</h3>
-                                <p>{course.pl}</p>
-                                <button
-                                    className="btn-continue"
-                                    onClick={() => handleContinueCourse(course.id)}
-                                >
-                                    Продолжить
-                                </button>
+                            <div key={course.id} className="course-card">
+                                <div className="course-card-row">
+                                    {course.titleImage ? (
+                                        <img
+                                            src={getImageUrl(course.titleImage)}
+                                            alt={course.title}
+                                            className="course-thumbnail"
+                                        />
+                                    ) : (
+                                        <div className="course-thumbnail-placeholder">
+                                            📚
+                                        </div>
+                                    )}
+                                    <h3 className="course-title">{course.title}</h3>
+                                </div>
+
+                                <div className="course-meta">
+                                    <span className="language-tag">{course.pl}</span>
+                                    <span className="sections-tag">{course.chapters || course.sections || 0} разделов</span>
+                                    <span className={`difficulty-tag difficulty-${course.complexity || course.difficulty || 1}`}>
+                                        Сложность: {course.complexity || course.difficulty || 1}
+                                    </span>
+                                    <span className="enrolled-tag">Записан</span>
+                                </div>
+
+                                <p className="course-description-preview">
+                                    {course.description || 'Описание курса будет добавлено позже...'}
+                                </p>
+
+                                <div className="course-actions">
+                                    <button
+                                        className="take-course-btn"
+                                        onClick={() => navigate(`/learn/${course.id}`)}
+                                    >
+                                        🚀 Пройти курс
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className="empty-text">Вы еще не записаны на курсы.</p>
+                    <p className="empty-text coming-soon">Функция записи на курсы будет реализована позже</p>
                 )}
             </section>
 
@@ -248,6 +355,15 @@ function UserProfilePage() {
                             className="avatar-modal-image"
                         />
                         <p className="avatar-modal-name">{user.name}</p>
+                    </div>
+                </div>
+            )}
+
+            {showNotification && (
+                <div className="notification-toast">
+                    <div className="notification-content">
+                        <span className="notification-icon">ℹ️</span>
+                        <span className="notification-text">{notificationMessage}</span>
                     </div>
                 </div>
             )}

@@ -110,26 +110,17 @@ function CreateCoursePage() {
       const courseId = responseText.replace(/["'\s]/g, '').trim();
       console.log('Курс создан на сервере, ID курса:', courseId);
 
-      // Сохраняем курс в localStorage
-      const newCourse = {
-        id: courseId,
-        pl: selectedLanguage,
-        title: courseName.trim(),
-        description: description.trim(),
-        sections: parseInt(sectionsCount),
-        difficulty: parseInt(difficulty),
-        language: selectedLanguage,
-        titleImage: titleImagePreview || null,
-        sectionsData: [],
-        createdAt: new Date().toISOString(),
-        isFromAPI: true
-      };
+      // Привязываем курс к пользователю через API
+      const userId = authService.getUserId();
+      if (userId && token) {
+        try {
+          await authService.addCreatedCourse(userId, courseId);
+          console.log('Курс привязан к пользователю');
+        } catch (bindError) {
+          console.warn('Ошибка привязки курса:', bindError);
+        }
+      }
 
-      const existingCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]');
-      existingCourses.push(newCourse);
-      localStorage.setItem('tutorit-courses', JSON.stringify(existingCourses));
-
-      // Сразу переходим к конструктору раздела, минуя страницу курса
       navigate(`/course/${courseId}/builder`);
 
     } catch (error) {
