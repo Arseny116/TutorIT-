@@ -62,11 +62,9 @@ function CoursesPage() {
 
         let coursesList = Array.isArray(coursesData) ? coursesData : (coursesData.$values || []);
 
-        // Фильтруем тестовые курсы
         const filteredCourses = coursesList.filter(course => {
           if (!course || !course.id) return false;
           if (!course.title) return false;
-          // Убираем тестовые курсы с названием "string"
           if (course.title === 'string') return false;
           if (course.pl === 'string') return false;
           return true;
@@ -85,28 +83,8 @@ function CoursesPage() {
           titleImage: getImageUrl(course.titleImage)
         }));
 
-        // Загружаем локальные курсы (только реальные, не тестовые)
-        const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
-            .filter(course => {
-              if (!course || !course.id) return false;
-              if (!course.title) return false;
-              if (course.title === 'string') return false;
-              return true;
-            })
-            .map(course => ({
-              ...course,
-              isFromAPI: false,
-              titleImage: course.titleImage || null
-            }));
-
-        // Объединяем и убираем дубликаты по id
-        const allCourses = [...formattedCourses, ...localCourses];
-        const uniqueCourses = allCourses.filter((course, index, self) =>
-            index === self.findIndex(c => c.id === course.id)
-        );
-
-        setCourses(uniqueCourses);
-        console.log(`✅ Отображается ${uniqueCourses.length} курсов`);
+        setCourses(formattedCourses);
+        console.log(`✅ Отображается ${formattedCourses.length} курсов`);
       } else {
         throw new Error(`API вернул ${response.status}`);
       }
@@ -117,42 +95,39 @@ function CoursesPage() {
         message: 'Не удалось загрузить курсы с сервера',
         details: error.message
       });
-      const localCourses = JSON.parse(localStorage.getItem('tutorit-courses') || '[]')
-          .filter(course => course && course.title && course.title !== 'string');
-      setCourses(localCourses);
+      setCourses([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDeleteCourse = async (courseId, isFromAPI = false) => {
-    if (isFromAPI) {
-      try {
-        const token = authService.getToken();
-        const headers = { 'accept': 'text/plain' };
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch(`/api/v1/Courses/${courseId}`, {
-          method: 'DELETE',
-          headers: headers,
-          credentials: 'include'
-        });
-
-        if (!response.ok) {
-          throw new Error(`Ошибка удаления: ${response.status}`);
-        }
-
-        console.log('Курс удален с сервера');
-      } catch (error) {
-        console.error('Ошибка удаления курса:', error);
-        alert('Ошибка при удалении курса с сервера');
-        return;
+  const handleDeleteCourse = async (courseId) => {
+    try {
+      const token = authService.getToken();
+      const headers = { 'accept': 'text/plain' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
-    }
 
-    setCourses(prev => prev.filter(course => course.id !== courseId));
+      const response = await fetch(`/api/v1/Courses/${courseId}`, {
+        method: 'DELETE',
+        headers: headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ошибка удаления: ${response.status}`);
+      }
+
+      console.log('Курс удален с сервера');
+
+      // После успешного удаления перезагружаем список курсов
+      await loadCourses();
+
+    } catch (error) {
+      console.error('Ошибка удаления курса:', error);
+      alert('Ошибка при удалении курса с сервера');
+    }
   };
 
   const handleBackToHome = () => {
@@ -193,9 +168,6 @@ function CoursesPage() {
         <header className="courses-header-nav">
           <button className="back-to-home-btn" onClick={handleBackToHome}>
             ← На главную
-          </button>
-          <button className="refresh-courses-btn" onClick={loadCourses} disabled={isLoading}>
-            🔄 Обновить
           </button>
         </header>
 
@@ -277,7 +249,7 @@ function CoursesPage() {
                           <h3 className="course-title">{course.title}</h3>
                           <button
                               className="delete-course-btn"
-                              onClick={() => handleDeleteCourse(course.id, course.isFromAPI)}
+                              onClick={() => handleDeleteCourse(course.id)}
                               title="Удалить курс"
                           >
                             ×
@@ -290,9 +262,7 @@ function CoursesPage() {
                           <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
                       Сложность: {course.difficulty || 1}
                     </span>
-                          {course.isFromAPI && (
-                              <span className="api-tag">Серверный</span>
-                          )}
+                          <span className="api-tag">Серверный</span>
                         </div>
 
                         <p className="course-description-preview">

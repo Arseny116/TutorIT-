@@ -132,8 +132,6 @@ function CourseLearning() {
       }
 
       const courseData = await courseResponse.json();
-      console.log('Загружен курс:', courseData);
-
       setCourse({
         id: courseData.id,
         title: courseData.title || 'Курс',
@@ -155,20 +153,15 @@ function CourseLearning() {
       }
 
       let chaptersData = await chaptersResponse.json();
-      console.log('Загружены разделы (chaptersData):', chaptersData);
-
       let chapters = Array.isArray(chaptersData) ? chaptersData : (chaptersData.$values || chaptersData);
-      console.log('Разделы после обработки:', chapters);
 
       const loadedSections = [];
 
       for (const chapter of chapters) {
         const chapterId = chapter.id || chapter.$id;
-        console.log('Обработка раздела:', chapterId);
 
+        // Загружаем теории
         let theoriesArray = [];
-        console.log(`Загружаем теории для раздела ${chapterId}...`);
-
         try {
           const theoriesResponse = await fetch(`/api/v1/Theories?CharterId=${chapterId}`, {
             method: 'GET',
@@ -176,14 +169,9 @@ function CourseLearning() {
             credentials: 'include'
           });
 
-          console.log(`Теории ответ: ${theoriesResponse.status}`);
-
           if (theoriesResponse.ok) {
             let theoriesData = await theoriesResponse.json();
-            console.log('Теории данные (сырые):', theoriesData);
-
             let theories = Array.isArray(theoriesData) ? theoriesData : (theoriesData.$values || []);
-            console.log('Теории после обработки:', theories);
 
             theoriesArray = theories.map((theory, index) => {
               let imageUrl = null;
@@ -203,15 +191,13 @@ function CourseLearning() {
                 index: index
               };
             });
-            console.log(`Загружено теорий: ${theoriesArray.length}`);
           }
         } catch (err) {
           console.error('Ошибка загрузки теорий:', err);
         }
 
+        // Загружаем задания
         let tasksArray = [];
-        console.log(`Загружаем задания для раздела ${chapterId}...`);
-
         try {
           const tasksResponse = await fetch(`/api/v1/TasksCreators/${chapterId}`, {
             method: 'GET',
@@ -219,14 +205,9 @@ function CourseLearning() {
             credentials: 'include'
           });
 
-          console.log(`Задания ответ: ${tasksResponse.status}`);
-
           if (tasksResponse.ok) {
             let tasksData = await tasksResponse.json();
-            console.log('Задания данные (сырые):', tasksData);
-
             let tasks = Array.isArray(tasksData) ? tasksData : (tasksData.$values || []);
-            console.log('Задания после обработки:', tasks);
 
             for (const task of tasks) {
               let answers = [];
@@ -245,7 +226,6 @@ function CourseLearning() {
                 answers = task.questions.map(q => q.name);
                 const correctIndex = task.questions.findIndex(q => q.answer === true);
                 if (correctIndex !== -1) correctAnswerIndex = correctIndex;
-                console.log(`Вопросы из задания:`, answers);
 
                 tasksArray.push({
                   id: task.id || task.$id,
@@ -257,7 +237,6 @@ function CourseLearning() {
                   correctAnswerIndex: correctAnswerIndex
                 });
               } else {
-                console.log(`Загружаем вопросы для задания ${task.id}...`);
                 try {
                   const questionsResponse = await fetch(`/api/v1/Questions?TaskCreater=${task.id}`, {
                     method: 'GET',
@@ -265,16 +244,12 @@ function CourseLearning() {
                     credentials: 'include'
                   });
 
-                  console.log(`Вопросы ответ: ${questionsResponse.status}`);
-
                   if (questionsResponse.ok) {
                     let questionsData = await questionsResponse.json();
-                    console.log('Вопросы данные:', questionsData);
                     let questions = Array.isArray(questionsData) ? questionsData : (questionsData.$values || []);
                     answers = questions.map(q => q.name);
                     const correctIndex = questions.findIndex(q => q.answer === true);
                     if (correctIndex !== -1) correctAnswerIndex = correctIndex;
-                    console.log(`Загружено вопросов: ${answers.length}`);
                   }
                 } catch (err) {
                   console.error('Ошибка загрузки вопросов:', err);
@@ -291,17 +266,10 @@ function CourseLearning() {
                 });
               }
             }
-
-            console.log(`Загружено заданий: ${tasksArray.length}`);
-            if (tasksArray.length > 0) {
-              console.log('Первое задание:', tasksArray[0]);
-            }
           }
         } catch (err) {
           console.error('Ошибка загрузки заданий:', err);
         }
-
-        console.log(`Раздел "${chapter.name}": теории=${theoriesArray.length}, задания=${tasksArray.length}`);
 
         loadedSections.push({
           id: chapterId,
@@ -316,7 +284,6 @@ function CourseLearning() {
       }
 
       setSections(loadedSections);
-      console.log('Загружено разделов:', loadedSections.length);
 
     } catch (error) {
       console.error('Ошибка загрузки курса:', error);
@@ -520,12 +487,13 @@ function CourseLearning() {
           <header className="learning-header">
             <div>
               <h1>{course.title}</h1>
-              <p style={{ opacity: 0.9, fontSize: '14px' }}>
-                {course.language} • Сложность: {course.difficulty}
-              </p>
+              <div className="course-badge">
+                <span className="badge language">{course.language}</span>
+                <span className="badge difficulty">Сложность: {course.difficulty}</span>
+              </div>
             </div>
             <div className="learning-progress">
-              {currentStep === 'sections' && 'Выбор раздела'}
+              {currentStep === 'sections' && `${sections.length} разделов`}
               {currentStep === 'theory' && `Теория ${currentTheoryIndex + 1} из ${currentSection?.theories?.length || 0}`}
               {currentStep === 'task' && `Задание ${currentTaskIndex + 1} из ${currentSection?.tasks?.length || 0}`}
               {currentStep === 'sectionComplete' && 'Раздел завершен'}
@@ -538,24 +506,16 @@ function CourseLearning() {
                 <div className="sections-screen">
                   <div className="sections-header">
                     {course.titleImage && (
-                        <div className="course-title-image" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <div className="course-title-image">
                           <img
                               src={course.titleImage}
                               alt={course.title}
-                              style={{
-                                maxWidth: '100%',
-                                maxHeight: '200px',
-                                borderRadius: '12px',
-                                objectFit: 'cover',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                cursor: 'pointer'
-                              }}
                               onClick={() => openImageModal(course.titleImage)}
                           />
                         </div>
                     )}
                     <h2>Выберите раздел для изучения</h2>
-                    <p>{sections.length} разделов доступно</p>
+                    <p className="sections-count">{sections.length} {getWordEnding(sections.length, 'раздел', 'раздела', 'разделов')}</p>
                   </div>
 
                   <div className="sections-grid">
@@ -565,17 +525,17 @@ function CourseLearning() {
                             className="section-card"
                             onClick={() => handleSelectSection(section)}
                         >
+                          <div className="section-icon">
+                            <span>📚</span>
+                          </div>
                           <h3>{section.name}</h3>
                           <p className="section-description">{section.description}</p>
                           <div className="section-meta">
-                      <span className="meta-item">
-                        {section.theories?.length || 0} теорий
+                      <span className="meta-item theory-count">
+                        📖 {section.theories?.length || 0} теорий
                       </span>
-                            <span className="meta-item">
-                        {section.tasks?.length || 0} заданий
-                      </span>
-                            <span className="meta-item">
-                        Раздел {section.sectionNumber}
+                            <span className="meta-item task-count">
+                        ✍️ {section.tasks?.length || 0} заданий
                       </span>
                           </div>
                         </div>
@@ -583,11 +543,10 @@ function CourseLearning() {
                   </div>
 
                   <button
-                      className="nav-btn back"
+                      className="exit-course-btn"
                       onClick={handleExitCourse}
-                      style={{ marginTop: '40px' }}
                   >
-                    ← Назад к курсам
+                    ← Вернуться к курсам
                   </button>
                 </div>
             )}
@@ -595,11 +554,16 @@ function CourseLearning() {
             {currentStep === 'theory' && currentSection && (
                 <div className="theory-screen">
                   <div className="theory-header">
+                    <div className="theory-nav">
+                      <button className="back-to-sections" onClick={handleBackToSections}>
+                        ← Все разделы
+                      </button>
+                      <div className="theory-counter">
+                        {currentTheoryIndex + 1} / {currentSection.theories?.length || 0}
+                      </div>
+                    </div>
                     <h2>{currentSection.name}</h2>
                     <p className="theory-description">{currentSection.description}</p>
-                    <div className="theory-progress">
-                      Теория {currentTheoryIndex + 1} из {currentSection.theories?.length || 0}
-                    </div>
                   </div>
 
                   <div className="theory-content">
@@ -611,28 +575,23 @@ function CourseLearning() {
                                 <img
                                     src={currentTheory.imagePreview}
                                     alt={currentTheory.name}
-                                    style={{
-                                      maxWidth: '100%',
-                                      maxHeight: '300px',
-                                      borderRadius: '8px',
-                                      margin: '15px 0',
-                                      cursor: 'pointer'
-                                    }}
                                     onClick={() => openImageModal(currentTheory.imagePreview)}
                                 />
                               </div>
                           )}
-                          <div style={{ whiteSpace: 'pre-line' }}>
+                          <div className="theory-article">
                             {currentTheory.article || 'Теоретический материал отсутствует'}
                           </div>
                         </>
                     ) : (
-                        <p>Теоретический материал для этого раздела еще не добавлен.</p>
+                        <div className="empty-theory">
+                          <p>Теоретический материал для этого раздела еще не добавлен.</p>
+                        </div>
                     )}
                   </div>
 
                   <div className="navigation-buttons">
-                    <button className="nav-btn back" onClick={currentTheoryIndex === 0 ? handleBackToSections : handlePrevTheory}>
+                    <button className="nav-btn back" onClick={handlePrevTheory}>
                       {currentTheoryIndex === 0 ? '← Назад к разделам' : '← Предыдущая теория'}
                     </button>
                     <button className="nav-btn next" onClick={handleNextTheory}>
@@ -644,31 +603,29 @@ function CourseLearning() {
 
             {currentStep === 'task' && currentTask && (
                 <div className="tasks-screen">
-                  <div className="task-navigation">
-                    <button className="nav-btn back" onClick={handleBackToTheory}>
-                      ← К теории
-                    </button>
-                    <div className="task-counter">
-                      Задание {currentTaskIndex + 1} из {currentSection.tasks.length}
+                  <div className="task-header">
+                    <div className="task-nav">
+                      <button className="back-to-theory" onClick={handleBackToTheory}>
+                        ← К теории
+                      </button>
+                      <div className="task-counter">
+                        Задание {currentTaskIndex + 1} из {currentSection.tasks.length}
+                      </div>
                     </div>
+                    <h2>{currentSection.name}</h2>
                   </div>
 
                   <div className="task-content">
-                    <h3>{currentTask.name}</h3>
-                    <p className="task-question">{currentTask.description}</p>
+                    <div className="task-question-block">
+                      <h3>{currentTask.name}</h3>
+                      <p>{currentTask.description}</p>
+                    </div>
 
                     {currentTask.imagePreview && (
-                        <div className="task-image" style={{ textAlign: 'center', margin: '15px 0' }}>
+                        <div className="task-image">
                           <img
                               src={currentTask.imagePreview}
                               alt="Изображение задания"
-                              style={{
-                                maxWidth: '100%',
-                                maxHeight: '250px',
-                                borderRadius: '8px',
-                                border: '1px solid #ddd',
-                                cursor: 'pointer'
-                              }}
                               onClick={() => openImageModal(currentTask.imagePreview)}
                           />
                         </div>
@@ -678,28 +635,12 @@ function CourseLearning() {
                         <div className="task-hint">
                           <button
                               onClick={toggleHint}
-                              className="hint-toggle-btn"
-                              style={{
-                                background: '#f0f0f0',
-                                border: 'none',
-                                padding: '5px 12px',
-                                borderRadius: '20px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                marginBottom: '10px'
-                              }}
+                              className="hint-toggle"
                           >
                             {showHint ? 'Скрыть подсказку' : 'Показать подсказку'} 💡
                           </button>
                           {showHint && (
-                              <div className="hint-content" style={{
-                                background: '#fff3cd',
-                                padding: '10px 15px',
-                                borderRadius: '8px',
-                                marginBottom: '15px',
-                                borderLeft: '4px solid #ffc107',
-                                fontSize: '14px'
-                              }}>
+                              <div className="hint-content">
                                 {currentTask.hint}
                               </div>
                           )}
@@ -724,35 +665,28 @@ function CourseLearning() {
                                 className={answerClass}
                                 onClick={() => handleSelectAnswer(index)}
                             >
+                              <div className="answer-marker">{String.fromCharCode(65 + index)}</div>
                               <div className="answer-text">{answer}</div>
                             </div>
                         );
                       })}
                     </div>
 
-                    <div className="navigation-buttons" style={{ marginTop: '30px' }}>
-                      <button
-                          className="nav-btn back"
-                          onClick={handlePrevTask}
-                          disabled={currentTaskIndex === 0}
-                      >
-                        ← Назад
-                      </button>
-
+                    <div className="answer-actions">
                       {!showAnswerResult ? (
                           <button
-                              className="nav-btn next"
+                              className="check-answer-btn"
                               onClick={handleCheckAnswer}
                               disabled={selectedAnswer === null}
                           >
-                            Проверить →
+                            Проверить ответ
                           </button>
                       ) : (
                           <button
-                              className="nav-btn next"
+                              className="next-task-btn"
                               onClick={handleNextTask}
                           >
-                            {currentTaskIndex < currentSection.tasks.length - 1 ? 'Далее →' : 'Завершить раздел →'}
+                            {currentTaskIndex < currentSection.tasks.length - 1 ? 'Следующее задание →' : 'Завершить раздел →'}
                           </button>
                       )}
                     </div>
@@ -760,8 +694,8 @@ function CourseLearning() {
                     {showAnswerResult && (
                         <div className="answer-feedback">
                           {selectedAnswer === currentTask.correctAnswerIndex
-                              ? '✅ Правильно!'
-                              : '❌ Неправильно!'}
+                              ? <span className="correct-feedback">✅ Правильно! Отличная работа!</span>
+                              : <span className="incorrect-feedback">❌ Неправильно. Попробуй еще раз!</span>}
                         </div>
                     )}
                   </div>
@@ -770,54 +704,51 @@ function CourseLearning() {
 
             {currentStep === 'sectionComplete' && currentSection && (
                 <div className="results-screen">
-                  <div className="results-content">
+                  <div className="results-card">
+                    <div className="results-icon">🎉</div>
                     <h2>Раздел завершен!</h2>
                     <div className="results-score">
-                      {Math.round((score / currentSection.tasks.length) * 100)}%
+                      <span className="score-value">{Math.round((score / currentSection.tasks.length) * 100)}%</span>
                     </div>
                     <p className="results-message">
-                      Вы ответили правильно на {score} из {currentSection.tasks.length} вопросов
+                      Вы ответили правильно на <strong>{score}</strong> из <strong>{currentSection.tasks.length}</strong> вопросов
                     </p>
-
-                    <div className="section-stats">
-                      <p>Пройдено: {currentSection.theories?.length || 0} теорий</p>
+                    <div className="results-stats">
+                      <div className="stat">
+                        <span className="stat-label">Пройдено теорий</span>
+                        <span className="stat-value">{currentSection.theories?.length || 0}</span>
+                      </div>
+                      <div className="stat">
+                        <span className="stat-label">Правильных ответов</span>
+                        <span className="stat-value">{score}</span>
+                      </div>
                     </div>
-
-                    <div className="navigation-buttons">
-                      <button className="nav-btn back" onClick={handleRetrySection}>
+                    <div className="results-actions">
+                      <button className="retry-btn" onClick={handleRetrySection}>
                         🔄 Повторить
                       </button>
-                      <button className="nav-btn next" onClick={handleNextSection}>
-                        Следующий раздел →
+                      <button className="next-section-btn" onClick={handleNextSection}>
+                        {sections.findIndex(s => s.id === currentSection.id) < sections.length - 1
+                            ? 'Следующий раздел →'
+                            : 'Завершить курс →'}
                       </button>
                     </div>
-
-                    <button
-                        className="nav-btn back"
-                        onClick={handleExitCourse}
-                        style={{ marginTop: '20px', width: '100%' }}
-                    >
-                      ← Завершить курс
-                    </button>
                   </div>
                 </div>
             )}
 
             {currentStep === 'courseComplete' && (
                 <div className="results-screen">
-                  <div className="results-content">
-                    <h2>Поздравляем! Курс пройден!</h2>
+                  <div className="results-card complete">
+                    <div className="results-icon">🏆</div>
+                    <h2>Поздравляем!</h2>
+                    <p>Вы успешно завершили курс</p>
                     <div className="results-score">
-                      {Math.round((totalScore / sections.reduce((sum, s) => sum + s.tasks.length, 0)) * 100)}%
+                      <span className="score-value">{Math.round((totalScore / sections.reduce((sum, s) => sum + s.tasks.length, 0)) * 100)}%</span>
                     </div>
-                    <p className="results-message">
-                      Вы завершили курс!
-                    </p>
-
                     <button
-                        className="nav-btn next"
+                        className="finish-course-btn"
                         onClick={handleExitCourse}
-                        style={{ marginTop: '20px', width: '100%' }}
                     >
                       ← Вернуться к курсам
                     </button>
@@ -837,6 +768,15 @@ function CourseLearning() {
         )}
       </div>
   );
+}
+
+function getWordEnding(number, one, two, five) {
+  const n = Math.abs(number) % 100;
+  const n1 = n % 10;
+  if (n > 10 && n < 20) return five;
+  if (n1 > 1 && n1 < 5) return two;
+  if (n1 === 1) return one;
+  return five;
 }
 
 export default CourseLearning;

@@ -197,50 +197,13 @@
   box-shadow: 0 15px 35px rgba(40, 167, 69, 0.15);
 }
 
-/* Строка с крестиком, названием и картинкой */
+/* Строка с картинкой, названием и крестиком */
 .course-card-row {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 15px;
   width: 100%;
-}
-
-.delete-course-btn {
-  background: #dc3545;
-  color: white;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.delete-course-btn:hover {
-  background: #c82333;
-  transform: scale(1.05);
-}
-
-.course-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  line-height: 1.3;
-  flex: 1;
-
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .course-thumbnail {
@@ -264,6 +227,42 @@
   font-size: 28px;
   flex-shrink: 0;
   border: 1px solid #e0e0e0;
+}
+
+.course-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delete-course-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.delete-course-btn:hover {
+  background: #c82333;
+  transform: scale(1.05);
 }
 
 .course-meta {
@@ -327,7 +326,6 @@
   margin: 0 0 15px 0;
   flex-grow: 1;
   overflow: hidden;
-
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -498,25 +496,4 @@
     font-size: 10px;
     padding: 3px 8px;
   }
-}
-.refresh-courses-btn {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s;
-  margin-left: 10px;
-}
-
-.refresh-courses-btn:hover:not(:disabled) {
-  background: #218838;
-  transform: translateY(-2px);
-}
-
-.refresh-courses-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
 }
