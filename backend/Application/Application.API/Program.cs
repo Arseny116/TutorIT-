@@ -64,7 +64,7 @@ namespace Application.API
 
             builder.Services.AddHttpClient("UserService", client =>
             {
-                client.BaseAddress = new Uri("http://serverusers:8081/");
+                client.BaseAddress = new Uri("http://94.103.85.168/");
             });
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
