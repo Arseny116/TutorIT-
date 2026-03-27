@@ -53,7 +53,10 @@ namespace ApplicationUsers.Controllers
 
             if (Result.IsSuccess)
             {
-                Response.Cookies.Append("jwtE", Result.Value);
+                Response.Cookies.Append("jwtE", Result.Value, new CookieOptions
+                {
+                    Expires = DateTimeOffset.Now.AddDays(1)
+                });
                 return Ok();
             }
             else

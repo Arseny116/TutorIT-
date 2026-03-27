@@ -1,0 +1,128 @@
+services:                                                                                                                                                       dbcourses:                                                                                                                                                      image: postgres:15                                                                                                                                            container_name: postgres_dbc                                                                                                                                  restart: unless-stopped                                                                                                                                       env_file:                                                                                                                                                       - .env                                                                                                                                                      environment:                                                                                                                                                    POSTGRES_USER: ${DB_USER_COURSES}                                                                                                                             POSTGRES_PASSWORD: ${DB_PASSWORD_COURSES}                                                                                                                     POSTGRES_DB: ${DB_NAME_COURSES}                                                                                                                             ports:                                                                                                                                                          - "5432:5432"                                                                                                                                               volumes:                                                                                                                                                        - postgres_data_courses:/var/lib/postgresql/data                                                                                                            networks:                                                                                                                                                       - app-network                                                                                                                                               healthcheck:                                                                                                                                                    test: ["CMD-SHELL", "pg_isready -U ${DB_USER_COURSES} -d ${DB_NAME_COURSES}"]                                                                                 interval: 5s                                                                                                                                                  timeout: 5s                                                                                                                                                   retries: 10                                                                                                                                                   start_period: 10s                                                                                                                                                                                                                                                                                                       dbusers:                                                                                                                                                        image: postgres:15                                                                                                                                            container_name: postgres_dbu                                                                                                                                  restart: unless-stopped                                                                                                                                       env_file:                                                                                                                                                       - .env                                                                                                                                                      environment:                                                                                                                                                    POSTGRES_USER: ${DB_USER_USERS}                                                                                                                               POSTGRES_PASSWORD: ${DB_PASSWORD_USERS}                                                                                                                       POSTGRES_DB: ${DB_NAME_USERS}                                                                                                                               ports:                                                                                                                                                          - "5433:5432"                                                                                                                                               volumes:                                                                                                                                                        - postgres_data_users:/var/lib/postgresql/data                                                                                                              networks:                                                                                                                                                       - app-network                                                                                                                                               healthcheck:                                                                                                                                                    test: ["CMD-SHELL", "pg_isready -U ${DB_USER_USERS} -d ${DB_NAME_USERS}"]                                                                                     interval: 5s                                                                                                                                                  timeout: 5s                                                                                                                                                   retries: 10                                                                                                                                                   start_period: 10s                                  services:
+  dbcourses:
+    image: postgres:15
+    container_name: postgres_dbc
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER_COURSES}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_COURSES}
+      POSTGRES_DB: ${DB_NAME_COURSES}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_courses:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER_COURSES} -d ${DB_NAME_COURSES}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  dbusers:
+    image: postgres:15
+    container_name: postgres_dbu
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER_USERS}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_USERS}
+      POSTGRES_DB: ${DB_NAME_USERS}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_users:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER_USERS} -d ${DB_NAME_USERS}"]
+      interval: 5s
+      timeout: 5s
+     retries: 10
+      start_period: 10s
+
+  servercourses:
+    user: root
+    build:
+      context: ./backend/Application
+      dockerfile: Application.API/Dockerfile
+    container_name: dotnet_api_courses
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=dbcourses;Port=5432;Database=${DB_NAME_COURSES};Username=${DB_USER_CO>    
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
+    depends_on:
+      dbcourses:
+        condition: service_healthy
+    volumes:
+      - ./backend/Application/Application.API/StaticFiles/Images:/Images
+    networks:
+      - app-network
+
+  serverusers:
+    build:
+      context: ./backend/ApplicationUsers
+      dockerfile: ApplicationUsers.API/Dockerfile
+    container_name: dotnet_api_users
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8081
+      - ConnectionStrings__DefaultConnection=Host=dbusers;Port=5432;Database=${DB_NAME_USERS};Username=${DB_USER_USERS}>     
+     - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
+      - MailSettings__DisplayName=${MAIL_DISPLAY_NAME}
+      - MailSettings__From=${MAIL_FROM}
+      - MailSettings__UserName=${MAIL_USERNAME}
+      - MailSettings__Password=${MAIL_PASSWORD}
+      - MailSettings__Host=${MAIL_HOST}
+      - MailSettings__Port=${MAIL_PORT}
+      - MailSettings__UseSSL=${MAIL_USE_SSL}
+      - MailSettings__UseStartTls=${MAIL_USE_STARTTLS}
+      - MailSettings__UseOAuth=${MAIL_USE_OAUTH}
+    depends_on:
+      dbusers:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  client:
+    build:
+      context: ./frontend/react-tutorlit
+      dockerfile: Dockerfile
+    container_name: react_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+    - REACT_APP_API_URL=
+    - REACT_APP_USERS_API_URL=
+    - WDS_SOCKET_PORT=0
+    - HOST=0.0.0.0
+    - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      servercourses:
+        condition: service_started
+      serverusers:
+        condition: service_started
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data_courses:
+  postgres_data_users:

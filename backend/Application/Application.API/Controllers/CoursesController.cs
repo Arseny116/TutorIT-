@@ -132,8 +132,6 @@ namespace Application.API.Controllers
                 return BadRequest(course.Error);
             }
 
-
-
             var courseId = await _coursesService.CreateCourse(course.Value);
 
             var client = _httpClientFactory.CreateClient("UserService");

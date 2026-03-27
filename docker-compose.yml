@@ -57,7 +57,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=dbcourses;Port=5432;Database=${DB_NAME_COURSES};Username=${DB_USER_COURSES};Password=${DB_PASSWORD_COURSES}
-  
+      - TZ=Europe/Moscow
       - JwtOptions__SecretKey=${JWT_SECRET_KEY}
       - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
 
@@ -66,6 +66,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/Application/Application.API/StaticFiles/Images:/Images
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - app-network
 
@@ -92,6 +93,9 @@ services:
       - MailSettings__UseSSL=${MAIL_USE_SSL}
       - MailSettings__UseStartTls=${MAIL_USE_STARTTLS}
       - MailSettings__UseOAuth=${MAIL_USE_OAUTH}
+      - TZ=Europe/Moscow
+    volumes:
+       - /etc/localtime:/etc/localtime:ro
     depends_on:
       dbusers:
         condition: service_healthy

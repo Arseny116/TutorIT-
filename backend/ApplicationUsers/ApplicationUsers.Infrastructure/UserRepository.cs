@@ -3,6 +3,7 @@ using AutoMapper;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using ApplicationUsers.Domain.Interface;
+using Microsoft.Extensions.Logging;
 namespace ApplicationUsers.Infrastructure
 {
     public class UserRepository : IUserRepository
@@ -11,12 +12,14 @@ namespace ApplicationUsers.Infrastructure
         private readonly IMapper _mapper;
         private readonly IPasswordHasher _hasher;
         private readonly IMailService _mailService;
-        public UserRepository(IMailService mailService, IPasswordHasher passwordHasher, IMapper mapper, ApplicationUserDB applicationUser)
+        private readonly ILogger<UserRepository> _logger;
+        public UserRepository(ILogger<UserRepository> logger, IMailService mailService, IPasswordHasher passwordHasher, IMapper mapper, ApplicationUserDB applicationUser)
         {
             _mailService = mailService;
             _context = applicationUser;
             _hasher = passwordHasher;
             _mapper = mapper;
+            _logger = logger;
         }
 
 
@@ -75,6 +78,7 @@ namespace ApplicationUsers.Infrastructure
         {
             var User = GetUserById(user_res).Result;
             User.EnrolledCourseIds.Add(foreginCourse);
+            _logger.Log(LogLevel.Information,$"{User.EnrolledCourseIds.Count}" );
             _context.Users.Update(_mapper.Map<UserEntity>(User));
             await _context.SaveChangesAsync();
 
