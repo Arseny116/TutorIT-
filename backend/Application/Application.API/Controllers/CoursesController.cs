@@ -83,6 +83,10 @@ namespace Application.API.Controllers
         {
             var userId = Guid.Parse(User.Claims.ToList()[0].Value);
             var c = await _coursesService.GetCoursesById(id, userId);
+
+            var client = _httpClientFactory.CreateClient("UserService");
+            await client.PostAsync($"api/users/{userId}/enrolled-courses/{id}", null);
+
             var response = new CoursesResponse(
                 c.Id,
                 c.Pl,
