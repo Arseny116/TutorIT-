@@ -3,6 +3,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using System.Net;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ApplicationUsers.Infrastructure
@@ -20,6 +21,27 @@ namespace ApplicationUsers.Infrastructure
 
         public async Task<bool> SendHelloAsync(MailData mailData)
         {
+            if (mailData == null || string.IsNullOrWhiteSpace(mailData.To))
+            {
+                _logger.LogWarning("Попытка отправки письма: данные отсутствуют или адрес пуст.");
+                return false;
+            }
+
+            try
+            {
+                var host = mailData.To.Split('@').Last();
+                var addresses = await Dns.GetHostAddressesAsync(host);
+                if (addresses.Length == 0)
+                {
+                    _logger.LogWarning("Домен {Host} не найден. Отправка отменена.", host);
+                    return false;
+                }
+            }
+            catch
+            {
+                _logger.LogWarning("Не удалось проверить существование домена {Email}", mailData.To);
+            }
+
             try
             {
                 var mail = new MimeMessage();
