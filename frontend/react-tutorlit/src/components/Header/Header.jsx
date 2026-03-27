@@ -8,6 +8,7 @@ import authService from '../../services/authService';
 function Header() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
+    const [showWarning, setShowWarning] = useState(false);
     const [userName, setUserName] = useState('');
     const location = useLocation();
     const navigate = useNavigate();
@@ -33,6 +34,26 @@ function Header() {
         if (authService.isAuthenticated()) {
             navigate('/profile');
         } else {
+            setIsAuthOpen(true);
+        }
+    };
+
+    const handleCoursesClick = () => {
+        if (authService.isAuthenticated()) {
+            setIsModalOpen(true);
+        } else {
+            setShowWarning(true);
+            setTimeout(() => setShowWarning(false), 3000);
+            setIsAuthOpen(true);
+        }
+    };
+
+    const handleCreateCourse = () => {
+        if (authService.isAuthenticated()) {
+            navigate('/create-course');
+        } else {
+            setShowWarning(true);
+            setTimeout(() => setShowWarning(false), 3000);
             setIsAuthOpen(true);
         }
     };
@@ -85,6 +106,15 @@ function Header() {
                     )}
                 </div>
             </header>
+
+            {showWarning && (
+                <div className="warning-toast">
+                    <div className="warning-content">
+                        <span className="warning-icon">⚠️</span>
+                        <span className="warning-text">Сначала нужно зарегистрироваться или войти в аккаунт</span>
+                    </div>
+                </div>
+            )}
 
             <CourseModal
                 isOpen={isModalOpen}

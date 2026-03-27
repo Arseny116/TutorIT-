@@ -124,3 +124,49 @@
     font-size: 12px;
   }
 }
+/* Всплывающее предупреждение */
+.warning-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
+}
+
+.warning-content {
+  background: #ff9800;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.warning-icon {
+  font-size: 18px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .warning-content {
+    padding: 10px 20px;
+    font-size: 13px;
+    max-width: 90vw;
+    text-align: center;
+  }
+}
