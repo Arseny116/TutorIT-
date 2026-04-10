@@ -25,6 +25,11 @@ namespace ApplicationUsers.App.Handlers
     
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
+            var isNameUnique = await _userRepository.IsNameUnique(request.Name, cancellationToken);
+            if (!isNameUnique)
+            {
+                return Result.Failure<Guid>("Пользователь с таким именем уже существует.");
+            }
 
             var user = User.CreateUser(request.Name, request.Email, _hasher.Generate(request.Password));
 

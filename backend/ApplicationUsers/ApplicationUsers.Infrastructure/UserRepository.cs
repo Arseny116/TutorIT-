@@ -154,5 +154,9 @@ namespace ApplicationUsers.Infrastructure
             return await _context.Users.Select(x => _mapper.Map<User>(x)).ToListAsync();
         }
 
+        public async Task<bool> IsNameUnique(string name, CancellationToken ct)
+        {
+            return !await _context.Users.AnyAsync(u => u.Name == name, ct);
+        }
     }
 }
