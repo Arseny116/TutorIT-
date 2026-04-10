@@ -58,8 +58,8 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=dbcourses;Port=5432;Database=${DB_NAME_COURSES};Username=${DB_USER_COURSES};Password=${DB_PASSWORD_COURSES}
       - TZ=Europe/Moscow
-      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
-      - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
+      - JwtOptions:SecretKey=${JWT_SECRET_KEY}
+      - JwtOptions:ExpitesHours=${JWT_EXPIRES_HOURS}
       - UsersService__BaseUrl=http://serverusers:8081/
     depends_on:
       dbcourses:
@@ -82,8 +82,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8081
       - ConnectionStrings__DefaultConnection=Host=dbusers;Port=5432;Database=${DB_NAME_USERS};Username=${DB_USER_USERS};Password=${DB_PASSWORD_USERS}
-      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
-      - JwtOptions__ExpiresHours=${JWT_EXPIRES_HOURS}
+      - JwtOptions:SecretKey=${JWT_SECRET_KEY}
+      - JwtOptions:ExpitesHours=${JWT_EXPIRES_HOURS}
       - MailSettings__DisplayName=${MAIL_DISPLAY_NAME}
       - MailSettings__From=${MAIL_FROM}
       - MailSettings__UserName=${MAIL_USERNAME}
@@ -111,8 +111,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8080
-      - REACT_APP_USERS_API_URL=http://localhost:8081
+      - REACT_APP_API_URL=
+      - REACT_APP_USERS_API_URL=
       - WDS_SOCKET_PORT=0
     depends_on:
       servercourses:
@@ -121,6 +121,22 @@ services:
         condition: service_started
     networks:
       - app-network
+    
+
+
+  nginx:
+   image: nginx:alpine 
+   container_name: nginx_proxy
+   ports:
+      - "80:80" 
+   volumes:
+      - ./cfg.txt:/etc/nginx/conf.d/default.conf:ro 
+   depends_on:
+     - client
+     - servercourses
+     - serverusers
+   networks:
+     - app-network  
 
 networks:
   app-network:
