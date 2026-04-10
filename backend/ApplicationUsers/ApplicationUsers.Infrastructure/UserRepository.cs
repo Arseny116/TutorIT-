@@ -42,10 +42,11 @@ namespace ApplicationUsers.Infrastructure
 
             var result = await _mailService.SendHelloAsync(mailData);
 
-            if (!result)
-            {
-                return Result.Failure<Guid>("Введина не существующая почта ");
-            }
+            // Это не работает
+            //if (!result)
+            //{
+            //    return Result.Failure<Guid>("Введина не существующая почта ");
+            //}
 
 
             var userEntity = new UserEntity

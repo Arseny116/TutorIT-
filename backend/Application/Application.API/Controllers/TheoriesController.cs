@@ -44,17 +44,25 @@ namespace Application.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTheory(Guid ChapterId, [FromForm] TheoriesRequest request)
         {
-            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Theory");
+            Image? imageValue = null;
 
-            if (image.IsFailure)
+            if (request.TitleImage != null && request.TitleImage.Length > 0)
             {
-                return BadRequest(image.Error);
+                var imageResult = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Theory");
+
+                if (imageResult.IsFailure)
+                {
+                    return BadRequest(imageResult.Error);
+                }
+
+                imageValue = imageResult.Value;
             }
+
             var theory = Theory.Create(
                 Guid.NewGuid(),
                 request.Name,
                 request.Article,
-                image.Value);
+                imageValue);
 
             if (!theory.IsSuccess)
             {

@@ -42,10 +42,11 @@ namespace ApplicationUsers.App.Handlers
             var mailData = new MailData(request.Email, "Добро пожаловать в TutorIt!");
             var isMailValid = await _mailService.SendHelloAsync(mailData);
 
-            if (!isMailValid)
-            {
-                return Result.Failure<Guid>("Указанный почтовый домен не существует или недоступен.");
-            }
+            // Это не работает
+            //if (!isMailValid)
+            //{
+            //    return Result.Failure<Guid>("Указанный почтовый домен не существует или недоступен.");
+            //}
 
             var user_guid = await _userRepository.CreateUser(user.Value, cancellationToken);
 

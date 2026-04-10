@@ -46,11 +46,18 @@ namespace Application.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateTaskCreator(Guid ChapterId, [FromForm] TasksCreatorRequest request)
         {
-            var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Task");
+            Image? imageValue = null;
 
-            if (image.IsFailure)
+            if (request.TitleImage != null && request.TitleImage.Length > 0)
             {
-                return BadRequest(image.Error);
+                var imageResult = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Task");
+
+                if (imageResult.IsFailure)
+                {
+                    return BadRequest(imageResult.Error);
+                }
+
+                imageValue = imageResult.Value;
             }
 
             var taskCreator = TaskCreator.Create
@@ -58,7 +65,7 @@ namespace Application.API.Controllers
                 request.Name,
                 request.Description,
                 request.Hint,
-                image.Value);
+                imageValue);
 
             if (!taskCreator.IsSuccess)
             {

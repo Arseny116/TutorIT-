@@ -78,7 +78,7 @@ namespace Application.Domain.Models
             string description,
             int chapters,
             int complexity,
-            Image? titleImage)
+            Image? titleImage = null)
         {
             if (string.IsNullOrEmpty(pl) || pl.Length > MAX_LENGTH_PL)
             {
@@ -120,7 +120,7 @@ namespace Application.Domain.Models
            string description,
            int chapters,
            int complexity,
-           Image? titleImage)
+           Image? titleImage = null)
         {
             if (string.IsNullOrEmpty(pl) || pl.Length > MAX_LENGTH_PL)
             {
