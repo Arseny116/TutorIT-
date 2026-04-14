@@ -3,6 +3,6 @@
     public record class TheoriesRequest(
         string Name,
         string Article,
-        IFormFile TitleImage
+        IFormFile? TitleImage
         );
 }

@@ -15,6 +15,8 @@ namespace Application.Infrastructure.Configuration
             builder.Property(d => d.Description).IsRequired();
 
             builder.Property(h => h.Hint).IsRequired();
+
+            builder.HasOne(t => t.TitleImage).WithMany().IsRequired(false);
         }
     }
 }

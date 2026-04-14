@@ -149,7 +149,7 @@ namespace Application.API.Controllers
                     return Unauthorized("Authentication token is missing");
                 }
 
-                var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Course");
+                //var image = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Course");
 
                 // Получаем userId из claims
                 var userIdClaim = User.Claims.FirstOrDefault()?.Value;
@@ -161,9 +161,18 @@ namespace Application.API.Controllers
 
                 var userId = Guid.Parse(userIdClaim);
 
-                if (image.IsFailure)
+                Image? imageValue = null;
+
+                if (request.TitleImage != null && request.TitleImage.Length > 0)
                 {
-                    return BadRequest(image.Error);
+                    var imageResult = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Course");
+
+                    if (imageResult.IsFailure)
+                    {
+                        return BadRequest(imageResult.Error);
+                    }
+
+                    imageValue = imageResult.Value;
                 }
 
                 var course = Course.Create(
@@ -173,7 +182,7 @@ namespace Application.API.Controllers
                     request.Description,
                     request.Chapters,
                     request.Complexity,
-                    image.Value);
+                    imageValue);
 
                 if (!course.IsSuccess)
                 {

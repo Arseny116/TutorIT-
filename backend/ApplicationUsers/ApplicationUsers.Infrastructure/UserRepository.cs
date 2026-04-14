@@ -42,10 +42,11 @@ namespace ApplicationUsers.Infrastructure
 
             var result = await _mailService.SendHelloAsync(mailData);
 
-            if (!result)
-            {
-                return Result.Failure<Guid>("Введина не существующая почта ");
-            }
+            // Это не работает
+            //if (!result)
+            //{
+            //    return Result.Failure<Guid>("Введина не существующая почта ");
+            //}
 
 
             var userEntity = new UserEntity
@@ -154,5 +155,9 @@ namespace ApplicationUsers.Infrastructure
             return await _context.Users.Select(x => _mapper.Map<User>(x)).ToListAsync();
         }
 
+        public async Task<bool> IsNameUnique(string name, CancellationToken ct)
+        {
+            return !await _context.Users.AnyAsync(u => u.Name == name, ct);
+        }
     }
 }

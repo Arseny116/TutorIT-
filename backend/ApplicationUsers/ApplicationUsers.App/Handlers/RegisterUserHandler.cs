@@ -25,6 +25,11 @@ namespace ApplicationUsers.App.Handlers
     
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
+            var isNameUnique = await _userRepository.IsNameUnique(request.Name, cancellationToken);
+            if (!isNameUnique)
+            {
+                return Result.Failure<Guid>("Пользователь с таким именем уже существует.");
+            }
 
             var user = User.CreateUser(request.Name, request.Email, _hasher.Generate(request.Password));
 
@@ -37,10 +42,11 @@ namespace ApplicationUsers.App.Handlers
             var mailData = new MailData(request.Email, "Добро пожаловать в TutorIt!");
             var isMailValid = await _mailService.SendHelloAsync(mailData);
 
-            if (!isMailValid)
-            {
-                return Result.Failure<Guid>("Указанный почтовый домен не существует или недоступен.");
-            }
+            // Это не работает
+            //if (!isMailValid)
+            //{
+            //    return Result.Failure<Guid>("Указанный почтовый домен не существует или недоступен.");
+            //}
 
             var user_guid = await _userRepository.CreateUser(user.Value, cancellationToken);
 

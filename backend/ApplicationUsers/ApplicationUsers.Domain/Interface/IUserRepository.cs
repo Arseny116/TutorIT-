@@ -14,6 +14,7 @@ namespace ApplicationUsers.Infrastructure
         Task<Result<User>> GetUserByEmail(string email);
         Task<Result<Guid>> CreateUser(User user, CancellationToken cancellationToken);
         Task<List<User>> GetAllUser();
-     
+
+        Task<bool> IsNameUnique(string name, CancellationToken ct);
     }
 }

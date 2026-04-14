@@ -6,6 +6,6 @@ namespace Application.API.DTO.TasksCreator
         string Name,
         string Description,
         string Hint,
-        IFormFile TitleImage
+        IFormFile? TitleImage
         );
 }

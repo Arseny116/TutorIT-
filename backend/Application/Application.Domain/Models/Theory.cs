@@ -34,7 +34,7 @@ namespace Application.Domain.Models
             TitleImage = titleImage;
         }
 
-        public static Result<Theory> Create(string name, string article, Image? titleImage)
+        public static Result<Theory> Create(string name, string article, Image? titleImage = null)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -51,7 +51,7 @@ namespace Application.Domain.Models
             return Result.Success(theory);
         }
 
-        public static Result<Theory> Create(Guid id, string name, string article, Image? titleImage)
+        public static Result<Theory> Create(Guid id, string name, string article, Image? titleImage = null)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {

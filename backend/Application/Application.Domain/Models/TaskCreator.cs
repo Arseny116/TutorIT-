@@ -49,7 +49,7 @@ namespace Application.Domain.Models
             TitleImage = titleImage;
         }
 
-        public static Result<TaskCreator> Create(Guid id, string name, string description, string hint, Image? titleImage)
+        public static Result<TaskCreator> Create(Guid id, string name, string description, string hint, Image? titleImage = null)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
@@ -69,7 +69,7 @@ namespace Application.Domain.Models
             return Result.Success(taskCreator);
         }
 
-        public static Result<TaskCreator> Create(string name, string description, string hint, Image? titleImage)
+        public static Result<TaskCreator> Create(string name, string description, string hint, Image? titleImage = null)
         {
             if (string.IsNullOrEmpty(name) || name.Length > MAX_LENGTH_NAME)
             {
