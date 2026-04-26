@@ -68,7 +68,7 @@ namespace Application.API.Controllers
                     return Unauthorized("Authentication token is missing");
                 }
 
-                // Получаем userId из claims
+                // Получаем userId из claim
                 var userIdClaim = User.Claims.FirstOrDefault()?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {

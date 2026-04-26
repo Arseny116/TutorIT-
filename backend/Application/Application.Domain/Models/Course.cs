@@ -7,7 +7,7 @@ namespace Application.Domain.Models
     {
         const int MAX_LENGTH_PL = 40;
 
-        const int MAX_LENGTH_TITLE = 300;
+        const int MAX_LENGTH_TITLE = 50;
 
         const int MAX_LENGTH_DESCRIPTION = 3000;
 
