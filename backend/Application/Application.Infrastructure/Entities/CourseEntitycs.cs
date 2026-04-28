@@ -18,7 +18,7 @@ namespace Application.Infrastructure.Entities
         /// <summary>
         /// Язык программирования
         /// </summary>
-        public string Pl { get; set; }
+        public List<string> Pl { get; set; }
         public Guid AuthorId { get; set; }
 
         /// <summary>

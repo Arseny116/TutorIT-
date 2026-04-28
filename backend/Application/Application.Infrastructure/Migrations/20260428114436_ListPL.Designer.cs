@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Application.Infrastructure.Migrations
 {
     [DbContext(typeof(TutorITDbContext))]
-    [Migration("20260319082934_version")]
-    partial class version
+    [Migration("20260428114436_ListPL")]
+    partial class ListPL
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -93,9 +93,9 @@ namespace Application.Infrastructure.Migrations
                     b.Property<double>("Evaluation")
                         .HasColumnType("double precision");
 
-                    b.Property<string>("Pl")
+                    b.PrimitiveCollection<List<string>>("Pl")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text[]");
 
                     b.PrimitiveCollection<List<string>>("Reviews")
                         .IsRequired()

@@ -91,7 +91,7 @@ namespace Application.Infrastructure.Repositories
             return courseEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string pl, string title, string description, int chapters, int complexity)
+        public async Task<Guid> Update(Guid id, List<string> pl, string title, string description, int chapters, int complexity)
         {
             await _context.Courses.Where(c => c.Id == id)
                 .ExecuteUpdateAsync(s => s

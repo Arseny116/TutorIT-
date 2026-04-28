@@ -90,9 +90,9 @@ namespace Application.Infrastructure.Migrations
                     b.Property<double>("Evaluation")
                         .HasColumnType("double precision");
 
-                    b.Property<string>("Pl")
+                    b.PrimitiveCollection<List<string>>("Pl")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text[]");
 
                     b.PrimitiveCollection<List<string>>("Reviews")
                         .IsRequired()

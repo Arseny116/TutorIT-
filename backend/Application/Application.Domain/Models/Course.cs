@@ -5,8 +5,6 @@ namespace Application.Domain.Models
 {
     public class Course
     {
-        const int MAX_LENGTH_PL = 40;
-
         const int MAX_LENGTH_TITLE = 300;
 
         const int MAX_LENGTH_DESCRIPTION = 3000;
@@ -20,7 +18,7 @@ namespace Application.Domain.Models
         /// </summary>
         public Guid Id { get; }
 
-        public string Pl { get; }
+        public List<string> Pl { get; }
 
         public Guid AuthorId { get; }
 
@@ -45,7 +43,7 @@ namespace Application.Domain.Models
 
         public List<Chapter> NumberChapters { get; } = new List<Chapter>();
 
-        public Course(Guid author, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
+        public Course(Guid author, List<string> pl, string title, string description, int chapters, int complexity, Image? titleImage)
         {
             Id = Guid.NewGuid();
             AuthorId = author;
@@ -58,7 +56,7 @@ namespace Application.Domain.Models
         }
 
 
-        public Course(Guid author, Guid id, string pl, string title, string description, int chapters, int complexity, Image? titleImage)
+        public Course(Guid author, Guid id, List<string> pl, string title, string description, int chapters, int complexity, Image? titleImage)
         {
             Id = id;
             Pl = pl;
@@ -73,17 +71,13 @@ namespace Application.Domain.Models
         public static Result<Course> Create
         (
             Guid author,
-            string pl,
+            List<string> pl,
             string title,
             string description,
             int chapters,
             int complexity,
             Image? titleImage = null)
         {
-            if (string.IsNullOrEmpty(pl) || pl.Length > MAX_LENGTH_PL)
-            {
-                return Result.Failure<Course>($"Язык программирования курса не может быть пустым и превышать {MAX_LENGTH_PL} символов");
-            }
 
             if (string.IsNullOrEmpty(title) || title.Length > MAX_LENGTH_TITLE)
             {
@@ -115,17 +109,13 @@ namespace Application.Domain.Models
 
           (Guid author,
             Guid id,
-           string pl,
+           List<string> pl,
            string title,
            string description,
            int chapters,
            int complexity,
            Image? titleImage = null)
         {
-            if (string.IsNullOrEmpty(pl) || pl.Length > MAX_LENGTH_PL)
-            {
-                return Result.Failure<Course>($"Язык программирования курса не может быть пустым и превышать {MAX_LENGTH_PL} символов");
-            }
 
             if (string.IsNullOrEmpty(title) || title.Length > MAX_LENGTH_TITLE)
             {
