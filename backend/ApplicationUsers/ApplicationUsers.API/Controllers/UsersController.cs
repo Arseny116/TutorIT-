@@ -47,9 +47,9 @@ namespace ApplicationUsers.API.Controllers
 
         [Authorize]
         [HttpPost("{userId}/subscribe/{courseId}")]
-        public async Task UpdateSub(Guid user, Guid courseId)
+        public async Task UpdateSub(Guid userId, Guid courseId)
         {
-            await _mediator.Send(new UpdateUserForeginCourseCommand(user, courseId));
+            await _mediator.Send(new UpdateUserForeginCourseCommand(userId, courseId));
         }
     }
 }
