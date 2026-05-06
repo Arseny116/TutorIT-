@@ -1,6 +1,7 @@
 ﻿using ApplicationUsers.App.Commands;
 using ApplicationUsers.App.Queries;
 using ApplicationUsers.Domain;
+using ApplicationUsers.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ namespace ApplicationUsers.API.Controllers
 {
     [ApiController]
     [Route("api/user/")]
-    public class UsersController(ILogger<UsersController> _logger, IMediator _mediator) : ControllerBase
+    public class UsersController(ILogger<UsersController> _logger, IMediator _mediator , IUserRepository _rep) : ControllerBase
     {
         [Authorize]
         [HttpGet]
@@ -40,7 +41,7 @@ namespace ApplicationUsers.API.Controllers
         {
             _logger.LogInformation("UpdateMyCourse called with userId: {UserId}, courseId: {CourseId}",
         userId, courseId);
-    
+
             await _mediator.Send(new UpdateUserMyCourseCommand(userId, courseId));
         }
 
@@ -50,6 +51,14 @@ namespace ApplicationUsers.API.Controllers
         public async Task UpdateSub(Guid userId, Guid courseId)
         {
             await _mediator.Send(new UpdateUserForeginCourseCommand(userId, courseId));
+        }
+
+
+        [Authorize]
+        [HttpDelete("{userId}/unsubscribe/{courseId}")]
+        public async Task DeleteSub(Guid userId, Guid courseId)
+        {
+            await _rep.Delete(userId,  courseId);
         }
     }
 }

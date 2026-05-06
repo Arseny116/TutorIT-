@@ -16,5 +16,7 @@ namespace ApplicationUsers.Infrastructure
         Task<List<User>> GetAllUser();
 
         Task<bool> IsNameUnique(string name, CancellationToken ct);
+
+        Task Delete( Guid userId , Guid courseId); 
     }
 }

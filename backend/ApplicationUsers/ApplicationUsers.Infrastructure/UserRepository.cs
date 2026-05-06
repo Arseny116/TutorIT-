@@ -159,5 +159,18 @@ namespace ApplicationUsers.Infrastructure
         {
             return !await _context.Users.AnyAsync(u => u.Name == name, ct);
         }
+
+        public async Task Delete(Guid userId, Guid courseId)
+        {
+           
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Id == userId);
+
+            if (user != null && user.EnrolledCourseIds.Contains(courseId))
+            {
+                user.EnrolledCourseIds.Remove(courseId);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
