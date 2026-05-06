@@ -8,7 +8,7 @@ function CreateCoursePage() {
   const [description, setDescription] = useState('');
   const [sectionsCount, setSectionsCount] = useState('');
   const [difficulty, setDifficulty] = useState('');
-  const [programmingLanguage, setProgrammingLanguage] = useState('');
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [customLanguage, setCustomLanguage] = useState('');
   const [titleImage, setTitleImage] = useState(null);
   const [titleImagePreview, setTitleImagePreview] = useState('');
@@ -20,7 +20,7 @@ function CreateCoursePage() {
   const programmingLanguages = [
     'JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby',
     'Go', 'Swift', 'Kotlin', 'TypeScript', 'Rust', 'Scala',
-    'R', 'MATLAB', 'SQL', 'HTML/CSS', 'Другой (ввести вручную)'
+    'R', 'MATLAB', 'SQL', 'HTML/CSS', 'Другой'
   ];
 
   const handleImageChange = (e) => {
@@ -35,6 +35,27 @@ function CreateCoursePage() {
     }
   };
 
+  const toggleLanguage = (language) => {
+    if (language === 'Другой') {
+      // Показываем инпут для ввода своего языка
+      const input = prompt('Введите язык программирования:');
+      if (input && input.trim() && !selectedLanguages.includes(input.trim())) {
+        setSelectedLanguages([...selectedLanguages, input.trim()]);
+      }
+      return;
+    }
+
+    setSelectedLanguages(prev =>
+        prev.includes(language)
+            ? prev.filter(l => l !== language)
+            : [...prev, language]
+    );
+  };
+
+  const removeLanguage = (languageToRemove) => {
+    setSelectedLanguages(prev => prev.filter(l => l !== languageToRemove));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -45,13 +66,18 @@ function CreateCoursePage() {
 
     setError('');
 
-    let selectedLanguage = programmingLanguage;
-    if (programmingLanguage === 'Другой (ввести вручную)' && customLanguage.trim()) {
-      selectedLanguage = customLanguage.trim();
+    if (selectedLanguages.length === 0) {
+      setError('Выберите хотя бы один язык программирования');
+      return;
     }
 
-    if (!courseName.trim() || !description.trim() || !sectionsCount || !difficulty || !selectedLanguage) {
+    if (!courseName.trim() || !description.trim() || !sectionsCount || !difficulty) {
       setError('Заполните все поля');
+      return;
+    }
+
+    if (courseName.trim().length > 300) {
+      setError('Название курса не должно превышать 300 символов');
       return;
     }
 
@@ -64,8 +90,15 @@ function CreateCoursePage() {
     isSubmitting.current = true;
 
     try {
+      const token = authService.getToken();
+      const headers = { 'accept': 'text/plain' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const formData = new FormData();
-      formData.append('PL', selectedLanguage);
+      // Отправляем PL как массив строк
+      formData.append('PL', JSON.stringify(selectedLanguages));
       formData.append('Title', courseName.trim());
       formData.append('Description', description.trim());
       formData.append('Chapters', parseInt(sectionsCount));
@@ -75,15 +108,10 @@ function CreateCoursePage() {
         formData.append('TitleImage', titleImage);
       }
 
-      console.log('Отправляю данные на API:');
+      console.log('Отправляю данные через FormData:');
+      console.log('PL (языки):', selectedLanguages);
       for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-      }
-
-      const token = authService.getToken();
-      const headers = { 'accept': 'text/plain' };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
       }
 
       const response = await fetch('/api/v1/Courses', {
@@ -109,17 +137,6 @@ function CreateCoursePage() {
 
       const courseId = responseText.replace(/["'\s]/g, '').trim();
       console.log('Курс создан на сервере, ID курса:', courseId);
-
-      // Привязываем курс к пользователю через API
-      const userId = authService.getUserId();
-      if (userId && token) {
-        try {
-          await authService.addCreatedCourse(userId, courseId);
-          console.log('Курс привязан к пользователю');
-        } catch (bindError) {
-          console.warn('Ошибка привязки курса:', bindError);
-        }
-      }
 
       navigate(`/course/${courseId}/builder`);
 
@@ -160,6 +177,7 @@ function CreateCoursePage() {
                 placeholder="Введите название курса"
                 required
                 disabled={isLoading}
+                maxLength="300"
             />
           </div>
 
@@ -177,6 +195,43 @@ function CreateCoursePage() {
           </div>
 
           <div className="form-group">
+            <label>Языки программирования *</label>
+            <div className="languages-selector">
+              <div className="languages-buttons">
+                {programmingLanguages.map(lang => (
+                    <button
+                        key={lang}
+                        type="button"
+                        className={`language-btn ${selectedLanguages.includes(lang) ? 'active' : ''}`}
+                        onClick={() => toggleLanguage(lang)}
+                        disabled={isLoading}
+                    >
+                      {lang}
+                    </button>
+                ))}
+              </div>
+              {selectedLanguages.length > 0 && (
+                  <div className="selected-languages">
+                    <span className="selected-label">Выбрано:</span>
+                    {selectedLanguages.map(lang => (
+                        <span key={lang} className="selected-language-tag">
+                    {lang}
+                          <button
+                              type="button"
+                              className="remove-language"
+                              onClick={() => removeLanguage(lang)}
+                              disabled={isLoading}
+                          >
+                      ×
+                    </button>
+                  </span>
+                    ))}
+                  </div>
+              )}
+            </div>
+          </div>
+
+          <div className="form-group">
             <label htmlFor="titleImage">Титульная картинка</label>
             <input
                 id="titleImage"
@@ -191,39 +246,6 @@ function CreateCoursePage() {
                 </div>
             )}
           </div>
-
-          <div className="form-group">
-            <label htmlFor="programmingLanguage">Язык программирования *</label>
-            <select
-                id="programmingLanguage"
-                value={programmingLanguage}
-                onChange={(e) => setProgrammingLanguage(e.target.value)}
-                required
-                disabled={isLoading}
-            >
-              <option value="">Выберите язык программирования</option>
-              {programmingLanguages.map((lang) => (
-                  <option key={lang} value={lang}>
-                    {lang}
-                  </option>
-              ))}
-            </select>
-          </div>
-
-          {programmingLanguage === 'Другой (ввести вручную)' && (
-              <div className="form-group">
-                <label htmlFor="customLanguage">Введите язык программирования *</label>
-                <input
-                    id="customLanguage"
-                    type="text"
-                    value={customLanguage}
-                    onChange={(e) => setCustomLanguage(e.target.value)}
-                    placeholder="Например: Pascal, Delphi, Lua, Perl..."
-                    required
-                    disabled={isLoading}
-                />
-              </div>
-          )}
 
           <div className="form-group">
             <label htmlFor="sectionsCount">Количество разделов *</label>

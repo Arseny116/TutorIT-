@@ -20,7 +20,7 @@
   color: #28a745;
   font-size: 28px;
   font-weight: bold;
-  cursor: pointer;
+  transition: opacity 0.2s;
 }
 
 .header-title:hover {
@@ -42,6 +42,44 @@
 .header-back-btn:hover {
   background: #5a6268;
   transform: translateY(-2px);
+}
+
+.header-courses-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.header-courses-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.header-create-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.header-create-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
 }
 
 .header-user-btn {
@@ -106,6 +144,12 @@
     width: 100%;
     justify-content: center;
   }
+
+  .header-courses-btn,
+  .header-create-btn {
+    padding: 8px 15px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -123,50 +167,10 @@
     padding: 6px 12px;
     font-size: 12px;
   }
-}
-/* Всплывающее предупреждение */
-.warning-toast {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  animation: slideDown 0.3s ease;
-}
 
-.warning-content {
-  background: #ff9800;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.warning-icon {
-  font-size: 18px;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-@media (max-width: 768px) {
-  .warning-content {
-    padding: 10px 20px;
-    font-size: 13px;
-    max-width: 90vw;
-    text-align: center;
+  .header-courses-btn,
+  .header-create-btn {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }

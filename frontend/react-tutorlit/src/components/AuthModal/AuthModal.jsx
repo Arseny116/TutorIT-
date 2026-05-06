@@ -44,8 +44,9 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
             }
 
             const result = await authService.register(name, email, password);
+
             if (result.success) {
-                // После успешной регистрации автоматически входим
+                // Регистрация успешна - теперь входим
                 const loginResult = await authService.login(email, password);
                 if (loginResult.success) {
                     const userData = { name, email };
@@ -56,6 +57,8 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
                     navigate('/profile');
                 } else {
                     setError('Регистрация успешна, но не удалось войти. Пожалуйста, войдите вручную.');
+                    // Переключаем на форму входа
+                    setIsLogin(true);
                 }
             } else {
                 setError(result.error || 'Ошибка регистрации');

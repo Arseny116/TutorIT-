@@ -11,6 +11,7 @@ function CourseBuilder() {
   const [cleanedCourseId, setCleanedCourseId] = useState('');
   const [debugInfo, setDebugInfo] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const [currentStep, setCurrentStep] = useState('section-details');
   const [sectionData, setSectionData] = useState({
@@ -56,6 +57,14 @@ function CourseBuilder() {
     setTimeout(() => setShowNotification(false), 4000);
   };
 
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    return `http://89.110.94.112:8080/${imagePath}`;
+  };
+
   useEffect(() => {
     if (courseId) {
       const cleanId = courseId.replace(/^["']+|["']+$/g, '').trim();
@@ -95,32 +104,162 @@ function CourseBuilder() {
 
           const totalSections = courseData.chapters || 1;
 
-          if (courseWithSections.sectionsData.length > 0) {
-            setSectionData({
-              totalSections: totalSections,
-              sections: courseWithSections.sectionsData,
-              currentSectionIndex: courseWithSections.sectionsData.length < totalSections
-                  ? courseWithSections.sectionsData.length
-                  : 0
-            });
-          } else {
-            const newSections = Array.from({ length: totalSections }, (_, i) => ({
-              id: null,
-              name: '',
-              description: '',
-              numberTheoryBloks: 0,
-              numberTasks: 0,
-              theory: [],
-              tasks: [],
-              sectionNumber: i + 1
-            }));
+          const chaptersResponse = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
+            method: 'GET',
+            headers: headers,
+            credentials: 'include'
+          });
 
-            setSectionData({
-              totalSections: totalSections,
-              currentSectionIndex: 0,
-              sections: newSections
-            });
+          if (chaptersResponse.ok) {
+            let chaptersData = await chaptersResponse.json();
+            let chapters = Array.isArray(chaptersData) ? chaptersData : (chaptersData.$values || chaptersData);
+
+            if (chapters && chapters.length > 0) {
+              setIsEditMode(true);
+              console.log('Режим редактирования: найдено разделов:', chapters.length);
+
+              const loadedSections = [];
+
+              for (const chapter of chapters) {
+                const chapterId = chapter.id || chapter.$id;
+
+                let theoriesArray = [];
+                try {
+                  const theoriesResponse = await fetch(`/api/v1/Theories?CharterId=${chapterId}`, {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'include'
+                  });
+
+                  if (theoriesResponse.ok) {
+                    let theoriesData = await theoriesResponse.json();
+                    let theories = Array.isArray(theoriesData) ? theoriesData : (theoriesData.$values || []);
+
+                    theoriesArray = theories.map((theory, idx) => ({
+                      id: theory.id || theory.$id,
+                      name: theory.name || `Теория ${idx + 1}`,
+                      article: theory.article || '',
+                      image: null,
+                      imagePreview: theory.titleImage ? getImageUrl(theory.titleImage) : '',
+                      index: idx
+                    }));
+                  }
+                } catch (err) {
+                  console.error('Ошибка загрузки теорий:', err);
+                }
+
+                let tasksArray = [];
+                try {
+                  const tasksResponse = await fetch(`/api/v1/TasksCreators/${chapterId}`, {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'include'
+                  });
+
+                  if (tasksResponse.ok) {
+                    let tasksData = await tasksResponse.json();
+                    let tasks = Array.isArray(tasksData) ? tasksData : (tasksData.$values || []);
+
+                    for (const task of tasks) {
+                      let answers = [];
+                      let correctAnswerIndex = 0;
+                      let questions = [];
+
+                      try {
+                        const questionsResponse = await fetch(`/api/v1/Questions?TaskCreater=${task.id}`, {
+                          method: 'GET',
+                          headers: headers,
+                          credentials: 'include'
+                        });
+
+                        if (questionsResponse.ok) {
+                          let questionsData = await questionsResponse.json();
+                          let questionsList = Array.isArray(questionsData) ? questionsData : (questionsData.$values || []);
+
+                          questions = questionsList.map((q, idx) => ({
+                            id: q.id || q.$id,
+                            name: q.name,
+                            answer: q.answer
+                          }));
+
+                          answers = questionsList.map(q => q.name);
+                          correctAnswerIndex = questionsList.findIndex(q => q.answer === true);
+                          if (correctAnswerIndex === -1) correctAnswerIndex = 0;
+                        }
+                      } catch (err) {
+                        console.error('Ошибка загрузки вопросов:', err);
+                      }
+
+                      tasksArray.push({
+                        id: task.id || task.$id,
+                        name: task.name || `Задание ${tasksArray.length + 1}`,
+                        description: task.description || '',
+                        hint: task.hint || '',
+                        image: null,
+                        imagePreview: task.titleImage ? getImageUrl(task.titleImage) : '',
+                        index: tasksArray.length,
+                        answers: answers,
+                        correctAnswerIndex: correctAnswerIndex,
+                        questions: questions
+                      });
+                    }
+                  }
+                } catch (err) {
+                  console.error('Ошибка загрузки заданий:', err);
+                }
+
+                loadedSections.push({
+                  id: chapterId,
+                  name: chapter.name || `Раздел ${loadedSections.length + 1}`,
+                  description: chapter.description || '',
+                  numberTheoryBloks: theoriesArray.length,
+                  numberTasks: tasksArray.length,
+                  theory: theoriesArray,
+                  tasks: tasksArray,
+                  sectionNumber: loadedSections.length + 1
+                });
+              }
+
+              for (let i = loadedSections.length; i < totalSections; i++) {
+                loadedSections.push({
+                  id: null,
+                  name: '',
+                  description: '',
+                  numberTheoryBloks: 0,
+                  numberTasks: 0,
+                  theory: [],
+                  tasks: [],
+                  sectionNumber: i + 1
+                });
+              }
+
+              setSectionData({
+                totalSections: totalSections,
+                currentSectionIndex: 0,
+                sections: loadedSections
+              });
+
+              return;
+            }
           }
+
+          const newSections = Array.from({ length: totalSections }, (_, i) => ({
+            id: null,
+            name: '',
+            description: '',
+            numberTheoryBloks: 0,
+            numberTasks: 0,
+            theory: [],
+            tasks: [],
+            sectionNumber: i + 1
+          }));
+
+          setSectionData({
+            totalSections: totalSections,
+            currentSectionIndex: 0,
+            sections: newSections
+          });
+
         } else {
           setStatusMessage('Не удалось загрузить курс');
           setTimeout(() => navigate('/courses'), 2000);
@@ -189,7 +328,7 @@ function CourseBuilder() {
       setCurrentStep('section-details');
       setStatusMessage(`Переход к разделу ${sectionData.currentSectionIndex + 2}...`);
     } else {
-      setStatusMessage('Все разделы созданы! Перенаправление на главную...');
+      setStatusMessage('Все разделы готовы! Перенаправление на главную...');
       setTimeout(() => navigate('/'), 2000);
     }
   };
@@ -201,40 +340,91 @@ function CourseBuilder() {
     const [localSectionData, setLocalSectionData] = useState({
       name: currentSection?.name || '',
       description: currentSection?.description || '',
-      numberTheoryBloks: currentSection?.numberTheoryBloks || 0,
-      numberTasks: currentSection?.numberTasks || 0
+      numberTheoryBloks: currentSection?.numberTheoryBloks || 1,
+      numberTasks: currentSection?.numberTasks || 1
     });
 
-    const handleSaveSectionDetails = async () => {
-      if (!localSectionData.name || !localSectionData.description) {
-        setStatusMessage('Заполните название и описание раздела');
-        setTimeout(() => setStatusMessage(''), 3000);
-        return;
+    const [errors, setErrors] = useState({
+      name: '',
+      description: '',
+      numberTheoryBloks: '',
+      numberTasks: ''
+    });
+
+    useEffect(() => {
+      if (currentSection) {
+        setLocalSectionData({
+          name: currentSection.name || '',
+          description: currentSection.description || '',
+          numberTheoryBloks: currentSection.numberTheoryBloks || 1,
+          numberTasks: currentSection.numberTasks || 1
+        });
+      }
+    }, [currentSection]);
+
+    // Функция проверки валидности формы (без текстовых ошибок для чисел)
+    const isFormValid = () => {
+      const theoryBloks = parseInt(localSectionData.numberTheoryBloks);
+      const tasks = parseInt(localSectionData.numberTasks);
+
+      const isNameValid = localSectionData.name.trim() !== '' && localSectionData.name.length <= 200;
+      const isDescriptionValid = localSectionData.description.trim() !== '';
+      const isTheoryValid = !isNaN(theoryBloks) && theoryBloks >= 1 && theoryBloks <= 10;
+      const isTasksValid = !isNaN(tasks) && tasks >= 1 && tasks <= 10;
+
+      return isNameValid && isDescriptionValid && isTheoryValid && isTasksValid;
+    };
+
+    const validateForm = () => {
+      let isValid = true;
+      const newErrors = { name: '', description: '', numberTheoryBloks: '', numberTasks: '' };
+
+      if (!localSectionData.name.trim()) {
+        newErrors.name = 'Название раздела обязательно';
+        isValid = false;
+      } else if (localSectionData.name.length > 200) {
+        newErrors.name = 'Название не должно превышать 200 символов';
+        isValid = false;
       }
 
-      if (localSectionData.numberTheoryBloks < 0 || localSectionData.numberTasks < 0) {
-        setStatusMessage('Количество блоков теории и заданий должно быть не менее 0');
+      if (!localSectionData.description.trim()) {
+        newErrors.description = 'Описание раздела обязательно';
+        isValid = false;
+      }
+
+      // Проверка количества блоков теории (1-10) - без текста ошибки
+      const theoryBloks = parseInt(localSectionData.numberTheoryBloks);
+      if (isNaN(theoryBloks) || theoryBloks < 1 || theoryBloks > 10) {
+        newErrors.numberTheoryBloks = 'error';
+        isValid = false;
+      }
+
+      // Проверка количества заданий (1-10) - без текста ошибки
+      const tasks = parseInt(localSectionData.numberTasks);
+      if (isNaN(tasks) || tasks < 1 || tasks > 10) {
+        newErrors.numberTasks = 'error';
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      return isValid;
+    };
+
+    const handleSaveSectionDetails = async () => {
+      if (!validateForm()) {
+        setStatusMessage('Заполните все поля корректно (название, описание, количество блоков теории и заданий от 1 до 10)');
         setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
 
       setIsLoading(true);
-      setDebugInfo('Создание раздела...');
-      setStatusMessage('Создание раздела...');
+      setDebugInfo('Сохранение раздела...');
+      setStatusMessage('Сохранение раздела...');
 
       try {
         if (!cleanedCourseId) {
           throw new Error('CourseId не определен');
         }
-
-        const apiUrl = `/api/v1/Chapters/${cleanedCourseId}`;
-
-        const requestData = {
-          name: localSectionData.name,
-          description: localSectionData.description,
-          numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 0,
-          numberTasks: parseInt(localSectionData.numberTasks) || 0
-        };
 
         const token = authService.getToken();
         const headers = {
@@ -245,12 +435,39 @@ function CourseBuilder() {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(requestData),
-          credentials: 'include'
-        });
+        let chapterId = currentSection?.id;
+        let response;
+
+        if (chapterId && isEditMode) {
+          const updateData = {
+            id: chapterId,
+            name: localSectionData.name,
+            description: localSectionData.description,
+            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 1,
+            numberTasks: parseInt(localSectionData.numberTasks) || 1
+          };
+
+          response = await fetch(`/api/v1/Chapters/${chapterId}`, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify(updateData),
+            credentials: 'include'
+          });
+        } else {
+          const requestData = {
+            name: localSectionData.name,
+            description: localSectionData.description,
+            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 1,
+            numberTasks: parseInt(localSectionData.numberTasks) || 1
+          };
+
+          response = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(requestData),
+            credentials: 'include'
+          });
+        }
 
         const responseText = await response.text();
         console.log('Ответ сервера:', response.status, responseText);
@@ -263,33 +480,40 @@ function CourseBuilder() {
         }
 
         if (!response.ok) {
-          throw new Error(`Ошибка создания раздела (${response.status})`);
+          throw new Error(`Ошибка сохранения раздела (${response.status})`);
         }
 
-        const chapterId = responseText.replace(/["'\s]/g, '').trim();
-        console.log('Раздел создан, ID:', chapterId);
+        if (!chapterId) {
+          chapterId = responseText.replace(/["'\s]/g, '').trim();
+        }
 
-        const theoryArray = Array.from({ length: localSectionData.numberTheoryBloks }, (_, i) => ({
-          id: null,
-          name: '',
-          article: '',
-          image: null,
-          imagePreview: '',
-          index: i
-        }));
+        const theoryArray = Array.from({ length: localSectionData.numberTheoryBloks }, (_, i) => {
+          const existingTheory = currentSection?.theory?.[i];
+          return {
+            id: existingTheory?.id || null,
+            name: existingTheory?.name || '',
+            article: existingTheory?.article || '',
+            image: null,
+            imagePreview: existingTheory?.imagePreview || '',
+            index: i
+          };
+        });
 
-        const tasksArray = Array.from({ length: localSectionData.numberTasks }, (_, i) => ({
-          id: null,
-          name: '',
-          description: '',
-          hint: '',
-          image: null,
-          imagePreview: '',
-          index: i,
-          answers: ['', '', '', ''],
-          correctAnswerIndex: 0,
-          questions: []
-        }));
+        const tasksArray = Array.from({ length: localSectionData.numberTasks }, (_, i) => {
+          const existingTask = currentSection?.tasks?.[i];
+          return {
+            id: existingTask?.id || null,
+            name: existingTask?.name || '',
+            description: existingTask?.description || '',
+            hint: existingTask?.hint || '',
+            image: null,
+            imagePreview: existingTask?.imagePreview || '',
+            index: i,
+            answers: existingTask?.answers || ['', '', '', ''],
+            correctAnswerIndex: existingTask?.correctAnswerIndex || 0,
+            questions: existingTask?.questions || []
+          };
+        });
 
         const updatedSections = [...sectionData.sections];
         updatedSections[sectionData.currentSectionIndex] = {
@@ -308,7 +532,7 @@ function CourseBuilder() {
           sections: updatedSections
         }));
 
-        setStatusMessage(`Раздел "${localSectionData.name}" успешно создан!`);
+        setStatusMessage(`Раздел "${localSectionData.name}" успешно сохранен!`);
 
         if (localSectionData.numberTheoryBloks > 0) {
           setCurrentTheoryIndex(0);
@@ -321,9 +545,9 @@ function CourseBuilder() {
         }
 
       } catch (error) {
-        console.error('Ошибка создания раздела:', error);
+        console.error('Ошибка сохранения раздела:', error);
         setDebugInfo(`Ошибка: ${error.message}`);
-        setStatusMessage(`Ошибка создания раздела: ${error.message}`);
+        setStatusMessage(`Ошибка сохранения раздела: ${error.message}`);
         setTimeout(() => setStatusMessage(''), 5000);
       } finally {
         setIsLoading(false);
@@ -344,7 +568,9 @@ function CourseBuilder() {
                 onChange={(e) => setLocalSectionData(prev => ({...prev, name: e.target.value}))}
                 placeholder="Введите название раздела"
                 disabled={isLoading}
+                className={errors.name ? 'error-input' : ''}
             />
+            {errors.name && <span className="error-text">{errors.name}</span>}
           </div>
 
           <div className="form-group">
@@ -355,7 +581,9 @@ function CourseBuilder() {
                 placeholder="Опишите содержание раздела"
                 rows="3"
                 disabled={isLoading}
+                className={errors.description ? 'error-input' : ''}
             />
+            {errors.description && <span className="error-text">{errors.description}</span>}
           </div>
 
           <div className="counters-row">
@@ -364,10 +592,14 @@ function CourseBuilder() {
               <input
                   type="number"
                   value={localSectionData.numberTheoryBloks}
-                  onChange={(e) => setLocalSectionData(prev => ({...prev, numberTheoryBloks: parseInt(e.target.value) || 0}))}
-                  min="0"
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 1 : parseInt(e.target.value);
+                    setLocalSectionData(prev => ({...prev, numberTheoryBloks: value >= 1 ? value : 1}));
+                  }}
+                  min="1"
                   max="10"
                   disabled={isLoading}
+                  className={errors.numberTheoryBloks ? 'error-input' : ''}
               />
             </div>
 
@@ -376,10 +608,14 @@ function CourseBuilder() {
               <input
                   type="number"
                   value={localSectionData.numberTasks}
-                  onChange={(e) => setLocalSectionData(prev => ({...prev, numberTasks: parseInt(e.target.value) || 0}))}
-                  min="0"
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 1 : parseInt(e.target.value);
+                    setLocalSectionData(prev => ({...prev, numberTasks: value >= 1 ? value : 1}));
+                  }}
+                  min="1"
                   max="10"
                   disabled={isLoading}
+                  className={errors.numberTasks ? 'error-input' : ''}
               />
             </div>
           </div>
@@ -388,9 +624,9 @@ function CourseBuilder() {
             <button
                 className="next-btn green-btn"
                 onClick={handleSaveSectionDetails}
-                disabled={!localSectionData.name || !localSectionData.description || isLoading}
+                disabled={!isFormValid() || isLoading}
             >
-              {isLoading ? 'Создание...' : 'Далее →'}
+              {isLoading ? 'Сохранение...' : 'Далее →'}
             </button>
           </div>
         </div>
@@ -405,8 +641,13 @@ function CourseBuilder() {
     const [theoryData, setTheoryData] = useState({
       name: currentTheory?.name || '',
       article: currentTheory?.article || '',
-      image: currentTheory?.image || null,
+      image: null,
       imagePreview: currentTheory?.imagePreview || ''
+    });
+
+    const [errors, setErrors] = useState({
+      name: '',
+      article: ''
     });
 
     useEffect(() => {
@@ -414,11 +655,36 @@ function CourseBuilder() {
         setTheoryData({
           name: currentTheory.name || '',
           article: currentTheory.article || '',
-          image: currentTheory.image || null,
+          image: null,
           imagePreview: currentTheory.imagePreview || ''
         });
       }
     }, [currentTheory]);
+
+    const isFormValid = () => {
+      return theoryData.name.trim() !== '' && theoryData.article.trim() !== '';
+    };
+
+    const validateForm = () => {
+      let isValid = true;
+      const newErrors = { name: '', article: '' };
+
+      if (!theoryData.name.trim()) {
+        newErrors.name = 'Название теории обязательно';
+        isValid = false;
+      } else if (theoryData.name.length > 200) {
+        newErrors.name = 'Название не должно превышать 200 символов';
+        isValid = false;
+      }
+
+      if (!theoryData.article.trim()) {
+        newErrors.article = 'Содержание теории обязательно';
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      return isValid;
+    };
 
     const handleImageChange = (e) => {
       const file = e.target.files[0];
@@ -436,38 +702,65 @@ function CourseBuilder() {
     };
 
     const handleSaveTheory = async () => {
-      if (!theoryData.name || !theoryData.article) {
-        setStatusMessage('Заполните название и содержание теории');
+      if (!validateForm()) {
+        setStatusMessage('Заполните обязательные поля');
         setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
 
       setIsLoading(true);
-      setStatusMessage('Создание теории...');
+      setStatusMessage('Сохранение теории...');
 
       try {
         const chapterId = currentSection.id;
-
         const token = authService.getToken();
-        const formData = new FormData();
-        formData.append('Name', theoryData.name);
-        formData.append('Article', theoryData.article);
+        const existingTheoryId = currentTheory?.id;
 
-        if (theoryData.image) {
-          formData.append('TitleImage', theoryData.image);
+        let response;
+        let theoryId = existingTheoryId;
+
+        if (existingTheoryId && isEditMode) {
+          const updateData = {
+            id: existingTheoryId,
+            name: theoryData.name,
+            article: theoryData.article,
+            chapterId: chapterId
+          };
+
+          const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'text/plain'
+          };
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          response = await fetch(`/api/v1/Theories/${existingTheoryId}`, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify(updateData),
+            credentials: 'include'
+          });
+        } else {
+          const formData = new FormData();
+          formData.append('Name', theoryData.name);
+          formData.append('Article', theoryData.article);
+          if (theoryData.image) {
+            formData.append('TitleImage', theoryData.image);
+          }
+
+          const headers = {};
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          response = await fetch(`/api/v1/Theories?ChapterId=${chapterId}`, {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            credentials: 'include'
+          });
         }
-
-        const headers = {};
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch(`/api/v1/Theories?ChapterId=${chapterId}`, {
-          method: 'POST',
-          headers: headers,
-          body: formData,
-          credentials: 'include'
-        });
 
         const responseText = await response.text();
         console.log('Ответ сервера:', response.status, responseText);
@@ -480,11 +773,12 @@ function CourseBuilder() {
         }
 
         if (!response.ok) {
-          throw new Error(`Ошибка создания теории (${response.status})`);
+          throw new Error(`Ошибка сохранения теории (${response.status}): ${responseText}`);
         }
 
-        const theoryId = responseText.replace(/["'\s]/g, '').trim();
-        console.log('Теория создана, ID:', theoryId);
+        if (!existingTheoryId) {
+          theoryId = responseText.replace(/["'\s]/g, '').trim();
+        }
 
         const updatedSections = [...sectionData.sections];
         updatedSections[sectionData.currentSectionIndex].theory[currentTheoryIndex] = {
@@ -501,11 +795,12 @@ function CourseBuilder() {
           sections: updatedSections
         }));
 
-        setStatusMessage('Теория сохранена на сервере!');
+        setStatusMessage('Теория сохранена!');
 
         if (currentTheoryIndex < currentSection.theory.length - 1) {
           setCurrentTheoryIndex(currentTheoryIndex + 1);
           setTheoryData({ name: '', article: '', image: null, imagePreview: '' });
+          setErrors({ name: '', article: '' });
           setStatusMessage(`Переход к блоку теории ${currentTheoryIndex + 2}...`);
         } else if (currentSection.numberTasks > 0) {
           setCurrentTaskIndex(0);
@@ -516,7 +811,7 @@ function CourseBuilder() {
         }
 
       } catch (error) {
-        console.error('Ошибка создания теории:', error);
+        console.error('Ошибка сохранения теории:', error);
         setStatusMessage(`Ошибка: ${error.message}`);
         setTimeout(() => setStatusMessage(''), 5000);
       } finally {
@@ -541,11 +836,13 @@ function CourseBuilder() {
                 onChange={(e) => setTheoryData(prev => ({...prev, name: e.target.value}))}
                 placeholder="Введите название теории"
                 disabled={isLoading}
+                className={errors.name ? 'error-input' : ''}
             />
+            {errors.name && <span className="error-text">{errors.name}</span>}
           </div>
 
           <div className="form-group">
-            <label>Изображение</label>
+            <label>Изображение (необязательно)</label>
             <input
                 type="file"
                 accept="image/*"
@@ -588,21 +885,19 @@ function CourseBuilder() {
                 placeholder="Введите теоретические материалы..."
                 rows="10"
                 disabled={isLoading}
+                className={errors.article ? 'error-input' : ''}
             />
+            {errors.article && <span className="error-text">{errors.article}</span>}
           </div>
 
           <div className="navigation-buttons">
-            <button
-                className="btn-back"
-                onClick={handleGoBack}
-                disabled={isLoading}
-            >
+            <button className="btn-back" onClick={handleGoBack} disabled={isLoading}>
               ← Назад
             </button>
             <button
                 className="next-btn green-btn"
                 onClick={handleSaveTheory}
-                disabled={!theoryData.name || !theoryData.article || isLoading}
+                disabled={!isFormValid() || isLoading}
             >
               {isLoading ? 'Сохранение...' : 'Далее →'}
             </button>
@@ -620,8 +915,14 @@ function CourseBuilder() {
       name: currentTask?.name || '',
       description: currentTask?.description || '',
       hint: currentTask?.hint || '',
-      image: currentTask?.image || null,
+      image: null,
       imagePreview: currentTask?.imagePreview || ''
+    });
+
+    const [errors, setErrors] = useState({
+      name: '',
+      description: '',
+      hint: ''
     });
 
     useEffect(() => {
@@ -630,11 +931,47 @@ function CourseBuilder() {
           name: currentTask.name || '',
           description: currentTask.description || '',
           hint: currentTask.hint || '',
-          image: currentTask.image || null,
+          image: null,
           imagePreview: currentTask.imagePreview || ''
         });
       }
     }, [currentTask]);
+
+    const isFormValid = () => {
+      return taskData.name.trim() !== '' &&
+          taskData.description.trim() !== '' &&
+          taskData.hint.trim() !== '' &&
+          taskData.hint.length <= 100;
+    };
+
+    const validateForm = () => {
+      let isValid = true;
+      const newErrors = { name: '', description: '', hint: '' };
+
+      if (!taskData.name.trim()) {
+        newErrors.name = 'Название задания обязательно';
+        isValid = false;
+      } else if (taskData.name.length > 200) {
+        newErrors.name = 'Название не должно превышать 200 символов';
+        isValid = false;
+      }
+
+      if (!taskData.description.trim()) {
+        newErrors.description = 'Описание задания обязательно';
+        isValid = false;
+      }
+
+      if (!taskData.hint.trim()) {
+        newErrors.hint = 'Подсказка обязательна для заполнения';
+        isValid = false;
+      } else if (taskData.hint.length > 100) {
+        newErrors.hint = 'Подсказка не должна превышать 100 символов';
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      return isValid;
+    };
 
     const handleImageChange = (e) => {
       const file = e.target.files[0];
@@ -652,42 +989,67 @@ function CourseBuilder() {
     };
 
     const handleSaveAssignment = async () => {
-      if (!taskData.name || !taskData.description) {
-        setStatusMessage('Заполните название и описание задания');
+      if (!validateForm()) {
+        setStatusMessage('Заполните все обязательные поля');
         setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
 
       setIsLoading(true);
-      setStatusMessage('Создание задания...');
+      setStatusMessage('Сохранение задания...');
 
       try {
         const chapterId = currentSection.id;
-
         const token = authService.getToken();
-        const formData = new FormData();
-        formData.append('Name', taskData.name);
-        formData.append('Description', taskData.description);
+        const existingTaskId = currentTask?.id;
 
-        if (taskData.hint) {
+        let response;
+        let taskId = existingTaskId;
+
+        if (existingTaskId && isEditMode) {
+          const updateData = {
+            id: existingTaskId,
+            name: taskData.name,
+            description: taskData.description,
+            hint: taskData.hint,
+            chapterCreatorId: chapterId
+          };
+
+          const headers = {
+            'Content-Type': 'application/json',
+            'accept': 'text/plain'
+          };
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          response = await fetch(`/api/v1/TasksCreators/${existingTaskId}`, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify(updateData),
+            credentials: 'include'
+          });
+        } else {
+          const formData = new FormData();
+          formData.append('Name', taskData.name);
+          formData.append('Description', taskData.description);
           formData.append('Hint', taskData.hint);
-        }
+          if (taskData.image) {
+            formData.append('TitleImage', taskData.image);
+          }
 
-        if (taskData.image) {
-          formData.append('TitleImage', taskData.image);
-        }
+          const headers = {};
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
 
-        const headers = {};
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
+          response = await fetch(`/api/v1/TasksCreators?ChapterId=${chapterId}`, {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            credentials: 'include'
+          });
         }
-
-        const response = await fetch(`/api/v1/TasksCreators?ChapterId=${chapterId}`, {
-          method: 'POST',
-          headers: headers,
-          body: formData,
-          credentials: 'include'
-        });
 
         const responseText = await response.text();
         console.log('Ответ сервера:', response.status, responseText);
@@ -700,11 +1062,12 @@ function CourseBuilder() {
         }
 
         if (!response.ok) {
-          throw new Error(`Ошибка создания задания (${response.status})`);
+          throw new Error(`Ошибка сохранения задания (${response.status}): ${responseText}`);
         }
 
-        const taskId = responseText.replace(/["'\s]/g, '').trim();
-        console.log('Задание создано, ID:', taskId);
+        if (!existingTaskId) {
+          taskId = responseText.replace(/["'\s]/g, '').trim();
+        }
 
         const updatedSections = [...sectionData.sections];
         updatedSections[sectionData.currentSectionIndex].tasks[currentTaskIndex] = {
@@ -722,11 +1085,11 @@ function CourseBuilder() {
           sections: updatedSections
         }));
 
-        setStatusMessage('Задание сохранено на сервере!');
+        setStatusMessage('Задание сохранено!');
         setCurrentStep('answers');
 
       } catch (error) {
-        console.error('Ошибка создания задания:', error);
+        console.error('Ошибка сохранения задания:', error);
         setStatusMessage(`Ошибка: ${error.message}`);
         setTimeout(() => setStatusMessage(''), 5000);
       } finally {
@@ -752,7 +1115,9 @@ function CourseBuilder() {
                   onChange={(e) => setTaskData(prev => ({...prev, name: e.target.value}))}
                   placeholder="Введите название задания"
                   disabled={isLoading}
+                  className={errors.name ? 'error-input' : ''}
               />
+              {errors.name && <span className="error-text">{errors.name}</span>}
             </div>
 
             <div className="form-group">
@@ -763,11 +1128,13 @@ function CourseBuilder() {
                   placeholder="Опишите задание..."
                   rows="4"
                   disabled={isLoading}
+                  className={errors.description ? 'error-input' : ''}
               />
+              {errors.description && <span className="error-text">{errors.description}</span>}
             </div>
 
             <div className="form-group">
-              <label>Изображение</label>
+              <label>Изображение (необязательно)</label>
               <input
                   type="file"
                   accept="image/*"
@@ -803,7 +1170,7 @@ function CourseBuilder() {
             </div>
 
             <div className="form-group">
-              <label>Подсказка</label>
+              <label>Подсказка *</label>
               <textarea
                   value={taskData.hint}
                   onChange={(e) => setTaskData(prev => ({...prev, hint: e.target.value}))}
@@ -811,23 +1178,21 @@ function CourseBuilder() {
                   rows="2"
                   disabled={isLoading}
                   style={{ resize: 'vertical' }}
+                  className={errors.hint ? 'error-input' : ''}
               />
+              {errors.hint && <span className="error-text">{errors.hint}</span>}
             </div>
 
             <div className="navigation-buttons">
-              <button
-                  className="btn-back"
-                  onClick={handleGoBack}
-                  disabled={isLoading}
-              >
+              <button className="btn-back" onClick={handleGoBack} disabled={isLoading}>
                 ← Назад
               </button>
               <button
                   className="next-btn green-btn"
                   onClick={handleSaveAssignment}
-                  disabled={!taskData.name || !taskData.description || isLoading}
+                  disabled={!isFormValid() || isLoading}
               >
-                {isLoading ? 'Создание...' : 'Далее →'}
+                {isLoading ? 'Сохранение...' : 'Далее →'}
               </button>
             </div>
           </div>
@@ -842,6 +1207,7 @@ function CourseBuilder() {
 
     const [answers, setAnswers] = useState(currentTask?.answers || ['', '', '', '']);
     const [correctAnswerIndex, setCorrectAnswerIndex] = useState(currentTask?.correctAnswerIndex || 0);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
       if (currentTask) {
@@ -850,47 +1216,96 @@ function CourseBuilder() {
       }
     }, [currentTask]);
 
-    const createQuestion = async (taskId, questionName, isCorrect) => {
-      const apiUrl = `/api/v1/Questions?TaskCreatorId=${encodeURIComponent(taskId)}`;
+    const isFormValid = () => {
+      return answers.every(answer => answer.trim() !== '');
+    };
+
+    const validateAnswers = () => {
+      const newErrors = {};
+      let isValid = true;
+
+      answers.forEach((answer, index) => {
+        if (!answer.trim()) {
+          newErrors[`answer_${index}`] = `Вариант ответа ${index + 1} обязателен`;
+          isValid = false;
+        }
+      });
+
+      const lowerAnswers = answers.map(a => a.trim().toLowerCase());
+      const duplicates = lowerAnswers.filter((item, index) => lowerAnswers.indexOf(item) !== index);
+      if (duplicates.length > 0) {
+        const duplicateValues = [...new Set(duplicates)];
+        newErrors.duplicates = `Варианты ответов не должны повторяться: "${duplicateValues.join('", "')}"`;
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      return isValid;
+    };
+
+    const createOrUpdateQuestion = async (taskId, questionId, questionName, isCorrect) => {
+      const token = authService.getToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        'accept': 'text/plain'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       const requestData = {
         name: questionName,
         answer: isCorrect
       };
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'text/plain'
-        },
-        body: JSON.stringify(requestData)
+      let url, method;
+      if (questionId && isEditMode) {
+        url = `/api/v1/Questions/${questionId}`;
+        method = 'PUT';
+      } else {
+        url = `/api/v1/Questions?TaskCreatorId=${taskId}`;
+        method = 'POST';
+      }
+
+      const response = await fetch(url, {
+        method: method,
+        headers: headers,
+        body: JSON.stringify(requestData),
+        credentials: 'include'
       });
 
       const responseText = await response.text();
 
       if (!response.ok) {
-        throw new Error(`Ошибка создания вопроса (${response.status})`);
+        throw new Error(`Ошибка ${method === 'PUT' ? 'обновления' : 'создания'} вопроса (${response.status}): ${responseText}`);
       }
 
-      return responseText.replace(/["'\s]/g, '').trim();
+      return questionId || responseText.replace(/["'\s]/g, '').trim();
+    };
+
+    const deleteQuestion = async (questionId) => {
+      if (!questionId) return;
+
+      const token = authService.getToken();
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      try {
+        await fetch(`/api/v1/Questions/${questionId}`, {
+          method: 'DELETE',
+          headers: headers,
+          credentials: 'include'
+        });
+      } catch (err) {
+        console.warn('Ошибка удаления вопроса:', err);
+      }
     };
 
     const handleSaveAnswers = async () => {
-      // Проверка на пустые ответы
-      const emptyIndex = answers.findIndex(answer => !answer.trim());
-      if (emptyIndex !== -1) {
-        showNotificationMessage(`Заполните вариант ответа ${emptyIndex + 1}`, 'warning');
-        return;
-      }
-
-      // Проверка на дубликаты ответов
-      const lowerAnswers = answers.map(a => a.trim().toLowerCase());
-      const duplicates = lowerAnswers.filter((item, index) => lowerAnswers.indexOf(item) !== index);
-
-      if (duplicates.length > 0) {
-        const duplicateValues = [...new Set(duplicates)];
-        showNotificationMessage(`Варианты ответов не должны повторяться! Найдены дубликаты: "${duplicateValues.join('", "')}"`, 'error');
+      if (!validateAnswers()) {
+        showNotificationMessage('Заполните все варианты ответов и устраните дубликаты', 'warning');
         return;
       }
 
@@ -899,11 +1314,10 @@ function CourseBuilder() {
 
       try {
         const taskId = currentTask.id;
+        const existingQuestions = currentTask?.questions || [];
 
-        const token = authService.getToken();
-        const headers = {};
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
+        for (const existingQuestion of existingQuestions) {
+          await deleteQuestion(existingQuestion.id);
         }
 
         const questions = [];
@@ -912,20 +1326,15 @@ function CourseBuilder() {
           const questionName = answers[i];
           const isCorrect = i === correctAnswerIndex;
 
-          try {
-            const questionId = await createQuestion(taskId, questionName, isCorrect);
+          const questionId = await createOrUpdateQuestion(taskId, null, questionName, isCorrect);
 
-            questions.push({
-              id: questionId,
-              name: questionName,
-              answer: isCorrect
-            });
+          questions.push({
+            id: questionId,
+            name: questionName,
+            answer: isCorrect
+          });
 
-            console.log(`Вопрос ${i + 1} создан, ID:`, questionId);
-          } catch (error) {
-            console.error(`Ошибка создания вопроса ${i + 1}:`, error);
-            throw error;
-          }
+          console.log(`Вопрос ${i + 1} сохранен, ID:`, questionId);
         }
 
         const updatedSections = [...sectionData.sections];
@@ -987,12 +1396,18 @@ function CourseBuilder() {
           </div>
 
           <div className="answers-container">
-            <h3>Добавьте варианты ответов</h3>
+            <h3>Добавьте варианты ответов *</h3>
             <p className="hint">Отметьте правильный ответ (может быть только один)</p>
 
             <p style={{ color: '#ff9800', fontSize: '12px', marginBottom: '15px' }}>
-              ⚠️ Варианты ответов должны быть уникальными
+              ⚠️ Все варианты ответов обязательны для заполнения и должны быть уникальными
             </p>
+
+            {errors.duplicates && (
+                <div className="error-message" style={{ marginBottom: '15px' }}>
+                  {errors.duplicates}
+                </div>
+            )}
 
             {answers.map((answer, index) => (
                 <div key={index} className="answer-item-vertical">
@@ -1009,10 +1424,7 @@ function CourseBuilder() {
                             className="correct-radio-vertical"
                             disabled={isLoading}
                         />
-                        <label
-                            htmlFor={`answer-${index}`}
-                            className="correct-label-vertical"
-                        >
+                        <label htmlFor={`answer-${index}`} className="correct-label-vertical">
                           Правильный ответ
                         </label>
                       </div>
@@ -1024,28 +1436,28 @@ function CourseBuilder() {
                         const newAnswers = [...answers];
                         newAnswers[index] = e.target.value;
                         setAnswers(newAnswers);
+                        setErrors(prev => ({ ...prev, [`answer_${index}`]: '' }));
                       }}
                       placeholder={`Введите текст ответа ${index + 1} здесь...`}
-                      className="answer-textarea"
+                      className={`answer-textarea ${errors[`answer_${index}`] ? 'error-input' : ''}`}
                       disabled={isLoading}
                       rows="4"
                   />
+                  {errors[`answer_${index}`] && (
+                      <span className="error-text">{errors[`answer_${index}`]}</span>
+                  )}
                 </div>
             ))}
           </div>
 
           <div className="navigation-buttons">
-            <button
-                className="btn-back"
-                onClick={handleGoBack}
-                disabled={isLoading}
-            >
+            <button className="btn-back" onClick={handleGoBack} disabled={isLoading}>
               ← Назад
             </button>
             <button
                 className="next-btn green-btn"
                 onClick={handleSaveAnswers}
-                disabled={answers.some(answer => !answer.trim()) || isLoading}
+                disabled={!isFormValid() || isLoading}
             >
               {isLoading ? 'Сохранение...' :
                   currentTaskIndex < currentSection.tasks.length - 1
@@ -1070,7 +1482,7 @@ function CourseBuilder() {
   return (
       <div className="course-builder">
         <header className="builder-header">
-          <h1>Конструктор курса: {course.title}</h1>
+          <h1>{isEditMode ? '✏️ Редактирование курса:' : '📝 Конструктор курса:'} {course.title}</h1>
           <div className="progress">
             {currentStep === 'section-details' && `Раздел ${sectionData.currentSectionIndex + 1} из ${sectionData.totalSections}`}
             {currentStep === 'theory' && `Теория для раздела ${sectionData.currentSectionIndex + 1}`}
@@ -1102,9 +1514,9 @@ function CourseBuilder() {
         {showNotification && (
             <div className={`notification-toast ${notificationType}`}>
               <div className="notification-content">
-              <span className="notification-icon">
-                {notificationType === 'error' ? '⚠️' : notificationType === 'warning' ? 'ℹ️' : '✅'}
-              </span>
+            <span className="notification-icon">
+              {notificationType === 'error' ? '⚠️' : notificationType === 'warning' ? 'ℹ️' : '✅'}
+            </span>
                 <span className="notification-text">{notificationMessage}</span>
               </div>
             </div>

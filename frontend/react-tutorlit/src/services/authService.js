@@ -21,6 +21,10 @@ class AuthService {
                 return { success: true, userId };
             }
 
+            if (response.status === 400) {
+                return { success: false, error: responseText || 'Пользователь с таким email уже существует' };
+            }
+
             return { success: false, error: responseText || `Ошибка ${response.status}` };
         } catch (error) {
             console.error('Ошибка регистрации:', error);
@@ -47,21 +51,23 @@ class AuthService {
                 return { success: false, error: responseText || 'Неверный email или пароль' };
             }
 
-            // Токен приходит в Cookie
             const token = this.getToken();
             if (token) {
                 console.log('Токен получен из Cookie');
-            } else {
-                console.warn('Токен не найден в Cookie');
             }
 
             localStorage.setItem('userEmail', email);
             localStorage.setItem('isAuthenticated', 'true');
 
-            // Получаем данные пользователя через GET /api/user
-            const userData = await this.getCurrentUser();
+            const userData = await this.fetchUserData();
             if (userData) {
                 this._saveUserData(userData.id, userData.name, email);
+                if (userData.enrolledCourseIds) {
+                    localStorage.setItem('enrolledCourseIds', JSON.stringify(userData.enrolledCourseIds));
+                }
+                if (userData.createdCourseIds) {
+                    localStorage.setItem('createdCourseIds', JSON.stringify(userData.createdCourseIds));
+                }
             }
 
             return { success: true };
@@ -71,7 +77,7 @@ class AuthService {
         }
     }
 
-    async getCurrentUser() {
+    async fetchUserData() {
         try {
             const token = this.getToken();
             const headers = { 'accept': 'text/plain' };
@@ -87,9 +93,6 @@ class AuthService {
 
             if (response.ok) {
                 return await response.json();
-            } else if (response.status === 401) {
-                console.warn('Токен истек, нужно перелогиниться');
-                this.logout();
             }
         } catch (error) {
             console.error('Ошибка получения данных:', error);
@@ -97,7 +100,137 @@ class AuthService {
         return null;
     }
 
-    async fetchUserData(email) {
+    async refreshUserData() {
+        try {
+            const userData = await this.fetchUserData();
+            if (userData) {
+                localStorage.setItem('userId', userData.id);
+                localStorage.setItem('userName', userData.name);
+                localStorage.setItem('userEmail', userData.email);
+                if (userData.enrolledCourseIds) {
+                    localStorage.setItem('enrolledCourseIds', JSON.stringify(userData.enrolledCourseIds));
+                }
+                if (userData.createdCourseIds) {
+                    localStorage.setItem('createdCourseIds', JSON.stringify(userData.createdCourseIds));
+                }
+            }
+            return userData;
+        } catch (error) {
+            console.error('Ошибка обновления данных пользователя:', error);
+            return null;
+        }
+    }
+
+    // Записаться на курс
+    async enrollToCourse(courseId) {
+        try {
+            const userId = this.getUserId();
+            if (!userId) {
+                return { success: false, error: 'Пользователь не авторизован' };
+            }
+
+            const token = this.getToken();
+            const headers = {
+                'accept': '*/*'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`/api/user/${userId}/subscribe/${courseId}`, {
+                method: 'POST',
+                headers: headers,
+                credentials: 'include'
+            });
+
+            console.log('Enroll response status:', response.status);
+
+            if (response.status === 401) {
+                this.logout();
+                return { success: false, error: 'Сессия истекла. Пожалуйста, войдите заново.' };
+            }
+
+            if (response.ok || response.status === 200 || response.status === 204) {
+                await this.refreshUserData();
+                return { success: true };
+            } else {
+                let errorText = '';
+                try {
+                    errorText = await response.text();
+                } catch (e) {
+                    errorText = `Ошибка ${response.status}`;
+                }
+                return { success: false, error: errorText };
+            }
+        } catch (error) {
+            console.error('Ошибка записи на курс:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Отписаться от курса
+    async unenrollFromCourse(courseId) {
+        try {
+            const userId = this.getUserId();
+            if (!userId) {
+                return { success: false, error: 'Пользователь не авторизован' };
+            }
+
+            const token = this.getToken();
+            const headers = {
+                'accept': '*/*'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`/api/user/${userId}/unsubscribe/${courseId}`, {
+                method: 'DELETE',
+                headers: headers,
+                credentials: 'include'
+            });
+
+            console.log('Unenroll response status:', response.status);
+
+            if (response.status === 401) {
+                this.logout();
+                return { success: false, error: 'Сессия истекла. Пожалуйста, войдите заново.' };
+            }
+
+            if (response.ok || response.status === 200 || response.status === 204) {
+                await this.refreshUserData();
+                return { success: true };
+            } else {
+                let errorText = '';
+                try {
+                    errorText = await response.text();
+                } catch (e) {
+                    errorText = `Ошибка ${response.status}`;
+                }
+                return { success: false, error: errorText };
+            }
+        } catch (error) {
+            console.error('Ошибка отписки от курса:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Проверить, записан ли пользователь на курс
+    async isEnrolledToCourse(courseId) {
+        try {
+            const userData = await this.fetchUserData();
+            if (userData && userData.enrolledCourseIds) {
+                return userData.enrolledCourseIds.includes(courseId);
+            }
+            return false;
+        } catch (error) {
+            console.error('Ошибка проверки записи:', error);
+            return false;
+        }
+    }
+
+    // Получить курсы, на которые записан пользователь
+    async getEnrolledCourses() {
         try {
             const token = this.getToken();
             const headers = { 'accept': 'text/plain' };
@@ -105,19 +238,27 @@ class AuthService {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch(`/api/user/search?email=${encodeURIComponent(email)}`, {
+            const response = await fetch(`/api/user/enrolled-courses`, {
                 method: 'GET',
                 headers: headers,
                 credentials: 'include'
             });
 
-            if (response.ok) {
-                return await response.json();
+            if (response.status === 401) {
+                this.logout();
+                return [];
             }
+
+            if (response.ok) {
+                let data = await response.json();
+                let courses = Array.isArray(data) ? data : (data.$values || []);
+                return courses;
+            }
+            return [];
         } catch (error) {
-            console.error('Ошибка получения данных:', error);
+            console.error('Ошибка получения записанных курсов:', error);
+            return [];
         }
-        return null;
     }
 
     _saveUserData(userId, name, email) {
@@ -125,52 +266,6 @@ class AuthService {
         localStorage.setItem('userName', name);
         localStorage.setItem('userEmail', email);
         localStorage.setItem('isAuthenticated', 'true');
-
-        const createdCoursesKey = `createdCourseIds-${userId}`;
-        const enrolledCoursesKey = `enrolledCourseIds-${userId}`;
-
-        if (!localStorage.getItem(createdCoursesKey)) {
-            localStorage.setItem(createdCoursesKey, JSON.stringify([]));
-        }
-        if (!localStorage.getItem(enrolledCoursesKey)) {
-            localStorage.setItem(enrolledCoursesKey, JSON.stringify([]));
-        }
-
-        console.log('Данные пользователя сохранены:', { userId, name, email });
-    }
-
-    async addCreatedCourse(userId, courseId) {
-        try {
-            const token = this.getToken();
-            if (!token) {
-                console.warn('Нет токена, пропускаем привязку курса');
-                return false;
-            }
-
-            const response = await fetch(`/api/user/${userId}/created-courses/${courseId}`, {
-                method: 'POST',
-                headers: {
-                    'accept': 'text/plain',
-                    'Authorization': `Bearer ${token}`
-                },
-                credentials: 'include'
-            });
-
-            console.log('Привязка курса к пользователю:', response.status);
-
-            if (response.ok) {
-                const createdCoursesKey = `createdCourseIds-${userId}`;
-                const createdCourses = JSON.parse(localStorage.getItem(createdCoursesKey) || '[]');
-                if (!createdCourses.includes(courseId)) {
-                    createdCourses.push(courseId);
-                    localStorage.setItem(createdCoursesKey, JSON.stringify(createdCourses));
-                }
-                return true;
-            }
-        } catch (error) {
-            console.error('Ошибка добавления курса:', error);
-        }
-        return false;
     }
 
     getToken() {
@@ -187,12 +282,6 @@ class AuthService {
     isAuthenticated() {
         const token = this.getToken();
         const isAuth = localStorage.getItem('isAuthenticated') === 'true';
-
-        if (isAuth && !token) {
-            console.warn('Есть флаг авторизации, но нет токена');
-            return false;
-        }
-
         return isAuth && !!token;
     }
 
@@ -208,12 +297,19 @@ class AuthService {
         return localStorage.getItem('userId');
     }
 
+    getEnrolledCourseIds() {
+        const ids = localStorage.getItem('enrolledCourseIds');
+        return ids ? JSON.parse(ids) : [];
+    }
+
     logout() {
         document.cookie = 'jwtE=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('enrolledCourseIds');
+        localStorage.removeItem('createdCourseIds');
         console.log('Выход выполнен');
     }
 }

@@ -562,3 +562,279 @@
     font-size: 13px;
   }
 }
+/* Кнопки действий в карточке курса */
+.course-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.description-btn {
+  flex: 1;
+  padding: 10px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.description-btn:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.enroll-btn {
+  flex: 1;
+  padding: 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.enroll-btn:hover:not(:disabled) {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.enroll-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.enrolled-btn {
+  flex: 1;
+  padding: 10px;
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.enrolled-btn:hover {
+  background: #138496;
+  transform: translateY(-2px);
+}
+
+/* Модальное окно описания курса */
+.course-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+.course-modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 550px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  animation: zoomIn 0.3s ease;
+  padding: 25px;
+}
+
+.course-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: #6c757d;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.course-modal-close:hover {
+  color: #dc3545;
+  transform: scale(1.1);
+}
+
+.course-modal-image {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.course-modal-image img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.course-modal-title {
+  font-size: 24px;
+  color: #333;
+  margin: 0 0 15px 0;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #28a745;
+  display: inline-block;
+  width: auto;
+}
+
+.course-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.modal-language,
+.modal-sections,
+.modal-difficulty {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.modal-language {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.modal-sections {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.modal-difficulty {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.course-modal-description {
+  margin-bottom: 25px;
+}
+
+.course-modal-description h3 {
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.course-modal-description p {
+  color: #666;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.course-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.modal-go-course-btn,
+.modal-enroll-btn {
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 15px;
+  border: none;
+}
+
+.modal-go-course-btn {
+  background: #17a2b8;
+  color: white;
+}
+
+.modal-go-course-btn:hover {
+  background: #138496;
+  transform: translateY(-2px);
+}
+
+.modal-enroll-btn {
+  background: #28a745;
+  color: white;
+}
+
+.modal-enroll-btn:hover:not(:disabled) {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.modal-enroll-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .course-actions {
+    flex-direction: column;
+  }
+
+  .course-modal-content {
+    padding: 20px;
+  }
+
+  .course-modal-title {
+    font-size: 20px;
+  }
+
+  .course-modal-meta {
+    gap: 8px;
+  }
+
+  .modal-language,
+  .modal-sections,
+  .modal-difficulty {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .modal-go-course-btn,
+  .modal-enroll-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
