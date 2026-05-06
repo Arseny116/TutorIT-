@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import './CourseLearning.css';
 
-const API_BASE_URL = 'http://94.103.85.168:8080';
+const API_BASE_URL = 'http://89.110.94.112:8080';
 
 function CourseLearning() {
   const { courseId } = useParams();
@@ -25,8 +25,18 @@ function CourseLearning() {
   const [cleanedCourseId, setCleanedCourseId] = useState('');
   const [error, setError] = useState('');
 
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isCreator, setIsCreator] = useState(false);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'info' });
+
   const [modalImage, setModalImage] = useState(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const showNotification = (message, type = 'info') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: 'info' }), 3000);
+  };
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
@@ -58,23 +68,69 @@ function CourseLearning() {
   useEffect(() => {
     if (cleanedCourseId) {
       loadCourseData();
+      checkCreatorAndEnrollmentStatus();
       loadProgress();
     }
   }, [cleanedCourseId]);
 
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') {
-        closeImageModal();
+  const checkCreatorAndEnrollmentStatus = async () => {
+    try {
+      const token = authService.getToken();
+      if (!token) {
+        setIsCreator(false);
+        setIsEnrolled(false);
+        return;
       }
-    };
-    if (isImageModalOpen) {
-      document.addEventListener('keydown', handleEsc);
+
+      const userData = await authService.fetchUserData();
+      if (userData) {
+        // Проверяем, является ли пользователь создателем курса
+        const createdIds = userData.createdCourseIds || [];
+        const isCreatorCourse = createdIds.includes(cleanedCourseId);
+        setIsCreator(isCreatorCourse);
+
+        // ВАЖНО: Если пользователь - создатель курса, то НЕ показываем ему запись
+        // Даже если сервер вернул true в enrolledCourseIds, принудительно ставим false
+        if (isCreatorCourse) {
+          setIsEnrolled(false);  // Создатель не считается записанным
+        } else {
+          const enrolled = await authService.isEnrolledToCourse(cleanedCourseId);
+          setIsEnrolled(enrolled);
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка проверки:', error);
+      setIsCreator(false);
+      setIsEnrolled(false);
     }
-    return () => {
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [isImageModalOpen]);
+  };
+
+  const handleEnroll = async () => {
+    if (!authService.isAuthenticated()) {
+      showNotification('Сначала нужно войти в аккаунт', 'error');
+      return;
+    }
+
+    setIsEnrolling(true);
+    try {
+      const result = await authService.enrollToCourse(cleanedCourseId);
+      if (result.success) {
+        setIsEnrolled(true);
+        showNotification('✅ Вы успешно записались на курс!', 'success');
+      } else {
+        showNotification(result.error || '❌ Ошибка при записи на курс', 'error');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      showNotification('Произошла ошибка при записи', 'error');
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  const handleEditCourse = () => {
+    navigate(`/edit-course/${cleanedCourseId}`);
+  };
 
   const loadProgress = () => {
     try {
@@ -138,7 +194,7 @@ function CourseLearning() {
         description: courseData.description || 'Описание курса',
         sections: courseData.chapters || 0,
         difficulty: courseData.complexity || 1,
-        language: courseData.pl || 'Не указан',
+        language: Array.isArray(courseData.pl) ? courseData.pl[0] : (courseData.pl || 'Не указан'),
         titleImage: getImageUrl(courseData.titleImage)
       });
 
@@ -160,7 +216,6 @@ function CourseLearning() {
       for (const chapter of chapters) {
         const chapterId = chapter.id || chapter.$id;
 
-        // Загружаем теории
         let theoriesArray = [];
         try {
           const theoriesResponse = await fetch(`/api/v1/Theories?CharterId=${chapterId}`, {
@@ -196,7 +251,6 @@ function CourseLearning() {
           console.error('Ошибка загрузки теорий:', err);
         }
 
-        // Загружаем задания
         let tasksArray = [];
         try {
           const tasksResponse = await fetch(`/api/v1/TasksCreators/${chapterId}`, {
@@ -222,49 +276,33 @@ function CourseLearning() {
                 }
               }
 
-              if (task.questions && Array.isArray(task.questions) && task.questions.length > 0) {
-                answers = task.questions.map(q => q.name);
-                const correctIndex = task.questions.findIndex(q => q.answer === true);
-                if (correctIndex !== -1) correctAnswerIndex = correctIndex;
-
-                tasksArray.push({
-                  id: task.id || task.$id,
-                  name: task.name || `Задание ${tasksArray.length + 1}`,
-                  description: task.description || 'Описание задания',
-                  hint: task.hint || '',
-                  imagePreview: imageUrl,
-                  answers: answers,
-                  correctAnswerIndex: correctAnswerIndex
+              try {
+                const questionsResponse = await fetch(`/api/v1/Questions?TaskCreater=${task.id}`, {
+                  method: 'GET',
+                  headers: headers,
+                  credentials: 'include'
                 });
-              } else {
-                try {
-                  const questionsResponse = await fetch(`/api/v1/Questions?TaskCreater=${task.id}`, {
-                    method: 'GET',
-                    headers: headers,
-                    credentials: 'include'
-                  });
 
-                  if (questionsResponse.ok) {
-                    let questionsData = await questionsResponse.json();
-                    let questions = Array.isArray(questionsData) ? questionsData : (questionsData.$values || []);
-                    answers = questions.map(q => q.name);
-                    const correctIndex = questions.findIndex(q => q.answer === true);
-                    if (correctIndex !== -1) correctAnswerIndex = correctIndex;
-                  }
-                } catch (err) {
-                  console.error('Ошибка загрузки вопросов:', err);
+                if (questionsResponse.ok) {
+                  let questionsData = await questionsResponse.json();
+                  let questions = Array.isArray(questionsData) ? questionsData : (questionsData.$values || []);
+                  answers = questions.map(q => q.name);
+                  const correctIndex = questions.findIndex(q => q.answer === true);
+                  if (correctIndex !== -1) correctAnswerIndex = correctIndex;
                 }
-
-                tasksArray.push({
-                  id: task.id || task.$id,
-                  name: task.name || `Задание ${tasksArray.length + 1}`,
-                  description: task.description || 'Описание задания',
-                  hint: task.hint || '',
-                  imagePreview: imageUrl,
-                  answers: answers.length > 0 ? answers : ['Вариант 1', 'Вариант 2', 'Вариант 3', 'Вариант 4'],
-                  correctAnswerIndex: correctAnswerIndex
-                });
+              } catch (err) {
+                console.error('Ошибка загрузки вопросов:', err);
               }
+
+              tasksArray.push({
+                id: task.id || task.$id,
+                name: task.name || `Задание ${tasksArray.length + 1}`,
+                description: task.description || 'Описание задания',
+                hint: task.hint || '',
+                imagePreview: imageUrl,
+                answers: answers.length > 0 ? answers : ['Вариант 1', 'Вариант 2', 'Вариант 3', 'Вариант 4'],
+                correctAnswerIndex: correctAnswerIndex
+              });
             }
           }
         } catch (err) {
@@ -279,7 +317,7 @@ function CourseLearning() {
           theoryCount: theoriesArray.length,
           theories: theoriesArray,
           tasks: tasksArray,
-          completed: false
+          completed: completedSections.includes(chapterId)
         });
       }
 
@@ -492,12 +530,42 @@ function CourseLearning() {
                 <span className="badge difficulty">Сложность: {course.difficulty}</span>
               </div>
             </div>
-            <div className="learning-progress">
-              {currentStep === 'sections' && `${sections.length} разделов`}
-              {currentStep === 'theory' && `Теория ${currentTheoryIndex + 1} из ${currentSection?.theories?.length || 0}`}
-              {currentStep === 'task' && `Задание ${currentTaskIndex + 1} из ${currentSection?.tasks?.length || 0}`}
-              {currentStep === 'sectionComplete' && 'Раздел завершен'}
-              {currentStep === 'courseComplete' && 'Курс завершен'}
+            <div className="learning-actions">
+              <div className="learning-progress">
+                {currentStep === 'sections' && `${sections.length} разделов`}
+                {currentStep === 'theory' && `Теория ${currentTheoryIndex + 1} из ${currentSection?.theories?.length || 0}`}
+                {currentStep === 'task' && `Задание ${currentTaskIndex + 1} из ${currentSection?.tasks?.length || 0}`}
+                {currentStep === 'sectionComplete' && 'Раздел завершен'}
+                {currentStep === 'courseComplete' && 'Курс завершен'}
+              </div>
+
+              {/* Если пользователь - создатель курса - показываем кнопку редактирования */}
+              {isCreator && (
+                  <button
+                      className="edit-course-btn"
+                      onClick={handleEditCourse}
+                  >
+                    ✏️ Редактировать курс
+                  </button>
+              )}
+
+              {/* Если пользователь НЕ создатель и НЕ записан */}
+              {!isCreator && !isEnrolled && (
+                  <button
+                      className="enroll-btn"
+                      onClick={handleEnroll}
+                      disabled={isEnrolling}
+                  >
+                    {isEnrolling ? 'Запись...' : '📝 Записаться на курс'}
+                  </button>
+              )}
+
+              {/* Если пользователь НЕ создатель, но УЖЕ записан */}
+              {!isCreator && isEnrolled && (
+                  <span className="enrolled-badge">
+                ✅ Вы записаны на курс
+              </span>
+              )}
             </div>
           </header>
 
@@ -542,10 +610,7 @@ function CourseLearning() {
                     ))}
                   </div>
 
-                  <button
-                      className="exit-course-btn"
-                      onClick={handleExitCourse}
-                  >
+                  <button className="exit-course-btn" onClick={handleExitCourse}>
                     ← Вернуться к курсам
                   </button>
                 </div>
@@ -633,10 +698,7 @@ function CourseLearning() {
 
                     {currentTask.hint && (
                         <div className="task-hint">
-                          <button
-                              onClick={toggleHint}
-                              className="hint-toggle"
-                          >
+                          <button onClick={toggleHint} className="hint-toggle">
                             {showHint ? 'Скрыть подсказку' : 'Показать подсказку'} 💡
                           </button>
                           {showHint && (
@@ -682,10 +744,7 @@ function CourseLearning() {
                             Проверить ответ
                           </button>
                       ) : (
-                          <button
-                              className="next-task-btn"
-                              onClick={handleNextTask}
-                          >
+                          <button className="next-task-btn" onClick={handleNextTask}>
                             {currentTaskIndex < currentSection.tasks.length - 1 ? 'Следующее задание →' : 'Завершить раздел →'}
                           </button>
                       )}
@@ -695,7 +754,7 @@ function CourseLearning() {
                         <div className="answer-feedback">
                           {selectedAnswer === currentTask.correctAnswerIndex
                               ? <span className="correct-feedback">✅ Правильно! Отличная работа!</span>
-                              : <span className="incorrect-feedback">❌ Неправильно. Попробуй еще раз!</span>}
+                              : <span className="incorrect-feedback">❌ Неправильно. Правильный ответ: {currentTask.answers[currentTask.correctAnswerIndex]}</span>}
                         </div>
                     )}
                   </div>
@@ -746,10 +805,7 @@ function CourseLearning() {
                     <div className="results-score">
                       <span className="score-value">{Math.round((totalScore / sections.reduce((sum, s) => sum + s.tasks.length, 0)) * 100)}%</span>
                     </div>
-                    <button
-                        className="finish-course-btn"
-                        onClick={handleExitCourse}
-                    >
+                    <button className="finish-course-btn" onClick={handleExitCourse}>
                       ← Вернуться к курсам
                     </button>
                   </div>
@@ -757,6 +813,17 @@ function CourseLearning() {
             )}
           </div>
         </div>
+
+        {notification.show && (
+            <div className={`notification-toast ${notification.type}`}>
+              <div className="notification-content">
+            <span className="notification-icon">
+              {notification.type === 'error' ? '⚠️' : notification.type === 'success' ? '✅' : 'ℹ️'}
+            </span>
+                <span className="notification-text">{notification.message}</span>
+              </div>
+            </div>
+        )}
 
         {isImageModalOpen && modalImage && (
             <div className="image-modal" onClick={closeImageModal}>

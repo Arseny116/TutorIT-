@@ -8,75 +8,123 @@ import authService from '../../services/authService';
 function Header() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
-    const [showWarning, setShowWarning] = useState(false);
     const [userName, setUserName] = useState('');
     const location = useLocation();
     const navigate = useNavigate();
 
+    const isCourseBuilder = location.pathname.includes('/builder');
+    const isProfilePage = location.pathname === '/profile';
+
     useEffect(() => {
         const updateUserName = () => {
-            if (authService.isAuthenticated()) {
-                setUserName(authService.getUserName());
-            } else {
+            try {
+                if (authService.isAuthenticated && authService.isAuthenticated()) {
+                    setUserName(authService.getUserName());
+                } else {
+                    setUserName('');
+                }
+            } catch (error) {
+                console.error('Ошибка в Header:', error);
                 setUserName('');
             }
         };
 
         updateUserName();
-        window.addEventListener('authChange', updateUserName);
+
+        const handleAuthChange = () => updateUserName();
+        window.addEventListener('authChange', handleAuthChange);
 
         return () => {
-            window.removeEventListener('authChange', updateUserName);
+            window.removeEventListener('authChange', handleAuthChange);
         };
     }, []);
 
+    const handleLogoClick = (e) => {
+        if (isCourseBuilder) {
+            e.preventDefault();
+            return;
+        }
+        navigate('/');
+    };
+
     const handleUserClick = () => {
-        if (authService.isAuthenticated()) {
-            navigate('/profile');
-        } else {
+        try {
+            if (authService.isAuthenticated && authService.isAuthenticated()) {
+                navigate('/profile');
+            } else {
+                setIsAuthOpen(true);
+            }
+        } catch (error) {
+            console.error('Ошибка при клике на пользователя:', error);
             setIsAuthOpen(true);
         }
     };
 
     const handleCoursesClick = () => {
-        if (authService.isAuthenticated()) {
-            setIsModalOpen(true);
-        } else {
-            setShowWarning(true);
-            setTimeout(() => setShowWarning(false), 3000);
+        try {
+            if (authService.isAuthenticated && authService.isAuthenticated()) {
+                setIsModalOpen(true);
+            } else {
+                alert('Сначала нужно зарегистрироваться или войти в аккаунт');
+                setIsAuthOpen(true);
+            }
+        } catch (error) {
+            console.error('Ошибка при клике на курсы:', error);
             setIsAuthOpen(true);
         }
     };
 
     const handleCreateCourse = () => {
-        if (authService.isAuthenticated()) {
-            navigate('/create-course');
-        } else {
-            setShowWarning(true);
-            setTimeout(() => setShowWarning(false), 3000);
+        try {
+            if (authService.isAuthenticated && authService.isAuthenticated()) {
+                navigate('/create-course');
+            } else {
+                alert('Сначала нужно зарегистрироваться или войти в аккаунт');
+                setIsAuthOpen(true);
+            }
+        } catch (error) {
+            console.error('Ошибка при клике на создание курса:', error);
             setIsAuthOpen(true);
         }
     };
 
     const handleLogout = () => {
-        authService.logout();
-        setUserName('');
-        window.dispatchEvent(new Event('authChange'));
-        navigate('/');
+        try {
+            if (authService.logout) {
+                authService.logout();
+            }
+            setUserName('');
+            window.dispatchEvent(new Event('authChange'));
+            navigate('/');
+        } catch (error) {
+            console.error('Ошибка при выходе:', error);
+            navigate('/');
+        }
     };
 
     const handleAuthSuccess = () => {
-        setUserName(authService.getUserName());
-        window.dispatchEvent(new Event('authChange'));
+        try {
+            if (authService.getUserName) {
+                setUserName(authService.getUserName());
+            }
+            window.dispatchEvent(new Event('authChange'));
+        } catch (error) {
+            console.error('Ошибка при успешной авторизации:', error);
+        }
     };
-
-    const isProfilePage = location.pathname === '/profile';
 
     return (
         <>
             <header className="header">
                 <div className="header-left">
-                    <h1 className="header-title" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                    <h1
+                        className="header-title"
+                        onClick={handleLogoClick}
+                        style={{
+                            cursor: isCourseBuilder ? 'default' : 'pointer',
+                            opacity: isCourseBuilder ? 0.7 : 1
+                        }}
+                    >
                         TutorIT
                     </h1>
                     {isProfilePage && (
@@ -87,7 +135,7 @@ function Header() {
                 </div>
 
                 <div className="header-right">
-                    {!isProfilePage && (
+                    {!isCourseBuilder && !isProfilePage && (
                         <button
                             className="header-user-btn"
                             onClick={handleUserClick}
@@ -106,15 +154,6 @@ function Header() {
                     )}
                 </div>
             </header>
-
-            {showWarning && (
-                <div className="warning-toast">
-                    <div className="warning-content">
-                        <span className="warning-icon">⚠️</span>
-                        <span className="warning-text">Сначала нужно зарегистрироваться или войти в аккаунт</span>
-                    </div>
-                </div>
-            )}
 
             <CourseModal
                 isOpen={isModalOpen}

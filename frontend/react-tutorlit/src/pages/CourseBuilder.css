@@ -500,151 +500,23 @@
   margin-left: 0.5rem;
 }
 
-@media (max-width: 768px) {
-  .builder-header {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  
-  .builder-header h1 {
-    font-size: 1.3rem;
-    text-align: center;
-  }
-  
-  .builder-content-centered {
-    margin: 1rem auto;
-    padding: 0 0.5rem;
-    max-width: calc(100% - 1rem);
-  }
-  
-  .builder-step {
-    padding: 1.5rem;
-    width: 100%;
-    margin: 0 auto 1rem;
-  }
-  
-  .counters-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .navigation-buttons {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .btn-back,
-  .next-btn {
-    width: 100%;
-    text-align: center;
-  }
-  
-  .answer-top-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .correct-radio-container-vertical {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  
-  .answer-textarea {
-    min-height: 80px !important;
-    font-size: 15px !important;
-  }
+/* Стили для валидации */
+.error-input {
+  border-color: #dc3545 !important;
+  background-color: #fff8f8 !important;
 }
 
-@media (max-width: 480px) {
-  .builder-step {
-    padding: 1rem;
-    border-radius: 8px;
-  }
-  
-  .form-group input,
-  .form-group textarea {
-    padding: 0.6rem 0.8rem;
-    font-size: 15px;
-  }
-  
-  .counters-row {
-    gap: 0.75rem;
-  }
-  
-  .task-form,
-  .current-task-info,
-  .answer-item-vertical {
-    padding: 0.8rem;
-  }
-  
-  .builder-step h2 {
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-  }
-  
-  .answer-label-vertical {
-    font-size: 16px;
-  }
-  
-  .correct-radio-vertical {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .correct-label-vertical {
-    font-size: 13px;
-  }
-  
-  .answer-textarea {
-    padding: 0.8rem !important;
-    font-size: 15px !important;
-    min-height: 70px !important;
-  }
+.error-text {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
 }
 
-.form-group input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+.form-group .error-text {
+  margin-top: 5px;
 }
 
-.form-group input[type="number"]::-webkit-outer-spin-button,
-.form-group input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: inner-spin-button;
-  opacity: 1;
-  height: 1.5rem;
-  width: 1.5rem;
-  cursor: pointer;
-  margin-right: 5px;
-}
-
-.counters-row input[type="number"] {
-  padding-right: 2.5rem;
-  background: #f8fafc;
-}
-
-.status-message {
-  background: #e6f7e6;
-  color: #2d662d;
-  padding: 10px 15px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  border-left: 4px solid #48bb78;
-  font-size: 14px;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 /* Модальное окно подтверждения */
 .confirm-modal-overlay {
   position: fixed;
@@ -718,16 +590,6 @@
   background: #218838;
 }
 
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 /* Уведомления */
 .notification-toast {
   position: fixed;
@@ -788,13 +650,160 @@
   }
 }
 
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Адаптивность */
 @media (max-width: 768px) {
-  .notification-content {
-    padding: 10px 20px;
-    max-width: 90vw;
+  .builder-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
   }
 
-  .notification-text {
+  .builder-header h1 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .builder-content-centered {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .builder-step {
+    padding: 1.5rem;
+    width: 100%;
+    margin: 0 auto 1rem;
+  }
+
+  .counters-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .btn-back,
+  .next-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .answer-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .correct-radio-container-vertical {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .answer-textarea {
+    min-height: 80px !important;
+    font-size: 15px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .builder-step {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 0.6rem 0.8rem;
+    font-size: 15px;
+  }
+
+  .counters-row {
+    gap: 0.75rem;
+  }
+
+  .task-form,
+  .current-task-info,
+  .answer-item-vertical {
+    padding: 0.8rem;
+  }
+
+  .builder-step h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .answer-label-vertical {
+    font-size: 16px;
+  }
+
+  .correct-radio-vertical {
+    width: 18px;
+    height: 18px;
+  }
+
+  .correct-label-vertical {
     font-size: 13px;
+  }
+
+  .answer-textarea {
+    padding: 0.8rem !important;
+    font-size: 15px !important;
+    min-height: 70px !important;
+  }
+}
+
+.form-group input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: inner-spin-button;
+  opacity: 1;
+  height: 1.5rem;
+  width: 1.5rem;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.counters-row input[type="number"] {
+  padding-right: 2.5rem;
+  background: #f8fafc;
+}
+
+.status-message {
+  background: #e6f7e6;
+  color: #2d662d;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border-left: 4px solid #48bb78;
+  font-size: 14px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
