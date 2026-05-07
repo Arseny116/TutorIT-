@@ -4,7 +4,7 @@ namespace Application.Domain.Models
 {
     public class Theory
     {
-        const int MAX_LENGTH_NAME = 200;
+        const int MAX_LENGTH_NAME = 50;
 
         /// <summary>
         /// Id блока теории

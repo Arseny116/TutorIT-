@@ -5,9 +5,9 @@ namespace Application.Domain.Models
 {
     public class Course
     {
-        const int MAX_LENGTH_TITLE = 300;
+        const int MAX_LENGTH_TITLE = 50;
 
-        const int MAX_LENGTH_DESCRIPTION = 3000;
+        const int MAX_LENGTH_DESCRIPTION = 500;
 
         const int MIN_COMPLEXITY_AND_CHAPTERS = 1;
 

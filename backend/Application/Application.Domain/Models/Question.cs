@@ -4,7 +4,7 @@ namespace Application.Domain.Models
 {
     public class Question
     {
-        const int MAX_LENGTH_ANSWER = 100;
+        const int MAX_LENGTH_ANSWER = 150;
 
         /// <summary>
         /// Id вопроса
