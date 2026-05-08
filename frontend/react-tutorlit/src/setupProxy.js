@@ -7,6 +7,8 @@ module.exports = function(app) {
         createProxyMiddleware({
             target: 'http://89.110.94.112:8081',
             changeOrigin: true,
+            timeout: 60000,
+            proxyTimeout: 60000,
         })
     );
 
@@ -15,6 +17,8 @@ module.exports = function(app) {
         createProxyMiddleware({
             target: 'http://89.110.94.112:8081',
             changeOrigin: true,
+            timeout: 60000,
+            proxyTimeout: 60000,
         })
     );
 
@@ -22,8 +26,10 @@ module.exports = function(app) {
     app.use(
         '/api/v1/Courses',
         createProxyMiddleware({
-            target: 'http://89.110.94.112:8080',  // ← используй тот же IP, что в Swagger
+            target: 'http://89.110.94.112:8080',
             changeOrigin: true,
+            timeout: 60000,
+            proxyTimeout: 60000,
         })
     );
 
@@ -32,6 +38,8 @@ module.exports = function(app) {
         createProxyMiddleware({
             target: 'http://89.110.94.112:8080',
             changeOrigin: true,
+            timeout: 60000,
+            proxyTimeout: 60000,
         })
     );
 
@@ -40,6 +48,8 @@ module.exports = function(app) {
         createProxyMiddleware({
             target: 'http://89.110.94.112:8080',
             changeOrigin: true,
+            timeout: 60000,
+            proxyTimeout: 60000,
         })
     );
 
@@ -48,6 +58,8 @@ module.exports = function(app) {
         createProxyMiddleware({
             target: 'http://89.110.94.112:8080',
             changeOrigin: true,
+            timeout: 60000,
+            proxyTimeout: 60000,
         })
     );
 
@@ -56,6 +68,8 @@ module.exports = function(app) {
         createProxyMiddleware({
             target: 'http://89.110.94.112:8080',
             changeOrigin: true,
+            timeout: 60000,
+            proxyTimeout: 60000,
         })
     );
 };

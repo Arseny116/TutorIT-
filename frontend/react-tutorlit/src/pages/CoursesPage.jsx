@@ -39,61 +39,53 @@ function CoursesPage() {
     return `${API_BASE_URL}/${imagePath}`;
   };
 
-  // Функция для парсинга языков из формата ["[\"JavaScript\"]", "[\"Python\"]"]
+  // УНИВЕРСАЛЬНЫЙ парсер языков - работает с любым форматом
   const parseLanguages = (languages) => {
+    // Если null или undefined
     if (!languages) return [];
 
     // Если уже массив
     if (Array.isArray(languages)) {
+      // Если массив строк вида '["JavaScript"]' - нужно распарсить каждый элемент
       const result = [];
       for (const item of languages) {
         if (typeof item === 'string') {
-          try {
-            // Пробуем распарсить как JSON
-            const parsed = JSON.parse(item);
-            if (Array.isArray(parsed)) {
-              for (const lang of parsed) {
-                if (lang && !result.includes(lang)) {
-                  result.push(lang);
-                }
+          // Проверяем, не является ли строка JSON массивом
+          if (item.startsWith('[') && item.endsWith(']')) {
+            try {
+              const parsed = JSON.parse(item);
+              if (Array.isArray(parsed)) {
+                result.push(...parsed);
+              } else if (typeof parsed === 'string') {
+                result.push(parsed);
               }
-            } else if (parsed && !result.includes(parsed)) {
-              result.push(parsed);
-            }
-          } catch {
-            // Если не парсится, убираем кавычки и скобки
-            let cleaned = item;
-            if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
-              cleaned = cleaned.slice(1, -1);
-            }
-            if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
-              cleaned = cleaned.slice(1, -1);
-            }
-            cleaned = cleaned.replace(/\\"/g, '"');
-            if (cleaned.includes(',')) {
-              const parts = cleaned.split(',').map(l => l.trim().replace(/^["']|["']$/g, ''));
-              for (const part of parts) {
-                if (part && !result.includes(part)) {
-                  result.push(part);
-                }
+            } catch {
+              // Если не парсится, убираем скобки и кавычки
+              let cleaned = item.replace(/^\[|\]$/g, '');
+              cleaned = cleaned.replace(/^"|"$/g, '');
+              if (cleaned.includes(',')) {
+                const parts = cleaned.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+                result.push(...parts);
+              } else if (cleaned) {
+                result.push(cleaned);
               }
-            } else if (cleaned && !result.includes(cleaned)) {
-              result.push(cleaned);
             }
+          } else {
+            result.push(item);
           }
         } else if (typeof item === 'object' && item !== null) {
-          if (item.name && !result.includes(item.name)) {
-            result.push(item.name);
-          } else if (item.language && !result.includes(item.language)) {
-            result.push(item.language);
-          }
+          // Если объект с полем name
+          if (item.name) result.push(item.name);
+          else if (item.language) result.push(item.language);
         }
       }
-      return result;
+      // Убираем дубликаты
+      return [...new Set(result)];
     }
 
     // Если строка
     if (typeof languages === 'string') {
+      // Пробуем распарсить как JSON
       try {
         const parsed = JSON.parse(languages);
         if (Array.isArray(parsed)) {
@@ -101,18 +93,28 @@ function CoursesPage() {
         }
         return [languages];
       } catch {
+        // Убираем квадратные скобки если есть
         let cleaned = languages;
         if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
           cleaned = cleaned.slice(1, -1);
         }
+        // Разбиваем по запятой
         if (cleaned.includes(',')) {
           return cleaned.split(',').map(l => l.trim().replace(/^["']|["']$/g, ''));
         }
+        // Убираем кавычки
         return [cleaned.replace(/^["']|["']$/g, '')];
       }
     }
 
     return [];
+  };
+
+  // Форматирование для отображения
+  const formatLanguages = (languages) => {
+    const arr = parseLanguages(languages);
+    if (arr.length === 0) return 'Не указан';
+    return arr.join(', ');
   };
 
   // Проверка, соответствует ли курс выбранным языкам
@@ -343,28 +345,16 @@ function CoursesPage() {
         }
 
         const formattedCourses = validCourses.map(course => {
-          // Парсим языки из любого формата
-          let languagesArray = [];
+          // Принудительно парсим языки
+          let languagesArray = parseLanguages(course.pl);
 
-          // Проверяем поле pl
-          if (course.pl) {
-            languagesArray = parseLanguages(course.pl);
-          }
-          // Проверяем поле languages
-          else if (course.languages) {
+          // Если после парсинга все еще пусто, пробуем другие поля
+          if (languagesArray.length === 0 && course.languages) {
             languagesArray = parseLanguages(course.languages);
           }
 
-          // Если все еще пусто, проверяем другие возможные поля
-          if (languagesArray.length === 0) {
-            if (course.programmingLanguage) {
-              languagesArray = [course.programmingLanguage];
-            } else if (course.language) {
-              languagesArray = [course.language];
-            }
-          }
-
-          console.log(`Курс "${course.title}" - языки:`, languagesArray);
+          // Для отладки - выводим в консоль
+          console.log(`Курс "${course.title}": исходные языки =`, course.pl, '→ распарсенные =', languagesArray);
 
           return {
             id: course.id,
@@ -372,6 +362,7 @@ function CoursesPage() {
             description: course.description || 'Описание отсутствует',
             sections: course.chapters || 0,
             difficulty: course.complexity || 1,
+            languagesRaw: course.pl,
             languagesArray: languagesArray,
             titleImage: getImageUrl(course.titleImage)
           };
@@ -636,7 +627,7 @@ function CoursesPage() {
             <div className={`notification-toast ${notification.type}`}>
               <div className="notification-content">
             <span className="notification-icon">
-              {notification.type === 'error' ? '⚠️' : notification.type === 'success' ? '' : 'ℹ️'}
+              {notification.type === 'error' ? '⚠️' : notification.type === 'success' ? '✅' : 'ℹ️'}
             </span>
                 <span className="notification-text">{notification.message}</span>
               </div>
