@@ -838,3 +838,107 @@
     font-size: 14px;
   }
 }
+/* Стили для тегов языков - перенос на новую строку */
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.language-tag {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: normal;
+  word-break: break-word;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.sections-tag,
+.difficulty-tag,
+.api-tag,
+.creator-tag,
+.enrolled-tag {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+  .course-meta {
+    gap: 6px;
+  }
+
+  .language-tag,
+  .sections-tag,
+  .difficulty-tag,
+  .api-tag,
+  .creator-tag,
+  .enrolled-tag {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .course-meta {
+    gap: 5px;
+  }
+
+  .language-tag,
+  .sections-tag,
+  .difficulty-tag,
+  .api-tag,
+  .creator-tag,
+  .enrolled-tag {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
+/* Стили для языков в модальном окне */
+.course-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.modal-language,
+.modal-sections,
+.modal-difficulty {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.modal-language {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+@media (max-width: 768px) {
+  .course-modal-meta {
+    gap: 8px;
+  }
+
+  .modal-language,
+  .modal-sections,
+  .modal-difficulty {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}

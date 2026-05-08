@@ -744,6 +744,68 @@
     transition: all 0.2s;
     border: none;
 }
+/* Стили для тегов языков в личном кабинете - перенос на новую строку */
+.course-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.language-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: normal;
+    word-break: break-word;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.sections-tag,
+.difficulty-tag,
+.creator-tag,
+.enrolled-tag {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .course-meta {
+        gap: 6px;
+    }
+
+    .language-tag,
+    .sections-tag,
+    .difficulty-tag,
+    .creator-tag,
+    .enrolled-tag {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .course-meta {
+        gap: 5px;
+    }
+
+    .language-tag,
+    .sections-tag,
+    .difficulty-tag,
+    .creator-tag,
+    .enrolled-tag {
+        padding: 3px 8px;
+        font-size: 10px;
+    }
+}
 
 .unenroll-course-btn:hover {
     background: #e0a800;
