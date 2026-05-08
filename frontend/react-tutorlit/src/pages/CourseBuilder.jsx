@@ -268,8 +268,8 @@ function CourseBuilder() {
                   id: null,
                   name: '',
                   description: '',
-                  numberTheoryBloks: 0,
-                  numberTasks: 0,
+                  numberTheoryBloks: 1,
+                  numberTasks: 1,
                   theory: [],
                   tasks: [],
                   sectionNumber: i + 1
@@ -292,8 +292,8 @@ function CourseBuilder() {
             id: null,
             name: '',
             description: '',
-            numberTheoryBloks: 0,
-            numberTasks: 0,
+            numberTheoryBloks: 1,
+            numberTasks: 1,
             theory: [],
             tasks: [],
             sectionNumber: i + 1
@@ -375,8 +375,8 @@ function CourseBuilder() {
     const [localSectionData, setLocalSectionData] = useState({
       name: currentSection?.name || '',
       description: currentSection?.description || '',
-      numberTheoryBloks: currentSection?.numberTheoryBloks || 0,
-      numberTasks: currentSection?.numberTasks || 0
+      numberTheoryBloks: currentSection?.numberTheoryBloks || 1,
+      numberTasks: currentSection?.numberTasks || 1
     });
 
     const [errors, setErrors] = useState({
@@ -391,16 +391,21 @@ function CourseBuilder() {
         setLocalSectionData({
           name: currentSection.name || '',
           description: currentSection.description || '',
-          numberTheoryBloks: currentSection.numberTheoryBloks || 0,
-          numberTasks: currentSection.numberTasks || 0
+          numberTheoryBloks: currentSection.numberTheoryBloks || 1,
+          numberTasks: currentSection.numberTasks || 1
         });
       }
     }, [currentSection]);
 
     const isFormValid = () => {
+      const theoryBloks = parseInt(localSectionData.numberTheoryBloks);
+      const tasks = parseInt(localSectionData.numberTasks);
+
       return localSectionData.name.trim() !== '' &&
           localSectionData.name.length <= 50 &&
-          localSectionData.description.trim() !== '';
+          localSectionData.description.trim() !== '' &&
+          !isNaN(theoryBloks) && theoryBloks >= 1 &&
+          !isNaN(tasks) && tasks >= 1;
     };
 
     const validateForm = () => {
@@ -417,6 +422,18 @@ function CourseBuilder() {
 
       if (!localSectionData.description.trim()) {
         newErrors.description = 'Описание раздела обязательно';
+        isValid = false;
+      }
+
+      const theoryBloks = parseInt(localSectionData.numberTheoryBloks);
+      if (isNaN(theoryBloks) || theoryBloks < 1) {
+        newErrors.numberTheoryBloks = 'error';
+        isValid = false;
+      }
+
+      const tasks = parseInt(localSectionData.numberTasks);
+      if (isNaN(tasks) || tasks < 1) {
+        newErrors.numberTasks = 'error';
         isValid = false;
       }
 
@@ -453,12 +470,55 @@ function CourseBuilder() {
         let response;
 
         if (chapterId && isEditMode) {
+          const oldTheoryCount = currentSection?.theory?.length || 0;
+          const oldTaskCount = currentSection?.tasks?.length || 0;
+          const newTheoryCount = parseInt(localSectionData.numberTheoryBloks) || 1;
+          const newTaskCount = parseInt(localSectionData.numberTasks) || 1;
+
+          // Удаляем лишние теории
+          if (oldTheoryCount > newTheoryCount) {
+            const theoriesToDelete = currentSection.theory.slice(newTheoryCount);
+            for (const theory of theoriesToDelete) {
+              if (theory.id) {
+                try {
+                  console.log(`Удаление теории ${theory.id}...`);
+                  await fetch(`/api/v1/Theories/${theory.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    credentials: 'include'
+                  });
+                } catch (err) {
+                  console.error(`Ошибка удаления теории ${theory.id}:`, err);
+                }
+              }
+            }
+          }
+
+          // Удаляем лишние задания
+          if (oldTaskCount > newTaskCount) {
+            const tasksToDelete = currentSection.tasks.slice(newTaskCount);
+            for (const task of tasksToDelete) {
+              if (task.id) {
+                try {
+                  console.log(`Удаление задания ${task.id}...`);
+                  await fetch(`/api/v1/TasksCreators/${task.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    credentials: 'include'
+                  });
+                } catch (err) {
+                  console.error(`Ошибка удаления задания ${task.id}:`, err);
+                }
+              }
+            }
+          }
+
           const updateData = {
             id: chapterId,
             name: localSectionData.name,
             description: localSectionData.description,
-            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 0,
-            numberTasks: parseInt(localSectionData.numberTasks) || 0
+            numberTheoryBloks: newTheoryCount,
+            numberTasks: newTaskCount
           };
 
           response = await fetch(`/api/v1/Chapters/${chapterId}`, {
@@ -471,8 +531,8 @@ function CourseBuilder() {
           const requestData = {
             name: localSectionData.name,
             description: localSectionData.description,
-            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 0,
-            numberTasks: parseInt(localSectionData.numberTasks) || 0
+            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 1,
+            numberTasks: parseInt(localSectionData.numberTasks) || 1
           };
 
           response = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
@@ -613,24 +673,32 @@ function CourseBuilder() {
 
           <div className="counters-row">
             <div className="form-group">
-              <label>Количество блоков теории</label>
+              <label>Количество блоков теории (мин. 1)</label>
               <input
                   type="number"
                   value={localSectionData.numberTheoryBloks}
-                  onChange={(e) => setLocalSectionData(prev => ({...prev, numberTheoryBloks: parseInt(e.target.value) || 0}))}
-                  min="0"
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setLocalSectionData(prev => ({...prev, numberTheoryBloks: value >= 1 ? value : 1}));
+                  }}
+                  min="1"
                   disabled={isLoading}
+                  className={errors.numberTheoryBloks ? 'error-input' : ''}
               />
             </div>
 
             <div className="form-group">
-              <label>Количество заданий</label>
+              <label>Количество заданий (мин. 1)</label>
               <input
                   type="number"
                   value={localSectionData.numberTasks}
-                  onChange={(e) => setLocalSectionData(prev => ({...prev, numberTasks: parseInt(e.target.value) || 0}))}
-                  min="0"
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setLocalSectionData(prev => ({...prev, numberTasks: value >= 1 ? value : 1}));
+                  }}
+                  min="1"
                   disabled={isLoading}
+                  className={errors.numberTasks ? 'error-input' : ''}
               />
             </div>
           </div>
@@ -648,7 +716,7 @@ function CourseBuilder() {
     );
   };
 
-  // TheoryBuilder
+  // TheoryBuilder - с поддержкой редактирования картинки
   const TheoryBuilder = () => {
     const currentSection = sectionData.sections[sectionData.currentSectionIndex];
     const currentTheory = currentSection?.theory?.[currentTheoryIndex];
@@ -736,29 +804,28 @@ function CourseBuilder() {
         let response;
         let theoryId = existingTheoryId;
 
-        // Для существующей теории (редактирование) - отправляем JSON
+        // Для существующей теории - отправляем FormData (с картинкой если есть)
         if (existingTheoryId && isEditMode) {
-          const theoryDataJson = {
-            id: existingTheoryId,
-            name: theoryData.name,
-            article: theoryData.article,
-            chapterId: chapterId
-          };
+          const formData = new FormData();
+          formData.append('Id', existingTheoryId);
+          formData.append('Name', theoryData.name);
+          formData.append('Article', theoryData.article);
+          formData.append('ChapterId', chapterId);
 
-          const headers = {
-            'Content-Type': 'application/json',
-            'accept': 'text/plain'
-          };
+          if (theoryData.image) {
+            formData.append('TitleImage', theoryData.image);
+            console.log('Отправляем новое изображение для теории');
+          }
+
+          const headers = {};
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           }
 
-          console.log('Обновление теории (JSON):', theoryDataJson);
-
           response = await fetch(`/api/v1/Theories/${existingTheoryId}`, {
             method: 'PUT',
             headers: headers,
-            body: JSON.stringify(theoryDataJson),
+            body: formData,
             credentials: 'include'
           });
         }
@@ -775,8 +842,6 @@ function CourseBuilder() {
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           }
-
-          console.log('Создание теории (FormData)');
 
           response = await fetch(`/api/v1/Theories?ChapterId=${chapterId}`, {
             method: 'POST',
@@ -941,7 +1006,7 @@ function CourseBuilder() {
     );
   };
 
-  // AssignmentBuilder
+  // AssignmentBuilder - с поддержкой редактирования картинки
   const AssignmentBuilder = () => {
     const currentSection = sectionData.sections[sectionData.currentSectionIndex];
     const currentTask = currentSection?.tasks?.[currentTaskIndex];
@@ -977,7 +1042,7 @@ function CourseBuilder() {
           taskData.name.length <= 50 &&
           taskData.description.trim() !== '' &&
           taskData.hint.trim() !== '' &&
-          taskData.hint.length <= 100;
+          taskData.hint.length <= 50;
     };
 
     const validateForm = () => {
@@ -1000,8 +1065,8 @@ function CourseBuilder() {
       if (!taskData.hint.trim()) {
         newErrors.hint = 'Подсказка обязательна для заполнения';
         isValid = false;
-      } else if (taskData.hint.length > 100) {
-        newErrors.hint = 'Подсказка не должна превышать 100 символов';
+      } else if (taskData.hint.length > 50) {
+        newErrors.hint = 'Подсказка не должна превышать 50 символов';
         isValid = false;
       }
 
@@ -1042,30 +1107,29 @@ function CourseBuilder() {
         let response;
         let taskId = existingTaskId;
 
-        // Для существующего задания (редактирование) - отправляем JSON
+        // Для существующего задания - отправляем FormData (с картинкой если есть)
         if (existingTaskId && isEditMode) {
-          const taskDataJson = {
-            id: existingTaskId,
-            name: taskData.name,
-            description: taskData.description,
-            hint: taskData.hint,
-            chapterCreatorId: chapterId
-          };
+          const formData = new FormData();
+          formData.append('Id', existingTaskId);
+          formData.append('Name', taskData.name);
+          formData.append('Description', taskData.description);
+          formData.append('Hint', taskData.hint);
+          formData.append('ChapterCreatorId', chapterId);
 
-          const headers = {
-            'Content-Type': 'application/json',
-            'accept': 'text/plain'
-          };
+          if (taskData.image) {
+            formData.append('TitleImage', taskData.image);
+            console.log('Отправляем новое изображение для задания');
+          }
+
+          const headers = {};
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           }
 
-          console.log('Обновление задания (JSON):', taskDataJson);
-
           response = await fetch(`/api/v1/TasksCreators/${existingTaskId}`, {
             method: 'PUT',
             headers: headers,
-            body: JSON.stringify(taskDataJson),
+            body: formData,
             credentials: 'include'
           });
         }
@@ -1083,8 +1147,6 @@ function CourseBuilder() {
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           }
-
-          console.log('Создание задания (FormData)');
 
           response = await fetch(`/api/v1/TasksCreators?ChapterId=${chapterId}`, {
             method: 'POST',
@@ -1224,7 +1286,7 @@ function CourseBuilder() {
             </div>
 
             <div className="form-group">
-              <label>Подсказка * (макс. 100 символов)</label>
+              <label>Подсказка * (макс. 50 символов)</label>
               <textarea
                   value={taskData.hint}
                   onChange={(e) => setTaskData(prev => ({...prev, hint: e.target.value}))}
@@ -1235,7 +1297,7 @@ function CourseBuilder() {
                   className={errors.hint ? 'error-input' : ''}
               />
               <div className="char-counter">
-                {taskData.hint.length}/100 символов
+                {taskData.hint.length}/50 символов
               </div>
               {errors.hint && <span className="error-text">{errors.hint}</span>}
             </div>

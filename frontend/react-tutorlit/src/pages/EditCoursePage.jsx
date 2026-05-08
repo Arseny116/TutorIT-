@@ -14,12 +14,14 @@ function EditCoursePage() {
     const [sectionsCount, setSectionsCount] = useState('');
     const [difficulty, setDifficulty] = useState('');
     const [selectedLanguages, setSelectedLanguages] = useState([]);
+    const [titleImage, setTitleImage] = useState(null);
     const [titleImagePreview, setTitleImagePreview] = useState('');
     const [existingImagePath, setExistingImagePath] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isPageLoading, setIsPageLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [existingChapters, setExistingChapters] = useState([]);
 
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingNavigation, setPendingNavigation] = useState(null);
@@ -27,7 +29,7 @@ function EditCoursePage() {
     const programmingLanguages = [
         'JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby',
         'Go', 'Swift', 'Kotlin', 'TypeScript', 'Rust', 'Scala',
-        'R', 'MATLAB', 'SQL', 'HTML/CSS', 'Другой'
+        'R', 'MATLAB', 'SQL', 'HTML/CSS'
     ];
 
     const getImageUrl = (imagePath) => {
@@ -36,6 +38,82 @@ function EditCoursePage() {
             return imagePath;
         }
         return `${API_BASE_URL}/${imagePath}`;
+    };
+
+    // Универсальный парсер языков
+    const parseLanguages = (languages) => {
+        if (!languages) return [];
+
+        if (Array.isArray(languages)) {
+            const result = [];
+            for (const item of languages) {
+                const parsed = parseLanguages(item);
+                result.push(...parsed);
+            }
+            return [...new Set(result)];
+        }
+
+        if (typeof languages === 'string') {
+            let str = languages;
+
+            let previousStr = '';
+            let maxIterations = 20;
+            let iterations = 0;
+
+            while (previousStr !== str && iterations < maxIterations) {
+                previousStr = str;
+                iterations++;
+
+                str = str.replace(/\\"/g, '"');
+
+                if (str.startsWith('"') && str.endsWith('"')) {
+                    str = str.slice(1, -1);
+                }
+
+                try {
+                    const parsed = JSON.parse(str);
+                    if (Array.isArray(parsed)) {
+                        const result = [];
+                        for (const item of parsed) {
+                            const subResult = parseLanguages(item);
+                            result.push(...subResult);
+                        }
+                        return [...new Set(result)];
+                    } else if (typeof parsed === 'string') {
+                        str = parsed;
+                        continue;
+                    }
+                } catch (e) {
+                    // продолжаем
+                }
+
+                if (str.startsWith('[') && str.endsWith(']')) {
+                    str = str.slice(1, -1);
+                }
+            }
+
+            if (str.includes(',')) {
+                const parts = str.split(',').map(p => p.trim().replace(/^["'\[\]]+|["'\[\]]+$/g, ''));
+                const result = [];
+                for (const part of parts) {
+                    if (part && !result.includes(part)) {
+                        result.push(part);
+                    }
+                }
+                return result;
+            }
+
+            const cleaned = str.replace(/^["'\[\]]+|["'\[\]]+$/g, '');
+            return cleaned ? [cleaned] : [];
+        }
+
+        return [];
+    };
+
+    // Форматирование для отображения выбранных языков
+    const formatSelectedLanguages = () => {
+        if (selectedLanguages.length === 0) return 'Не выбрано';
+        return selectedLanguages.join(', ');
     };
 
     useEffect(() => {
@@ -80,24 +158,26 @@ function EditCoursePage() {
             setSectionsCount(courseData.chapters || '');
             setDifficulty(courseData.complexity || '');
 
-            let languages = [];
-            if (courseData.pl) {
-                if (Array.isArray(courseData.pl)) {
-                    languages = courseData.pl;
-                } else if (typeof courseData.pl === 'string') {
-                    try {
-                        const parsed = JSON.parse(courseData.pl);
-                        languages = Array.isArray(parsed) ? parsed : [courseData.pl];
-                    } catch {
-                        languages = [courseData.pl];
-                    }
-                }
-            }
+            // Парсим языки
+            let languages = parseLanguages(courseData.pl);
             setSelectedLanguages(languages);
 
             if (courseData.titleImage) {
                 setExistingImagePath(courseData.titleImage);
                 setTitleImagePreview(getImageUrl(courseData.titleImage));
+            }
+
+            const chaptersResponse = await fetch(`/api/v1/Chapters/${courseId}`, {
+                method: 'GET',
+                headers: headers,
+                credentials: 'include'
+            });
+
+            if (chaptersResponse.ok) {
+                let chaptersData = await chaptersResponse.json();
+                let chapters = Array.isArray(chaptersData) ? chaptersData : (chaptersData.$values || []);
+                setExistingChapters(chapters);
+                console.log(`Загружено ${chapters.length} разделов`);
             }
 
         } catch (error) {
@@ -108,15 +188,58 @@ function EditCoursePage() {
         }
     };
 
-    const toggleLanguage = (language) => {
-        if (language === 'Другой') {
-            const input = prompt('Введите язык программирования:');
-            if (input && input.trim() && !selectedLanguages.includes(input.trim())) {
-                setSelectedLanguages([...selectedLanguages, input.trim()]);
-            }
-            return;
+    const deleteExtraChapters = async (newCount) => {
+        if (existingChapters.length <= newCount) return true;
+
+        const chaptersToDelete = existingChapters.slice(newCount);
+        console.log(`Нужно удалить ${chaptersToDelete.length} лишних разделов`);
+
+        const token = authService.getToken();
+        const headers = { 'accept': 'text/plain' };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
 
+        let allDeleted = true;
+
+        for (const chapter of chaptersToDelete) {
+            try {
+                console.log(`Удаление раздела ${chapter.id}...`);
+                const response = await fetch(`/api/v1/Chapters/${chapter.id}`, {
+                    method: 'DELETE',
+                    headers: headers,
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    console.error(`Не удалось удалить раздел ${chapter.id}: ${response.status}`);
+                    allDeleted = false;
+                } else {
+                    console.log(`✅ Раздел ${chapter.id} удален`);
+                }
+            } catch (error) {
+                console.error(`Ошибка при удалении раздела ${chapter.id}:`, error);
+                allDeleted = false;
+            }
+        }
+
+        return allDeleted;
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            console.log('Выбрано новое изображение:', file.name);
+            setTitleImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setTitleImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const toggleLanguage = (language) => {
         setSelectedLanguages(prev =>
             prev.includes(language)
                 ? prev.filter(l => l !== language)
@@ -148,7 +271,8 @@ function EditCoursePage() {
             return;
         }
 
-        if (parseInt(sectionsCount) <= 0) {
+        const newSectionsCount = parseInt(sectionsCount);
+        if (newSectionsCount <= 0) {
             setError('Количество разделов должно быть больше 0');
             return;
         }
@@ -158,25 +282,38 @@ function EditCoursePage() {
         try {
             const token = authService.getToken();
 
-            // Отправляем JSON без картинки (картинку не меняем)
-            const requestData = {
-                id: courseId,
-                pl: selectedLanguages,
-                title: courseName.trim(),
-                description: description.trim(),
-                chapters: parseInt(sectionsCount),
-                complexity: parseInt(difficulty)
-            };
+            if (existingChapters.length > newSectionsCount) {
+                console.log(`Количество разделов уменьшено с ${existingChapters.length} до ${newSectionsCount}`);
+                await deleteExtraChapters(newSectionsCount);
+            }
 
-            console.log('Отправляю данные для обновления (JSON):', JSON.stringify(requestData, null, 2));
+            // Отправляем FormData
+            const formData = new FormData();
+            formData.append('PL', JSON.stringify(selectedLanguages));
+            formData.append('Title', courseName.trim());
+            formData.append('Description', description.trim());
+            formData.append('Chapters', newSectionsCount);
+            formData.append('Complexity', parseInt(difficulty));
+
+            if (titleImage) {
+                formData.append('TitleImage', titleImage);
+                console.log('Отправляем новое изображение');
+            }
+
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            console.log('Отправка FormData на сервер...');
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+            }
 
             const response = await fetch(`/api/v1/Courses/${courseId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(requestData),
+                headers: headers,
+                body: formData,
                 credentials: 'include'
             });
 
@@ -320,17 +457,31 @@ function EditCoursePage() {
                 </div>
 
                 <div className="form-group">
-                    <label>Титульная картинка</label>
+                    <label htmlFor="titleImage">Титульная картинка</label>
+                    <input
+                        id="titleImage"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        disabled={isLoading}
+                    />
                     {titleImagePreview && (
-                        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+                        <div style={{ marginTop: '10px' }}>
                             <img
                                 src={titleImagePreview}
-                                alt="Текущая картинка"
+                                alt="Предпросмотр"
                                 style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '8px', objectFit: 'cover' }}
                             />
-                            <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
-                                * Изменение картинки недоступно при редактировании
-                            </p>
+                            {existingImagePath && !titleImage && (
+                                <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
+                                    Текущее изображение
+                                </p>
+                            )}
+                            {titleImage && (
+                                <p style={{ fontSize: '12px', color: '#28a745', marginTop: '5px' }}>
+                                    ✅ Новое изображение выбрано
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>
@@ -348,6 +499,11 @@ function EditCoursePage() {
                         required
                         disabled={isLoading}
                     />
+                    {existingChapters.length > 0 && parseInt(sectionsCount) < existingChapters.length && (
+                        <p style={{ fontSize: '12px', color: '#ff9800', marginTop: '5px' }}>
+                            ⚠️ Внимание! При уменьшении количества разделов, лишние разделы будут удалены.
+                        </p>
+                    )}
                 </div>
 
                 <div className="form-group">
