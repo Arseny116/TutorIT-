@@ -8,7 +8,7 @@ namespace Application.Domain.Models
 
         const int MAX_LENHTH_DESCRIPTION = 200;
 
-        const int MAX_LENGTH_HINT = 100;
+        const int MAX_LENGTH_HINT = 50;
 
         /// <summary>
         /// Id Задачи
