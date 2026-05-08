@@ -14,7 +14,6 @@ function EditCoursePage() {
     const [sectionsCount, setSectionsCount] = useState('');
     const [difficulty, setDifficulty] = useState('');
     const [selectedLanguages, setSelectedLanguages] = useState([]);
-    const [titleImage, setTitleImage] = useState(null);
     const [titleImagePreview, setTitleImagePreview] = useState('');
     const [existingImagePath, setExistingImagePath] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +38,6 @@ function EditCoursePage() {
         return `${API_BASE_URL}/${imagePath}`;
     };
 
-    // Загрузка данных курса
     useEffect(() => {
         if (courseId) {
             loadCourseData();
@@ -82,7 +80,6 @@ function EditCoursePage() {
             setSectionsCount(courseData.chapters || '');
             setDifficulty(courseData.complexity || '');
 
-            // Парсим языки
             let languages = [];
             if (courseData.pl) {
                 if (Array.isArray(courseData.pl)) {
@@ -108,18 +105,6 @@ function EditCoursePage() {
             setError('Не удалось загрузить данные курса');
         } finally {
             setIsPageLoading(false);
-        }
-    };
-
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setTitleImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setTitleImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
         }
     };
 
@@ -173,16 +158,17 @@ function EditCoursePage() {
         try {
             const token = authService.getToken();
 
-            // Отправляем как JSON - это правильный формат для PUT
+            // Отправляем JSON без картинки (картинку не меняем)
             const requestData = {
-                pl: selectedLanguages, // Отправляем как массив
+                id: courseId,
+                pl: selectedLanguages,
                 title: courseName.trim(),
                 description: description.trim(),
                 chapters: parseInt(sectionsCount),
                 complexity: parseInt(difficulty)
             };
 
-            console.log('Отправляю данные (JSON):', JSON.stringify(requestData, null, 2));
+            console.log('Отправляю данные для обновления (JSON):', JSON.stringify(requestData, null, 2));
 
             const response = await fetch(`/api/v1/Courses/${courseId}`, {
                 method: 'PUT',
@@ -193,11 +179,6 @@ function EditCoursePage() {
                 body: JSON.stringify(requestData),
                 credentials: 'include'
             });
-
-            // Добавляем Authorization header если есть токен
-            if (token && response.headers) {
-                // Токен уже в cookies, но на всякий случай
-            }
 
             const responseText = await response.text();
             console.log('Ответ сервера:', response.status, responseText);
@@ -318,41 +299,38 @@ function EditCoursePage() {
                         {selectedLanguages.length > 0 && (
                             <div className="selected-languages">
                                 <span className="selected-label">Выбрано:</span>
-                                {selectedLanguages.map(lang => (
-                                    <span key={lang} className="selected-language-tag">
-                        {lang}
-                                        <button
-                                            type="button"
-                                            className="remove-language"
-                                            onClick={() => removeLanguage(lang)}
-                                            disabled={isLoading}
-                                        >
-                          ×
-                        </button>
-                      </span>
-                                ))}
+                                <div className="selected-languages-list">
+                                    {selectedLanguages.map(lang => (
+                                        <span key={lang} className="selected-language-tag">
+                      {lang}
+                                            <button
+                                                type="button"
+                                                className="remove-language"
+                                                onClick={() => removeLanguage(lang)}
+                                                disabled={isLoading}
+                                            >
+                        ×
+                      </button>
+                    </span>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="titleImage">Титульная картинка</label>
-                    <input
-                        id="titleImage"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        disabled={isLoading}
-                    />
+                    <label>Титульная картинка</label>
                     {titleImagePreview && (
-                        <div style={{ marginTop: '10px' }}>
-                            <img src={titleImagePreview} alt="Предпросмотр" style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '8px' }} />
-                            {existingImagePath && !titleImage && (
-                                <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
-                                    Текущее изображение
-                                </p>
-                            )}
+                        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+                            <img
+                                src={titleImagePreview}
+                                alt="Текущая картинка"
+                                style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '8px', objectFit: 'cover' }}
+                            />
+                            <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
+                                * Изменение картинки недоступно при редактировании
+                            </p>
                         </div>
                     )}
                 </div>
@@ -407,7 +385,6 @@ function EditCoursePage() {
                 </div>
             </form>
 
-            {/* Модальное окно подтверждения при выходе */}
             {showConfirmModal && (
                 <div className="confirm-modal-overlay" onClick={cancelNavigation}>
                     <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>

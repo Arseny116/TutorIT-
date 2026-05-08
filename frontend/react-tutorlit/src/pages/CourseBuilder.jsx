@@ -13,6 +13,8 @@ function CourseBuilder() {
   const [statusMessage, setStatusMessage] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const [isCourseFullyCompleted, setIsCourseFullyCompleted] = useState(false);
+
   const [currentStep, setCurrentStep] = useState('section-details');
   const [sectionData, setSectionData] = useState({
     totalSections: 0,
@@ -30,6 +32,8 @@ function CourseBuilder() {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState('error');
+
+  const [showExitWarning, setShowExitWarning] = useState(false);
 
   const showConfirm = (message, onConfirm) => {
     setConfirmMessage(message);
@@ -63,6 +67,45 @@ function CourseBuilder() {
       return imagePath;
     }
     return `http://89.110.94.112:8080/${imagePath}`;
+  };
+
+  const checkIfCourseFullyCompleted = (sections) => {
+    if (!sections || sections.length === 0) return false;
+    return sections.every(section => section.id !== null);
+  };
+
+  const handleBeforeUnload = (e) => {
+    if (!isCourseFullyCompleted && !isEditMode) {
+      e.preventDefault();
+      e.returnValue = 'Вы не завершили создание курса. Уверены, что хотите уйти?';
+      return e.returnValue;
+    }
+  };
+
+  const handlePopState = (e) => {
+    if (!isCourseFullyCompleted && !isEditMode) {
+      setShowExitWarning(true);
+      window.history.pushState(null, '', window.location.href);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isCourseFullyCompleted, isEditMode]);
+
+  const confirmExit = () => {
+    setShowExitWarning(false);
+    navigate('/profile');
+  };
+
+  const cancelExit = () => {
+    setShowExitWarning(false);
   };
 
   useEffect(() => {
@@ -239,6 +282,8 @@ function CourseBuilder() {
                 sections: loadedSections
               });
 
+              setIsCourseFullyCompleted(checkIfCourseFullyCompleted(loadedSections));
+
               return;
             }
           }
@@ -260,6 +305,8 @@ function CourseBuilder() {
             sections: newSections
           });
 
+          setIsCourseFullyCompleted(false);
+
         } else {
           setStatusMessage('Не удалось загрузить курс');
           setTimeout(() => navigate('/courses'), 2000);
@@ -274,42 +321,29 @@ function CourseBuilder() {
     loadCourseFromServer();
   }, [cleanedCourseId, navigate]);
 
-  const handleGoBack = () => {
-    const currentSection = sectionData.sections[sectionData.currentSectionIndex];
-
+  const handleSimpleBack = () => {
     switch (currentStep) {
       case 'theory':
         if (currentTheoryIndex > 0) {
           setCurrentTheoryIndex(currentTheoryIndex - 1);
         } else {
-          showConfirm('Все несохраненные изменения в текущем разделе будут потеряны. Продолжить?', () => {
-            setCurrentStep('section-details');
-          });
+          setCurrentStep('section-details');
         }
         break;
 
       case 'assignment':
         if (currentTaskIndex > 0) {
           setCurrentTaskIndex(currentTaskIndex - 1);
-        } else if (currentSection?.theory?.length > 0) {
-          showConfirm('Все несохраненные изменения в текущем задании будут потеряны. Продолжить?', () => {
-            setCurrentStep('theory');
-            setCurrentTheoryIndex(currentSection.theory.length - 1);
-          });
+        } else if (sectionData.sections[sectionData.currentSectionIndex]?.theory?.length > 0) {
+          setCurrentStep('theory');
+          setCurrentTheoryIndex(sectionData.sections[sectionData.currentSectionIndex].theory.length - 1);
         } else {
-          showConfirm('Все несохраненные изменения в текущем разделе будут потеряны. Продолжить?', () => {
-            setCurrentStep('section-details');
-          });
+          setCurrentStep('section-details');
         }
         break;
 
       case 'answers':
-        showConfirm('Все несохраненные изменения в ответах будут потеряны. Продолжить?', () => {
-          setCurrentStep('assignment');
-        });
-        break;
-
-      case 'section-details':
+        setCurrentStep('assignment');
         break;
 
       default:
@@ -328,7 +362,8 @@ function CourseBuilder() {
       setCurrentStep('section-details');
       setStatusMessage(`Переход к разделу ${sectionData.currentSectionIndex + 2}...`);
     } else {
-      setStatusMessage('Все разделы готовы! Перенаправление на главную...');
+      setIsCourseFullyCompleted(true);
+      setStatusMessage('Все разделы созданы! Перенаправление на главную...');
       setTimeout(() => navigate('/'), 2000);
     }
   };
@@ -340,8 +375,8 @@ function CourseBuilder() {
     const [localSectionData, setLocalSectionData] = useState({
       name: currentSection?.name || '',
       description: currentSection?.description || '',
-      numberTheoryBloks: currentSection?.numberTheoryBloks || 1,
-      numberTasks: currentSection?.numberTasks || 1
+      numberTheoryBloks: currentSection?.numberTheoryBloks || 0,
+      numberTasks: currentSection?.numberTasks || 0
     });
 
     const [errors, setErrors] = useState({
@@ -356,23 +391,16 @@ function CourseBuilder() {
         setLocalSectionData({
           name: currentSection.name || '',
           description: currentSection.description || '',
-          numberTheoryBloks: currentSection.numberTheoryBloks || 1,
-          numberTasks: currentSection.numberTasks || 1
+          numberTheoryBloks: currentSection.numberTheoryBloks || 0,
+          numberTasks: currentSection.numberTasks || 0
         });
       }
     }, [currentSection]);
 
-    // Функция проверки валидности формы (без текстовых ошибок для чисел)
     const isFormValid = () => {
-      const theoryBloks = parseInt(localSectionData.numberTheoryBloks);
-      const tasks = parseInt(localSectionData.numberTasks);
-
-      const isNameValid = localSectionData.name.trim() !== '' && localSectionData.name.length <= 200;
-      const isDescriptionValid = localSectionData.description.trim() !== '';
-      const isTheoryValid = !isNaN(theoryBloks) && theoryBloks >= 1 && theoryBloks <= 10;
-      const isTasksValid = !isNaN(tasks) && tasks >= 1 && tasks <= 10;
-
-      return isNameValid && isDescriptionValid && isTheoryValid && isTasksValid;
+      return localSectionData.name.trim() !== '' &&
+          localSectionData.name.length <= 50 &&
+          localSectionData.description.trim() !== '';
     };
 
     const validateForm = () => {
@@ -382,27 +410,13 @@ function CourseBuilder() {
       if (!localSectionData.name.trim()) {
         newErrors.name = 'Название раздела обязательно';
         isValid = false;
-      } else if (localSectionData.name.length > 200) {
-        newErrors.name = 'Название не должно превышать 200 символов';
+      } else if (localSectionData.name.length > 50) {
+        newErrors.name = 'Название не должно превышать 50 символов';
         isValid = false;
       }
 
       if (!localSectionData.description.trim()) {
         newErrors.description = 'Описание раздела обязательно';
-        isValid = false;
-      }
-
-      // Проверка количества блоков теории (1-10) - без текста ошибки
-      const theoryBloks = parseInt(localSectionData.numberTheoryBloks);
-      if (isNaN(theoryBloks) || theoryBloks < 1 || theoryBloks > 10) {
-        newErrors.numberTheoryBloks = 'error';
-        isValid = false;
-      }
-
-      // Проверка количества заданий (1-10) - без текста ошибки
-      const tasks = parseInt(localSectionData.numberTasks);
-      if (isNaN(tasks) || tasks < 1 || tasks > 10) {
-        newErrors.numberTasks = 'error';
         isValid = false;
       }
 
@@ -412,7 +426,7 @@ function CourseBuilder() {
 
     const handleSaveSectionDetails = async () => {
       if (!validateForm()) {
-        setStatusMessage('Заполните все поля корректно (название, описание, количество блоков теории и заданий от 1 до 10)');
+        setStatusMessage('Заполните все поля корректно');
         setTimeout(() => setStatusMessage(''), 3000);
         return;
       }
@@ -443,8 +457,8 @@ function CourseBuilder() {
             id: chapterId,
             name: localSectionData.name,
             description: localSectionData.description,
-            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 1,
-            numberTasks: parseInt(localSectionData.numberTasks) || 1
+            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 0,
+            numberTasks: parseInt(localSectionData.numberTasks) || 0
           };
 
           response = await fetch(`/api/v1/Chapters/${chapterId}`, {
@@ -457,8 +471,8 @@ function CourseBuilder() {
           const requestData = {
             name: localSectionData.name,
             description: localSectionData.description,
-            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 1,
-            numberTasks: parseInt(localSectionData.numberTasks) || 1
+            numberTheoryBloks: parseInt(localSectionData.numberTheoryBloks) || 0,
+            numberTasks: parseInt(localSectionData.numberTasks) || 0
           };
 
           response = await fetch(`/api/v1/Chapters/${cleanedCourseId}`, {
@@ -561,15 +575,26 @@ function CourseBuilder() {
           {statusMessage && <div className="status-message">{statusMessage}</div>}
 
           <div className="form-group">
-            <label>Название раздела *</label>
+            <label>Название раздела * (макс. 50 символов)</label>
             <input
                 type="text"
                 value={localSectionData.name}
-                onChange={(e) => setLocalSectionData(prev => ({...prev, name: e.target.value}))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 50) {
+                    setLocalSectionData(prev => ({...prev, name: value}));
+                    setErrors(prev => ({...prev, name: ''}));
+                  } else {
+                    setErrors(prev => ({...prev, name: 'Название не должно превышать 50 символов'}));
+                  }
+                }}
                 placeholder="Введите название раздела"
                 disabled={isLoading}
                 className={errors.name ? 'error-input' : ''}
             />
+            <div className="char-counter">
+              {localSectionData.name.length}/50 символов
+            </div>
             {errors.name && <span className="error-text">{errors.name}</span>}
           </div>
 
@@ -592,14 +617,9 @@ function CourseBuilder() {
               <input
                   type="number"
                   value={localSectionData.numberTheoryBloks}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 1 : parseInt(e.target.value);
-                    setLocalSectionData(prev => ({...prev, numberTheoryBloks: value >= 1 ? value : 1}));
-                  }}
-                  min="1"
-                  max="10"
+                  onChange={(e) => setLocalSectionData(prev => ({...prev, numberTheoryBloks: parseInt(e.target.value) || 0}))}
+                  min="0"
                   disabled={isLoading}
-                  className={errors.numberTheoryBloks ? 'error-input' : ''}
               />
             </div>
 
@@ -608,14 +628,9 @@ function CourseBuilder() {
               <input
                   type="number"
                   value={localSectionData.numberTasks}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 1 : parseInt(e.target.value);
-                    setLocalSectionData(prev => ({...prev, numberTasks: value >= 1 ? value : 1}));
-                  }}
-                  min="1"
-                  max="10"
+                  onChange={(e) => setLocalSectionData(prev => ({...prev, numberTasks: parseInt(e.target.value) || 0}))}
+                  min="0"
                   disabled={isLoading}
-                  className={errors.numberTasks ? 'error-input' : ''}
               />
             </div>
           </div>
@@ -662,7 +677,9 @@ function CourseBuilder() {
     }, [currentTheory]);
 
     const isFormValid = () => {
-      return theoryData.name.trim() !== '' && theoryData.article.trim() !== '';
+      return theoryData.name.trim() !== '' &&
+          theoryData.name.length <= 50 &&
+          theoryData.article.trim() !== '';
     };
 
     const validateForm = () => {
@@ -672,8 +689,8 @@ function CourseBuilder() {
       if (!theoryData.name.trim()) {
         newErrors.name = 'Название теории обязательно';
         isValid = false;
-      } else if (theoryData.name.length > 200) {
-        newErrors.name = 'Название не должно превышать 200 символов';
+      } else if (theoryData.name.length > 50) {
+        newErrors.name = 'Название не должно превышать 50 символов';
         isValid = false;
       }
 
@@ -719,8 +736,9 @@ function CourseBuilder() {
         let response;
         let theoryId = existingTheoryId;
 
+        // Для существующей теории (редактирование) - отправляем JSON
         if (existingTheoryId && isEditMode) {
-          const updateData = {
+          const theoryDataJson = {
             id: existingTheoryId,
             name: theoryData.name,
             article: theoryData.article,
@@ -735,13 +753,17 @@ function CourseBuilder() {
             headers['Authorization'] = `Bearer ${token}`;
           }
 
+          console.log('Обновление теории (JSON):', theoryDataJson);
+
           response = await fetch(`/api/v1/Theories/${existingTheoryId}`, {
             method: 'PUT',
             headers: headers,
-            body: JSON.stringify(updateData),
+            body: JSON.stringify(theoryDataJson),
             credentials: 'include'
           });
-        } else {
+        }
+        // Для новой теории - отправляем FormData
+        else {
           const formData = new FormData();
           formData.append('Name', theoryData.name);
           formData.append('Article', theoryData.article);
@@ -753,6 +775,8 @@ function CourseBuilder() {
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           }
+
+          console.log('Создание теории (FormData)');
 
           response = await fetch(`/api/v1/Theories?ChapterId=${chapterId}`, {
             method: 'POST',
@@ -829,15 +853,26 @@ function CourseBuilder() {
           </p>
 
           <div className="form-group">
-            <label>Название теории *</label>
+            <label>Название теории * (макс. 50 символов)</label>
             <input
                 type="text"
                 value={theoryData.name}
-                onChange={(e) => setTheoryData(prev => ({...prev, name: e.target.value}))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 50) {
+                    setTheoryData(prev => ({...prev, name: value}));
+                    setErrors(prev => ({...prev, name: ''}));
+                  } else {
+                    setErrors(prev => ({...prev, name: 'Название не должно превышать 50 символов'}));
+                  }
+                }}
                 placeholder="Введите название теории"
                 disabled={isLoading}
                 className={errors.name ? 'error-input' : ''}
             />
+            <div className="char-counter">
+              {theoryData.name.length}/50 символов
+            </div>
             {errors.name && <span className="error-text">{errors.name}</span>}
           </div>
 
@@ -891,7 +926,7 @@ function CourseBuilder() {
           </div>
 
           <div className="navigation-buttons">
-            <button className="btn-back" onClick={handleGoBack} disabled={isLoading}>
+            <button className="btn-back" onClick={handleSimpleBack} disabled={isLoading}>
               ← Назад
             </button>
             <button
@@ -939,6 +974,7 @@ function CourseBuilder() {
 
     const isFormValid = () => {
       return taskData.name.trim() !== '' &&
+          taskData.name.length <= 50 &&
           taskData.description.trim() !== '' &&
           taskData.hint.trim() !== '' &&
           taskData.hint.length <= 100;
@@ -951,8 +987,8 @@ function CourseBuilder() {
       if (!taskData.name.trim()) {
         newErrors.name = 'Название задания обязательно';
         isValid = false;
-      } else if (taskData.name.length > 200) {
-        newErrors.name = 'Название не должно превышать 200 символов';
+      } else if (taskData.name.length > 50) {
+        newErrors.name = 'Название не должно превышать 50 символов';
         isValid = false;
       }
 
@@ -1006,8 +1042,9 @@ function CourseBuilder() {
         let response;
         let taskId = existingTaskId;
 
+        // Для существующего задания (редактирование) - отправляем JSON
         if (existingTaskId && isEditMode) {
-          const updateData = {
+          const taskDataJson = {
             id: existingTaskId,
             name: taskData.name,
             description: taskData.description,
@@ -1023,13 +1060,17 @@ function CourseBuilder() {
             headers['Authorization'] = `Bearer ${token}`;
           }
 
+          console.log('Обновление задания (JSON):', taskDataJson);
+
           response = await fetch(`/api/v1/TasksCreators/${existingTaskId}`, {
             method: 'PUT',
             headers: headers,
-            body: JSON.stringify(updateData),
+            body: JSON.stringify(taskDataJson),
             credentials: 'include'
           });
-        } else {
+        }
+        // Для нового задания - отправляем FormData
+        else {
           const formData = new FormData();
           formData.append('Name', taskData.name);
           formData.append('Description', taskData.description);
@@ -1042,6 +1083,8 @@ function CourseBuilder() {
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           }
+
+          console.log('Создание задания (FormData)');
 
           response = await fetch(`/api/v1/TasksCreators?ChapterId=${chapterId}`, {
             method: 'POST',
@@ -1108,15 +1151,26 @@ function CourseBuilder() {
 
           <div className="task-form">
             <div className="form-group">
-              <label>Название задания *</label>
+              <label>Название задания * (макс. 50 символов)</label>
               <input
                   type="text"
                   value={taskData.name}
-                  onChange={(e) => setTaskData(prev => ({...prev, name: e.target.value}))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.length <= 50) {
+                      setTaskData(prev => ({...prev, name: value}));
+                      setErrors(prev => ({...prev, name: ''}));
+                    } else {
+                      setErrors(prev => ({...prev, name: 'Название не должно превышать 50 символов'}));
+                    }
+                  }}
                   placeholder="Введите название задания"
                   disabled={isLoading}
                   className={errors.name ? 'error-input' : ''}
               />
+              <div className="char-counter">
+                {taskData.name.length}/50 символов
+              </div>
               {errors.name && <span className="error-text">{errors.name}</span>}
             </div>
 
@@ -1170,7 +1224,7 @@ function CourseBuilder() {
             </div>
 
             <div className="form-group">
-              <label>Подсказка *</label>
+              <label>Подсказка * (макс. 100 символов)</label>
               <textarea
                   value={taskData.hint}
                   onChange={(e) => setTaskData(prev => ({...prev, hint: e.target.value}))}
@@ -1180,11 +1234,14 @@ function CourseBuilder() {
                   style={{ resize: 'vertical' }}
                   className={errors.hint ? 'error-input' : ''}
               />
+              <div className="char-counter">
+                {taskData.hint.length}/100 символов
+              </div>
               {errors.hint && <span className="error-text">{errors.hint}</span>}
             </div>
 
             <div className="navigation-buttons">
-              <button className="btn-back" onClick={handleGoBack} disabled={isLoading}>
+              <button className="btn-back" onClick={handleSimpleBack} disabled={isLoading}>
                 ← Назад
               </button>
               <button
@@ -1451,7 +1508,7 @@ function CourseBuilder() {
           </div>
 
           <div className="navigation-buttons">
-            <button className="btn-back" onClick={handleGoBack} disabled={isLoading}>
+            <button className="btn-back" onClick={handleSimpleBack} disabled={isLoading}>
               ← Назад
             </button>
             <button
@@ -1506,6 +1563,29 @@ function CourseBuilder() {
                 <div className="confirm-buttons">
                   <button className="confirm-cancel" onClick={handleCancelConfirm}>Отмена</button>
                   <button className="confirm-ok" onClick={handleConfirm}>Да, продолжить</button>
+                </div>
+              </div>
+            </div>
+        )}
+
+        {showExitWarning && (
+            <div className="confirm-modal-overlay" onClick={cancelExit}>
+              <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="confirm-icon">⚠️</div>
+                <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>Вы не завершили создание курса</h3>
+                <p className="confirm-message">
+                  Вы не сохранили все разделы курса. Если вы уйдете сейчас, курс останется незаполненным.
+                </p>
+                <p style={{ fontSize: '14px', color: '#28a745', marginBottom: '20px' }}>
+                  Вы можете продолжить редактирование позже через личный кабинет.
+                </p>
+                <div className="confirm-buttons">
+                  <button className="confirm-cancel" onClick={cancelExit}>
+                    Продолжить редактирование
+                  </button>
+                  <button className="confirm-ok" onClick={confirmExit}>
+                    Выйти
+                  </button>
                 </div>
               </div>
             </div>

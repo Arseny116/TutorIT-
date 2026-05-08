@@ -84,15 +84,12 @@ function CourseLearning() {
 
       const userData = await authService.fetchUserData();
       if (userData) {
-        // Проверяем, является ли пользователь создателем курса
         const createdIds = userData.createdCourseIds || [];
         const isCreatorCourse = createdIds.includes(cleanedCourseId);
         setIsCreator(isCreatorCourse);
 
-        // ВАЖНО: Если пользователь - создатель курса, то НЕ показываем ему запись
-        // Даже если сервер вернул true в enrolledCourseIds, принудительно ставим false
         if (isCreatorCourse) {
-          setIsEnrolled(false);  // Создатель не считается записанным
+          setIsEnrolled(false);
         } else {
           const enrolled = await authService.isEnrolledToCourse(cleanedCourseId);
           setIsEnrolled(enrolled);
@@ -126,10 +123,6 @@ function CourseLearning() {
     } finally {
       setIsEnrolling(false);
     }
-  };
-
-  const handleEditCourse = () => {
-    navigate(`/edit-course/${cleanedCourseId}`);
   };
 
   const loadProgress = () => {
@@ -368,6 +361,7 @@ function CourseLearning() {
       setSelectedAnswer(null);
       setShowAnswerResult(false);
       setShowHint(false);
+      setScore(0);
     } else {
       handleCompleteSection();
     }
@@ -394,6 +388,7 @@ function CourseLearning() {
     }
   };
 
+  // Проверка ответа - только показывает результат, не переходит дальше
   const handleCheckAnswer = () => {
     if (selectedAnswer === null || !currentSection) return;
 
@@ -405,28 +400,9 @@ function CourseLearning() {
     if (isCorrect) {
       setScore(prev => prev + 1);
     }
-
-    setTimeout(() => {
-      if (currentTaskIndex < currentSection.tasks.length - 1) {
-        setCurrentTaskIndex(prev => prev + 1);
-        setSelectedAnswer(null);
-        setShowAnswerResult(false);
-        setShowHint(false);
-      } else {
-        const newTotalScore = totalScore + score + (isCorrect ? 1 : 0);
-        setTotalScore(newTotalScore);
-
-        if (!completedSections.includes(currentSection.id)) {
-          const newCompleted = [...completedSections, currentSection.id];
-          setCompletedSections(newCompleted);
-          saveProgress();
-        }
-
-        setCurrentStep('sectionComplete');
-      }
-    }, 1500);
   };
 
+  // Переход к следующему заданию ТОЛЬКО по кнопке
   const handleNextTask = () => {
     if (currentTaskIndex < currentSection.tasks.length - 1) {
       setCurrentTaskIndex(prev => prev + 1);
@@ -434,7 +410,17 @@ function CourseLearning() {
       setShowAnswerResult(false);
       setShowHint(false);
     } else {
-      handleCompleteSection();
+      // Это было последнее задание в разделе
+      const newTotalScore = totalScore + score;
+      setTotalScore(newTotalScore);
+
+      if (!completedSections.includes(currentSection.id)) {
+        const newCompleted = [...completedSections, currentSection.id];
+        setCompletedSections(newCompleted);
+        saveProgress();
+      }
+
+      setCurrentStep('sectionComplete');
     }
   };
 
@@ -539,17 +525,6 @@ function CourseLearning() {
                 {currentStep === 'courseComplete' && 'Курс завершен'}
               </div>
 
-              {/* Если пользователь - создатель курса - показываем кнопку редактирования */}
-              {isCreator && (
-                  <button
-                      className="edit-course-btn"
-                      onClick={handleEditCourse}
-                  >
-                    ✏️ Редактировать курс
-                  </button>
-              )}
-
-              {/* Если пользователь НЕ создатель и НЕ записан */}
               {!isCreator && !isEnrolled && (
                   <button
                       className="enroll-btn"
@@ -560,7 +535,6 @@ function CourseLearning() {
                   </button>
               )}
 
-              {/* Если пользователь НЕ создатель, но УЖЕ записан */}
               {!isCreator && isEnrolled && (
                   <span className="enrolled-badge">
                 ✅ Вы записаны на курс
@@ -755,6 +729,9 @@ function CourseLearning() {
                           {selectedAnswer === currentTask.correctAnswerIndex
                               ? <span className="correct-feedback">✅ Правильно! Отличная работа!</span>
                               : <span className="incorrect-feedback">❌ Неправильно. Правильный ответ: {currentTask.answers[currentTask.correctAnswerIndex]}</span>}
+                          <div className="next-task-hint">
+
+                          </div>
                         </div>
                     )}
                   </div>

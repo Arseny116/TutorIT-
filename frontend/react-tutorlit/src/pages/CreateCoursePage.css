@@ -156,45 +156,6 @@
   text-align: center;
 }
 
-@media (max-width: 768px) {
-  .create-course-page {
-    padding: 20px 15px;
-  }
-
-  .create-course-page h1 {
-    font-size: 28px;
-    margin-bottom: 30px;
-  }
-
-  .course-form {
-    padding: 25px;
-  }
-
-  .form-group {
-    margin-bottom: 25px;
-  }
-
-  .form-group label {
-    font-size: 15px;
-  }
-
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    padding: 12px 14px;
-    font-size: 15px;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .btn-cancel,
-  .btn-submit {
-    width: 100%;
-  }
-}
 /* Стили для выбора языков */
 .languages-selector {
   border: 2px solid #e0e0e0;
@@ -243,6 +204,14 @@
 .selected-label {
   font-size: 13px;
   color: #666;
+  flex-shrink: 0;
+}
+
+.selected-languages-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
 }
 
 .selected-language-tag {
@@ -254,6 +223,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .remove-language {
@@ -277,8 +247,60 @@
 }
 
 @media (max-width: 768px) {
+  .create-course-page {
+    padding: 20px 15px;
+  }
+
+  .create-course-page h1 {
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+
+  .course-form {
+    padding: 25px;
+  }
+
+  .form-group {
+    margin-bottom: 25px;
+  }
+
+  .form-group label {
+    font-size: 15px;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+  }
+
   .language-btn {
     padding: 5px 10px;
     font-size: 12px;
+  }
+
+  .selected-languages {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .selected-languages-list {
+    width: 100%;
+  }
+
+  .selected-language-tag {
+    font-size: 12px;
+    padding: 3px 8px;
   }
 }
