@@ -16,11 +16,9 @@ function UserProfilePage() {
     const [notificationMessage, setNotificationMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
-    // Состояния для модального окна подтверждения удаления своего курса
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [courseToDelete, setCourseToDelete] = useState(null);
 
-    // Состояния для отписки от курса
     const [showUnenrollConfirm, setShowUnenrollConfirm] = useState(false);
     const [courseToUnenroll, setCourseToUnenroll] = useState(null);
     const [isUnenrolling, setIsUnenrolling] = useState(false);
@@ -36,17 +34,119 @@ function UserProfilePage() {
         return `${API_BASE_URL}/${imagePath}`;
     };
 
+    // Функция для парсинга языков из формата ['["JavaScript"]', '["Python"]']
+    const parseLanguages = (languages) => {
+        if (!languages) return [];
+
+        // Если уже массив
+        if (Array.isArray(languages)) {
+            const result = [];
+            for (const item of languages) {
+                if (typeof item === 'string') {
+                    try {
+                        // Пробуем распарсить как JSON
+                        const parsed = JSON.parse(item);
+                        if (Array.isArray(parsed)) {
+                            for (const lang of parsed) {
+                                if (lang && !result.includes(lang)) {
+                                    result.push(lang);
+                                }
+                            }
+                        } else if (parsed && !result.includes(parsed)) {
+                            result.push(parsed);
+                        }
+                    } catch {
+                        // Если не парсится, убираем кавычки и скобки
+                        let cleaned = item;
+                        if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                            cleaned = cleaned.slice(1, -1);
+                        }
+                        if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+                            cleaned = cleaned.slice(1, -1);
+                        }
+                        cleaned = cleaned.replace(/\\"/g, '"');
+                        if (cleaned.includes(',')) {
+                            const parts = cleaned.split(',').map(l => l.trim().replace(/^["']|["']$/g, ''));
+                            for (const part of parts) {
+                                if (part && !result.includes(part)) {
+                                    result.push(part);
+                                }
+                            }
+                        } else if (cleaned && !result.includes(cleaned)) {
+                            result.push(cleaned);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        // Если строка
+        if (typeof languages === 'string') {
+            try {
+                let str = languages;
+                if (str.startsWith('"') && str.endsWith('"')) {
+                    str = str.slice(1, -1);
+                }
+                str = str.replace(/\\"/g, '"');
+                const parsed = JSON.parse(str);
+                if (Array.isArray(parsed)) return parsed;
+                return [languages];
+            } catch {
+                if (languages.includes(',')) {
+                    return languages.split(',').map(l => l.trim().replace(/^["'[\]]+|["'[\]]+$/g, ''));
+                }
+                return [languages.replace(/^["'[\]]+|["'[\]]+$/g, '')];
+            }
+        }
+
+        return [];
+    };
+
+    // Форматирование для отображения
+    const formatLanguages = (languages) => {
+        const arr = parseLanguages(languages);
+        if (arr.length === 0) return 'Не указан';
+        return arr.join(', ');
+    };
+
+    // Функция для проверки, полностью ли создан курс (есть ли разделы)
+    const isCourseFullyCreated = async (courseId) => {
+        try {
+            const token = authService.getToken();
+            const headers = { 'accept': 'text/plain' };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`/api/v1/Chapters/${courseId}`, {
+                method: 'GET',
+                headers: headers,
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                let chaptersData = await response.json();
+                let chapters = Array.isArray(chaptersData) ? chaptersData : (chaptersData.$values || []);
+                return chapters.length > 0;
+            }
+            return false;
+        } catch (error) {
+            console.error('Ошибка проверки разделов курса:', error);
+            return false;
+        }
+    };
+
     useEffect(() => {
         loadUserData();
     }, []);
 
-    const showNotificationMessage = (message, type = 'info') => {
+    const showNotificationMessage = (message) => {
         setNotificationMessage(message);
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
     };
 
-    // Загрузка всех данных пользователя
     const loadUserData = async () => {
         setIsLoading(true);
 
@@ -85,7 +185,7 @@ function UserProfilePage() {
 
                     // Созданные курсы
                     const createdIds = userData.createdCourseIds || [];
-                    const userCreatedCourses = coursesList.filter(course =>
+                    let userCreatedCourses = coursesList.filter(course =>
                         createdIds.includes(course.id)
                     ).map(course => ({
                         id: course.id,
@@ -93,16 +193,14 @@ function UserProfilePage() {
                         description: course.description || 'Описание отсутствует',
                         sections: course.chapters || 0,
                         difficulty: course.complexity || 1,
-                        language: Array.isArray(course.pl) ? course.pl[0] : (course.pl || 'Не указан'),
+                        languagesRaw: course.pl,
                         titleImage: getImageUrl(course.titleImage),
                         isFromAPI: true
                     }));
 
-                    setMyCourses(userCreatedCourses);
-
                     // Записанные курсы
                     const enrolledIds = userData.enrolledCourseIds || [];
-                    const userEnrolledCourses = coursesList.filter(course =>
+                    let userEnrolledCourses = coursesList.filter(course =>
                         enrolledIds.includes(course.id)
                     ).map(course => ({
                         id: course.id,
@@ -110,13 +208,34 @@ function UserProfilePage() {
                         description: course.description || 'Описание отсутствует',
                         sections: course.chapters || 0,
                         difficulty: course.complexity || 1,
-                        language: Array.isArray(course.pl) ? course.pl[0] : (course.pl || 'Не указан'),
+                        languagesRaw: course.pl,
                         titleImage: getImageUrl(course.titleImage),
                         isFromAPI: true
                     }));
 
-                    setEnrolledCourses(userEnrolledCourses);
-                    console.log('Записанные курсы:', userEnrolledCourses);
+                    // Фильтруем созданные курсы - показываем только полностью созданные (с разделами)
+                    const fullyCreatedCourses = [];
+                    for (const course of userCreatedCourses) {
+                        const hasChapters = await isCourseFullyCreated(course.id);
+                        if (hasChapters) {
+                            fullyCreatedCourses.push(course);
+                        } else {
+                            console.log(`Созданный курс "${course.title}" пропущен (нет разделов)`);
+                        }
+                    }
+                    setMyCourses(fullyCreatedCourses);
+
+                    // Фильтруем записанные курсы - показываем только полностью созданные (с разделами)
+                    const fullyCreatedEnrolled = [];
+                    for (const course of userEnrolledCourses) {
+                        const hasChapters = await isCourseFullyCreated(course.id);
+                        if (hasChapters) {
+                            fullyCreatedEnrolled.push(course);
+                        } else {
+                            console.log(`Записанный курс "${course.title}" пропущен (нет разделов)`);
+                        }
+                    }
+                    setEnrolledCourses(fullyCreatedEnrolled);
                 }
             } else if (userResponse.status === 401) {
                 setUser({ name: 'Гость', email: '-', id: null });
@@ -127,7 +246,6 @@ function UserProfilePage() {
             setIsLoading(false);
         }
 
-        // Загружаем аватар
         const userId = authService.getUserId();
         if (userId) {
             const avatarKey = `user-avatar-${userId}`;
@@ -138,19 +256,16 @@ function UserProfilePage() {
         }
     };
 
-    // Открыть модальное окно подтверждения отписки
     const openUnenrollConfirm = (course) => {
         setCourseToUnenroll(course);
         setShowUnenrollConfirm(true);
     };
 
-    // Закрыть модальное окно отписки
     const closeUnenrollConfirm = () => {
         setShowUnenrollConfirm(false);
         setCourseToUnenroll(null);
     };
 
-    // Отписаться от курса
     const confirmUnenroll = async () => {
         if (!courseToUnenroll) return;
 
@@ -158,28 +273,20 @@ function UserProfilePage() {
         try {
             const result = await authService.unenrollFromCourse(courseToUnenroll.id);
             if (result.success) {
-                // Удаляем курс из списка записанных
                 setEnrolledCourses(prev => prev.filter(c => c.id !== courseToUnenroll.id));
-                showNotificationMessage(`Вы отписались от курса "${courseToUnenroll.title}"`, 'success');
-
-                // Обновляем статус в localStorage
-                const enrolledIds = authService.getEnrolledCourseIds();
-                const newEnrolledIds = enrolledIds.filter(id => id !== courseToUnenroll.id);
-                localStorage.setItem('enrolledCourseIds', JSON.stringify(newEnrolledIds));
-
+                showNotificationMessage(`Вы отписались от курса "${courseToUnenroll.title}"`);
                 closeUnenrollConfirm();
             } else {
-                showNotificationMessage(result.error || 'Ошибка при отписке от курса', 'error');
+                showNotificationMessage(result.error || 'Ошибка при отписке от курса');
             }
         } catch (error) {
             console.error('Ошибка отписки:', error);
-            showNotificationMessage('Произошла ошибка при отписке', 'error');
+            showNotificationMessage('Произошла ошибка при отписке');
         } finally {
             setIsUnenrolling(false);
         }
     };
 
-    // Открыть модальное окно подтверждения удаления своего курса
     const openDeleteConfirm = (course) => {
         setCourseToDelete(course);
         setShowDeleteConfirm(true);
@@ -210,15 +317,13 @@ function UserProfilePage() {
                 throw new Error(`Ошибка удаления: ${response.status}`);
             }
 
-            console.log('Курс удален с сервера');
-            showNotificationMessage('Курс успешно удален', 'success');
-
+            showNotificationMessage('Курс успешно удален');
             closeDeleteConfirm();
             await loadUserData();
 
         } catch (error) {
             console.error('Ошибка удаления курса:', error);
-            showNotificationMessage('Ошибка при удалении курса', 'error');
+            showNotificationMessage('Ошибка при удалении курса');
             closeDeleteConfirm();
         }
     };
@@ -420,7 +525,9 @@ function UserProfilePage() {
                                 </div>
 
                                 <div className="course-meta">
-                                    <span className="language-tag">{course.language}</span>
+                                    <span className="language-tag">
+                                        {formatLanguages(course.languagesRaw)}
+                                    </span>
                                     <span className="sections-tag">{course.sections} разделов</span>
                                     <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
                                         Сложность: {course.difficulty || 1}
@@ -444,7 +551,7 @@ function UserProfilePage() {
                         ))}
                     </div>
                 ) : (
-                    <p className="empty-text">Вы еще не создали ни одного курса.</p>
+                    <p className="empty-text">Вы еще не создали ни одного полностью завершенного курса.</p>
                 )}
             </section>
 
@@ -488,7 +595,9 @@ function UserProfilePage() {
                                 </div>
 
                                 <div className="course-meta">
-                                    <span className="language-tag">{course.language}</span>
+                                    <span className="language-tag">
+                                        {formatLanguages(course.languagesRaw)}
+                                    </span>
                                     <span className="sections-tag">{course.sections} разделов</span>
                                     <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
                                         Сложность: {course.difficulty || 1}
@@ -513,13 +622,11 @@ function UserProfilePage() {
                     </div>
                 ) : (
                     <p className="empty-text">
-                        Вы еще не записаны ни на один курс.
-                        Перейдите на страницу курсов и нажмите "Записаться".
+                        Вы еще не записаны ни на один полностью завершенный курс.
                     </p>
                 )}
             </section>
 
-            {/* Модальное окно для увеличения аватара */}
             {isModalOpen && (
                 <div className="avatar-modal" onClick={closeModal}>
                     <div className="avatar-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -534,7 +641,6 @@ function UserProfilePage() {
                 </div>
             )}
 
-            {/* Модальное окно подтверждения удаления своего курса */}
             {showDeleteConfirm && courseToDelete && (
                 <div className="confirm-modal-overlay" onClick={closeDeleteConfirm}>
                     <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -558,7 +664,6 @@ function UserProfilePage() {
                 </div>
             )}
 
-            {/* Модальное окно подтверждения отписки от курса */}
             {showUnenrollConfirm && courseToUnenroll && (
                 <div className="confirm-modal-overlay" onClick={closeUnenrollConfirm}>
                     <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>

@@ -12,11 +12,9 @@ function CoursesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
 
-  // Состояния для модального окна описания
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Состояния для записи на курс
   const [enrollingCourseId, setEnrollingCourseId] = useState(null);
   const [enrolledStatus, setEnrolledStatus] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '', type: 'info' });
@@ -41,34 +39,196 @@ function CoursesPage() {
     return `${API_BASE_URL}/${imagePath}`;
   };
 
+  // Функция для парсинга языков из формата ["[\"JavaScript\"]", "[\"Python\"]"]
   const parseLanguages = (languages) => {
     if (!languages) return [];
-    if (Array.isArray(languages)) return languages;
+
+    // Если уже массив
+    if (Array.isArray(languages)) {
+      const result = [];
+      for (const item of languages) {
+        if (typeof item === 'string') {
+          try {
+            // Пробуем распарсить как JSON
+            const parsed = JSON.parse(item);
+            if (Array.isArray(parsed)) {
+              for (const lang of parsed) {
+                if (lang && !result.includes(lang)) {
+                  result.push(lang);
+                }
+              }
+            } else if (parsed && !result.includes(parsed)) {
+              result.push(parsed);
+            }
+          } catch {
+            // Если не парсится, убираем кавычки и скобки
+            let cleaned = item;
+            if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+              cleaned = cleaned.slice(1, -1);
+            }
+            if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+              cleaned = cleaned.slice(1, -1);
+            }
+            cleaned = cleaned.replace(/\\"/g, '"');
+            if (cleaned.includes(',')) {
+              const parts = cleaned.split(',').map(l => l.trim().replace(/^["']|["']$/g, ''));
+              for (const part of parts) {
+                if (part && !result.includes(part)) {
+                  result.push(part);
+                }
+              }
+            } else if (cleaned && !result.includes(cleaned)) {
+              result.push(cleaned);
+            }
+          }
+        } else if (typeof item === 'object' && item !== null) {
+          if (item.name && !result.includes(item.name)) {
+            result.push(item.name);
+          } else if (item.language && !result.includes(item.language)) {
+            result.push(item.language);
+          }
+        }
+      }
+      return result;
+    }
+
+    // Если строка
     if (typeof languages === 'string') {
       try {
         const parsed = JSON.parse(languages);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
         return [languages];
       } catch {
-        return [languages];
+        let cleaned = languages;
+        if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+          cleaned = cleaned.slice(1, -1);
+        }
+        if (cleaned.includes(',')) {
+          return cleaned.split(',').map(l => l.trim().replace(/^["']|["']$/g, ''));
+        }
+        return [cleaned.replace(/^["']|["']$/g, '')];
       }
     }
+
     return [];
   };
 
-  const formatLanguages = (languages) => {
-    const langArray = parseLanguages(languages);
-    if (langArray.length === 0) return 'Не указан';
-    return langArray.join(', ');
-  };
-
+  // Проверка, соответствует ли курс выбранным языкам
   const matchesLanguage = (courseLanguages, selectedLangs) => {
     if (selectedLangs.length === 0) return true;
     const courseLangsArray = parseLanguages(courseLanguages);
     return selectedLangs.some(selectedLang => courseLangsArray.includes(selectedLang));
   };
 
-  // Загрузка статуса записи для всех курсов
+  // Проверка, полностью ли создан курс
+  const isCourseFullyCreated = async (courseId, expectedChapters) => {
+    try {
+      const token = authService.getToken();
+      const headers = { 'accept': 'text/plain' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const chaptersResponse = await fetch(`/api/v1/Chapters/${courseId}`, {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include'
+      });
+
+      if (!chaptersResponse.ok) return false;
+
+      let chaptersData = await chaptersResponse.json();
+      let chapters = Array.isArray(chaptersData) ? chaptersData : (chaptersData.$values || []);
+
+      if (chapters.length !== expectedChapters) return false;
+
+      for (const chapter of chapters) {
+        const chapterId = chapter.id || chapter.$id;
+
+        const theoriesResponse = await fetch(`/api/v1/Theories?CharterId=${chapterId}`, {
+          method: 'GET',
+          headers: headers,
+          credentials: 'include'
+        });
+
+        if (!theoriesResponse.ok) return false;
+
+        let theoriesData = await theoriesResponse.json();
+        let theories = Array.isArray(theoriesData) ? theoriesData : (theoriesData.$values || []);
+
+        const expectedTheories = chapter.numberTheoryBloks || 0;
+        if (theories.length !== expectedTheories) return false;
+
+        for (const theory of theories) {
+          if (!theory.article || theory.article.trim() === '') return false;
+        }
+
+        const tasksResponse = await fetch(`/api/v1/TasksCreators/${chapterId}`, {
+          method: 'GET',
+          headers: headers,
+          credentials: 'include'
+        });
+
+        if (!tasksResponse.ok) return false;
+
+        let tasksData = await tasksResponse.json();
+        let tasks = Array.isArray(tasksData) ? tasksData : (tasksData.$values || []);
+
+        const expectedTasks = chapter.numberTasks || 0;
+        if (tasks.length !== expectedTasks) return false;
+
+        for (const task of tasks) {
+          if (!task.hint || task.hint.trim() === '') return false;
+
+          const questionsResponse = await fetch(`/api/v1/Questions?TaskCreater=${task.id}`, {
+            method: 'GET',
+            headers: headers,
+            credentials: 'include'
+          });
+
+          if (!questionsResponse.ok) return false;
+
+          let questionsData = await questionsResponse.json();
+          let questions = Array.isArray(questionsData) ? questionsData : (questionsData.$values || []);
+
+          if (questions.length !== 4) return false;
+
+          for (const question of questions) {
+            if (!question.name || question.name.trim() === '') return false;
+          }
+
+          const hasCorrectAnswer = questions.some(q => q.answer === true);
+          if (!hasCorrectAnswer) return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Удаление незаполненного курса
+  const deleteEmptyCourse = async (courseId) => {
+    try {
+      const token = authService.getToken();
+      const headers = { 'accept': 'text/plain' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      await fetch(`/api/v1/Courses/${courseId}`, {
+        method: 'DELETE',
+        headers: headers,
+        credentials: 'include'
+      });
+    } catch (error) {
+      // Тихо удаляем
+    }
+  };
+
   const loadEnrolledStatus = async () => {
     try {
       const token = authService.getToken();
@@ -87,7 +247,6 @@ function CoursesPage() {
     }
   };
 
-  // Запись на курс
   const handleEnroll = async (courseId) => {
     if (!authService.isAuthenticated()) {
       showNotification('Сначала нужно войти в аккаунт', 'error');
@@ -116,7 +275,6 @@ function CoursesPage() {
     }
   };
 
-  // Переход на страницу курса (только для записанных)
   const handleGoToCourse = (courseId) => {
     if (!enrolledStatus[courseId]) {
       showNotification('Сначала нужно записаться на курс', 'warning');
@@ -125,13 +283,11 @@ function CoursesPage() {
     navigate(`/learn/${courseId}`);
   };
 
-  // Открыть модальное окно с описанием
   const handleOpenDescription = (course) => {
     setSelectedCourse(course);
     setIsModalOpen(true);
   };
 
-  // Закрыть модальное окно
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCourse(null);
@@ -170,24 +326,56 @@ function CoursesPage() {
         let coursesData = await response.json();
         let coursesList = Array.isArray(coursesData) ? coursesData : (coursesData.$values || []);
 
-        const filteredCourses = coursesList.filter(course => {
-          if (!course || !course.id) return false;
-          if (!course.title) return false;
-          if (course.title === 'string') return false;
-          return true;
-        });
+        const validCourses = [];
 
-        const formattedCourses = filteredCourses.map(course => ({
-          id: course.id,
-          title: course.title,
-          description: course.description || 'Описание отсутствует',
-          sections: course.chapters || 0,
-          difficulty: course.complexity || 1,
-          languagesRaw: course.pl,
-          languages: parseLanguages(course.pl),
-          isFromAPI: true,
-          titleImage: getImageUrl(course.titleImage)
-        }));
+        for (const course of coursesList) {
+          if (!course || !course.id) continue;
+          if (!course.title || course.title === 'string') continue;
+
+          const expectedChapters = course.chapters || 0;
+          const isFullyCreated = await isCourseFullyCreated(course.id, expectedChapters);
+
+          if (isFullyCreated) {
+            validCourses.push(course);
+          } else {
+            await deleteEmptyCourse(course.id);
+          }
+        }
+
+        const formattedCourses = validCourses.map(course => {
+          // Парсим языки из любого формата
+          let languagesArray = [];
+
+          // Проверяем поле pl
+          if (course.pl) {
+            languagesArray = parseLanguages(course.pl);
+          }
+          // Проверяем поле languages
+          else if (course.languages) {
+            languagesArray = parseLanguages(course.languages);
+          }
+
+          // Если все еще пусто, проверяем другие возможные поля
+          if (languagesArray.length === 0) {
+            if (course.programmingLanguage) {
+              languagesArray = [course.programmingLanguage];
+            } else if (course.language) {
+              languagesArray = [course.language];
+            }
+          }
+
+          console.log(`Курс "${course.title}" - языки:`, languagesArray);
+
+          return {
+            id: course.id,
+            title: course.title,
+            description: course.description || 'Описание отсутствует',
+            sections: course.chapters || 0,
+            difficulty: course.complexity || 1,
+            languagesArray: languagesArray,
+            titleImage: getImageUrl(course.titleImage)
+          };
+        });
 
         setCourses(formattedCourses);
       } else {
@@ -220,7 +408,8 @@ function CoursesPage() {
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLang = matchesLanguage(course.languagesRaw, selectedLanguages);
+    const matchesLang = selectedLanguages.length === 0 ||
+        selectedLanguages.some(lang => (course.languagesArray || []).includes(lang));
     return matchesSearch && matchesLang;
   });
 
@@ -298,7 +487,7 @@ function CoursesPage() {
             <div className="courses-header">
               <h1>Доступные курсы ({filteredCourses.length})</h1>
               <p className="courses-subtitle">
-                Запишитесь на курс, чтобы начать обучение
+                Выберите курс для обучения
               </p>
             </div>
 
@@ -332,7 +521,7 @@ function CoursesPage() {
 
                         <div className="course-meta">
                     <span className="language-tag">
-                      {formatLanguages(course.languagesRaw)}
+                      {(course.languagesArray || []).join(', ') || 'Не указан'}
                     </span>
                           <span className="sections-tag">{course.sections} разделов</span>
                           <span className={`difficulty-tag difficulty-${course.difficulty || 1}`}>
@@ -340,6 +529,10 @@ function CoursesPage() {
                     </span>
                           <span className="api-tag">Серверный</span>
                         </div>
+
+                        <p className="course-description-preview">
+                          {course.description}
+                        </p>
 
                         <div className="course-actions">
                           <button
@@ -381,7 +574,6 @@ function CoursesPage() {
           </main>
         </div>
 
-        {/* Модальное окно с описанием курса */}
         {isModalOpen && selectedCourse && (
             <div className="course-modal-overlay" onClick={handleCloseModal}>
               <div className="course-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -397,7 +589,7 @@ function CoursesPage() {
 
                 <div className="course-modal-meta">
               <span className="modal-language">
-                Язык: {formatLanguages(selectedCourse.languagesRaw)}
+                Язык: {(selectedCourse.languagesArray || []).join(', ') || 'Не указан'}
               </span>
                   <span className="modal-sections">
                 Разделов: {selectedCourse.sections}
@@ -440,7 +632,6 @@ function CoursesPage() {
             </div>
         )}
 
-        {/* Уведомление */}
         {notification.show && (
             <div className={`notification-toast ${notification.type}`}>
               <div className="notification-content">

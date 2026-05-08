@@ -37,7 +37,6 @@ function CreateCoursePage() {
 
   const toggleLanguage = (language) => {
     if (language === 'Другой') {
-      // Показываем инпут для ввода своего языка
       const input = prompt('Введите язык программирования:');
       if (input && input.trim() && !selectedLanguages.includes(input.trim())) {
         setSelectedLanguages([...selectedLanguages, input.trim()]);
@@ -97,7 +96,6 @@ function CreateCoursePage() {
       }
 
       const formData = new FormData();
-      // Отправляем PL как массив строк
       formData.append('PL', JSON.stringify(selectedLanguages));
       formData.append('Title', courseName.trim());
       formData.append('Description', description.trim());
@@ -213,19 +211,21 @@ function CreateCoursePage() {
               {selectedLanguages.length > 0 && (
                   <div className="selected-languages">
                     <span className="selected-label">Выбрано:</span>
-                    {selectedLanguages.map(lang => (
-                        <span key={lang} className="selected-language-tag">
-                    {lang}
-                          <button
-                              type="button"
-                              className="remove-language"
-                              onClick={() => removeLanguage(lang)}
-                              disabled={isLoading}
-                          >
-                      ×
-                    </button>
-                  </span>
-                    ))}
+                    <div className="selected-languages-list">
+                      {selectedLanguages.map(lang => (
+                          <span key={lang} className="selected-language-tag">
+                        {lang}
+                            <button
+                                type="button"
+                                className="remove-language"
+                                onClick={() => removeLanguage(lang)}
+                                disabled={isLoading}
+                            >
+                          ×
+                        </button>
+                      </span>
+                      ))}
+                    </div>
                   </div>
               )}
             </div>
