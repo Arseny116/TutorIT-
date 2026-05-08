@@ -636,7 +636,7 @@ function CoursesPage() {
             <div className={`notification-toast ${notification.type}`}>
               <div className="notification-content">
             <span className="notification-icon">
-              {notification.type === 'error' ? '⚠️' : notification.type === 'success' ? '✅' : 'ℹ️'}
+              {notification.type === 'error' ? '⚠️' : notification.type === 'success' ? '' : 'ℹ️'}
             </span>
                 <span className="notification-text">{notification.message}</span>
               </div>

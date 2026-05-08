@@ -9,7 +9,6 @@ function CreateCoursePage() {
   const [sectionsCount, setSectionsCount] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [selectedLanguages, setSelectedLanguages] = useState([]);
-  const [customLanguage, setCustomLanguage] = useState('');
   const [titleImage, setTitleImage] = useState(null);
   const [titleImagePreview, setTitleImagePreview] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +19,8 @@ function CreateCoursePage() {
   const programmingLanguages = [
     'JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby',
     'Go', 'Swift', 'Kotlin', 'TypeScript', 'Rust', 'Scala',
-    'R', 'MATLAB', 'SQL', 'HTML/CSS', 'Другой'
+    'R', 'MATLAB', 'SQL', 'HTML/CSS'
+    // 'Другой' - убрали эту кнопку
   ];
 
   const handleImageChange = (e) => {
@@ -36,14 +36,6 @@ function CreateCoursePage() {
   };
 
   const toggleLanguage = (language) => {
-    if (language === 'Другой') {
-      const input = prompt('Введите язык программирования:');
-      if (input && input.trim() && !selectedLanguages.includes(input.trim())) {
-        setSelectedLanguages([...selectedLanguages, input.trim()]);
-      }
-      return;
-    }
-
     setSelectedLanguages(prev =>
         prev.includes(language)
             ? prev.filter(l => l !== language)
