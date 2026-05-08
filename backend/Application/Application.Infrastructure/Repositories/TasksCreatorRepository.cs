@@ -54,13 +54,24 @@ namespace Application.Infrastructure.Repositories
             return taskCreatorEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string name, string description, string hint)
+        public async Task<Guid> Update(Guid id, string name, string description, string hint, Image titleImage)
         {
             await _context.TasksCreator.Where(x => x.Id == id)
                 .ExecuteUpdateAsync(s => s
                 .SetProperty(n => n.Name, name)
                 .SetProperty(d => d.Description, description)
                 .SetProperty(h => h.Hint, hint));
+
+            if (titleImage != null)
+            {
+                var task = await _context.TasksCreator.FirstOrDefaultAsync(c => c.Id == id);
+                if (task != null)
+                {
+                    task.TitleImage = titleImage;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
 
             return id;
         }

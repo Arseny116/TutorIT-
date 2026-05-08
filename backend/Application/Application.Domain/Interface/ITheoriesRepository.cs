@@ -8,7 +8,7 @@ namespace Application.Domain.Interface.ITheory
 
         Task<Guid> Create(Guid chapetId ,Theory theory);
 
-        Task<Guid> Update(Guid id, string name, string article);
+        Task<Guid> Update(Guid id, string name, string article, Image titleImage);
 
         Task<Guid> Delete(Guid id);
     }

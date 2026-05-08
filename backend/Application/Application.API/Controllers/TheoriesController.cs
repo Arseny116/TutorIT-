@@ -78,12 +78,27 @@ namespace Application.API.Controllers
 
         [Authorize]
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Guid>> UpdateTheory(Guid id, [FromBody] TheoriesRequest request)
+        public async Task<ActionResult<Guid>> UpdateTheory(Guid id, [FromForm] TheoriesRequest request)
         {
+            Image? imageValue = null;
+
+            if (request.TitleImage != null && request.TitleImage.Length > 0)
+            {
+                var imageResult = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Theory");
+
+                if (imageResult.IsFailure)
+                {
+                    return BadRequest(imageResult.Error);
+                }
+
+                imageValue = imageResult.Value;
+            }
+
             var theoryId = await _theoriesService.UpdateTheory(
                 id,
                 request.Name,
-                request.Article);
+                request.Article,
+                imageValue);
 
             return Ok(theoryId);
         }

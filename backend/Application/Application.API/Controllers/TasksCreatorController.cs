@@ -81,13 +81,28 @@ namespace Application.API.Controllers
 
         [Authorize]
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Guid>> UpdateTaskCreator(Guid id, [FromBody] TasksCreatorRequest request)
+        public async Task<ActionResult<Guid>> UpdateTaskCreator(Guid id, [FromForm] TasksCreatorRequest request)
         {
+            Image? imageValue = null;
+
+            if (request.TitleImage != null && request.TitleImage.Length > 0)
+            {
+                var imageResult = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Theory");
+
+                if (imageResult.IsFailure)
+                {
+                    return BadRequest(imageResult.Error);
+                }
+
+                imageValue = imageResult.Value;
+            }
+
             var taskCreatorId = await _tasksCreatorService.UpdateTaskCreator(
                 id,
                 request.Name,
                 request.Description,
-                request.Hint);
+                request.Hint,
+                imageValue);
 
             return Ok(taskCreatorId);
         }

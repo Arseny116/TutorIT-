@@ -225,9 +225,30 @@ namespace Application.API.Controllers
         }
         [Authorize]
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromBody] CoursesRequest request)
+        public async Task<ActionResult<Guid>> UpdateCourse(Guid id, [FromForm] CoursesRequest request)
         {
-            var courseId = await _coursesService.UpdateCourse(id, request.PL, request.Title, request.Description, request.Chapters, request.Complexity);
+            Image? imageValue = null;
+
+            if (request.TitleImage != null && request.TitleImage.Length > 0)
+            {
+                var imageResult = await _imageService.CreateImage(request.TitleImage, _staticFilePath, "Course");
+
+                if (imageResult.IsFailure)
+                {
+                    return BadRequest(imageResult.Error);
+                }
+
+                imageValue = imageResult.Value;
+            }
+
+            var courseId = await _coursesService.UpdateCourse(
+                id,
+                request.PL,
+                request.Title,
+                request.Description,
+                request.Chapters,
+                request.Complexity,
+                imageValue);
 
             return Ok(courseId);
         }
@@ -238,7 +259,7 @@ namespace Application.API.Controllers
         {
             var userId = Guid.Parse(User.Claims.ToList()[0].Value);
 
-            return Ok(await _coursesService.DeleteCourse(id,userId));
+            return Ok(await _coursesService.DeleteCourse(id, userId));
         }
     }
 }

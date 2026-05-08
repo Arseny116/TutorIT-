@@ -22,9 +22,9 @@ namespace Application.App.Services
             return await _theoriesRepository.Create(ChapterId,theory);
         }
 
-        public async Task<Guid> UpdateTheory(Guid id, string name, string article)
+        public async Task<Guid> UpdateTheory(Guid id, string name, string article, Image titleImage)
         {
-            return await _theoriesRepository.Update(id, name, article);
+            return await _theoriesRepository.Update(id, name, article, titleImage);
         }
 
         public async Task<Guid> DeleteTheory(Guid id)

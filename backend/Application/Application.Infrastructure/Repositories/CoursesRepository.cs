@@ -91,7 +91,15 @@ namespace Application.Infrastructure.Repositories
             return courseEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, List<string> pl, string title, string description, int chapters, int complexity)
+        public async Task<Guid> Update(
+            Guid id,
+            List<string> pl,
+            string title,
+            string description,
+            int chapters,
+            int complexity,
+            Image titleImage
+            )
         {
             await _context.Courses.Where(c => c.Id == id)
                 .ExecuteUpdateAsync(s => s
@@ -100,6 +108,16 @@ namespace Application.Infrastructure.Repositories
                 .SetProperty(d => d.Description, d => description)
                 .SetProperty(t => t.Chapters, t => chapters)
                 .SetProperty(c => c.Complexity, c => complexity));
+
+            if (titleImage != null)
+            {
+                var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id);
+                if (course != null)
+                {
+                    course.TitleImage = titleImage;
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             return id;
         }

@@ -54,12 +54,22 @@ namespace Application.Infrastructure.Repositories
             return theoryEntity.Id;
         }
 
-        public async Task<Guid> Update(Guid id, string name, string article)
+        public async Task<Guid> Update(Guid id, string name, string article, Image titleImage)
         {
             await _context.Theories.Where(x => x.Id == id)
                 .ExecuteUpdateAsync(s => s
                 .SetProperty(n => n.Name, name)
                 .SetProperty(a => a.Article, article));
+
+            if (titleImage != null)
+            {
+                var theory = await _context.Theories.FirstOrDefaultAsync(c => c.Id == id);
+                if (theory != null)
+                {
+                    theory.TitleImage = titleImage;
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             return id;
         }

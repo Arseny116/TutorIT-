@@ -27,14 +27,22 @@ namespace Application.App.Services
             return await _coursesRepository.Create(course);
         }
 
-        public async Task<Guid> UpdateCourse(Guid id, List<string> pl, string title, string description, int chapters, int complexity)
+        public async Task<Guid> UpdateCourse(
+            Guid id,
+            List<string> pl,
+            string title,
+            string description,
+            int chapters,
+            int complexity,
+            Image titleImage
+            )
         {
-            return await _coursesRepository.Update(id, pl, title, description, chapters, complexity);
+            return await _coursesRepository.Update(id, pl, title, description, chapters, complexity, titleImage);
         }
 
-        public async Task<Guid> DeleteCourse(Guid id , Guid user_id)
+        public async Task<Guid> DeleteCourse(Guid id, Guid user_id)
         {
-            return await _coursesRepository.Delete(id , user_id);
+            return await _coursesRepository.Delete(id, user_id);
         }
     }
 }

@@ -10,8 +10,10 @@ namespace Application.Domain.Interface.ICourse
 
         Task<Guid> CreateCourse(Course course);
 
-        Task<Guid> UpdateCourse(Guid id, List<string> pl, string title, string description, int chapters, int complexity);
+        Task<Guid> UpdateCourse(Guid id, List<string> pl, string title, string description, int chapters, int complexity, Image titleImage);
 
         Task<Guid> DeleteCourse(Guid courseId, Guid user_id);
+
+        //Task UpdateCourse(Guid id, List<string> pL, string title, string description, int chapters, int complexity, Image titleImage);
     }
 }

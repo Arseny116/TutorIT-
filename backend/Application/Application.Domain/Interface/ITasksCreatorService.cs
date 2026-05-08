@@ -8,7 +8,7 @@ namespace Application.Domain.Interface.ITaskQuestion.ITask
 
         Task<Guid> CreateTaskCreator(Guid ChapterId,TaskCreator taskCreator);
 
-        Task<Guid> UpdateTaskCreator(Guid id, string name, string description, string hint);
+        Task<Guid> UpdateTaskCreator(Guid id, string name, string description, string hint, Image titleImage);
 
         Task<Guid> DeleteTaskCreator(Guid taskId);
     }
