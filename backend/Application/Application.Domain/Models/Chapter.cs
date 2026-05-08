@@ -6,9 +6,9 @@ namespace Application.Domain.Models
     {
         const int MAX_NUMBER_THEORYBLOKS_TASKS = 10;
 
-        const int MAX_LENGTH_NAME = 150;
+        const int MAX_LENGTH_NAME = 50;
 
-        const int MAX_LENGTH_DESCRIPTION = 1500;
+        const int MAX_LENGTH_DESCRIPTION = 500;
 
         /// <summary>
         /// Id раздела

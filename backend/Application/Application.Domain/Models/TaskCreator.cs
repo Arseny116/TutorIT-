@@ -4,9 +4,9 @@ namespace Application.Domain.Models
 {
     public class TaskCreator
     {
-        const int MAX_LENGTH_NAME = 100;
+        const int MAX_LENGTH_NAME = 50;
 
-        const int MAX_LENHTH_DESCRIPTION = 1500;
+        const int MAX_LENHTH_DESCRIPTION = 200;
 
         const int MAX_LENGTH_HINT = 100;
 
